@@ -1,0 +1,160 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lilita+One&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pangolin&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+.home-root {
+  background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero {
+  padding: 50px 40px 150px;
+  text-align: left;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid #e8b4bc;
+}
+
+.home-hero h1 {
+  margin-bottom: 0px;
+  margin-top: 0px;
+  color: #8e6c88;
+  font-family: Montserrat;
+  font-size: 56px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.home-sub {
+  color: #9d7b8d;
+  font-family: Montserrat;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 32px 0 40px 0;
+  max-width: 600px;
+}
+
+.home-btns {
+  display: flex;
+  gap: 20px;
+}
+
+.home-btn {
+  font-size: 1rem;
+  padding: 16px 36px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-family: Montserrat;
+  letter-spacing: 0.5px;
+}
+
+.home-btn.primary {
+  background: #e8b4bc;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(232, 180, 188, 0.3);
+}
+
+.home-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(232, 180, 188, 0.4);
+  background: #e5a9b2;
+}
+
+.home-btn.secondary {
+  background: rgba(255, 255, 255, 0.6);
+  color: #8e6c88;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(142, 108, 136, 0.2);
+}
+
+.home-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.home-features {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 32px;
+  padding: 40px;
+  width: 100%;
+  transform: translateY(-100px);
+  position: relative;
+  z-index: 2;
+}
+
+.feature-card {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(232, 180, 188, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  min-width: 180px;
+  transition: all 0.3s ease;
+  border: 1px solid rgb(255, 222, 243);
+  backdrop-filter: blur(10px);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(232, 180, 188, 0.2);
+  border-color: rgba(232, 180, 188, 0.4);
+}
+
+.feature-icon {
+  margin-bottom: 20px;
+  color: #e8b4bc;
+}
+
+.feature-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.feature-label {
+  font-size: 1.1rem;
+  color: #8e6c88;
+  font-weight: 500;
+  text-align: center;
+  font-family: Montserrat;
+}
+
+@media (max-width: 768px) {
+  .home-hero {
+    padding: 80px 20px 120px;
+  }
+
+  .home-hero h1 {
+    font-size: 40px;
+  }
+
+  .home-sub {
+    font-size: 18px;
+  }
+
+  .home-btns {
+    flex-direction: column;
+  }
+
+  .home-features {
+    padding: 20px;
+    transform: translateY(-60px);
+  }
+
+  .feature-card {
+    min-width: 140px;
+    padding: 24px 16px;
+  }
+}

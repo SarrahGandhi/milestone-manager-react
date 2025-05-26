@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./Home.css";
 
 const features = [
@@ -104,9 +105,7 @@ const Home = () => (
         <h1>PLAN EVERY WEDDING</h1>
         <h1>MOMENT - TOGETHER</h1>
         <p className="home-sub">
-          Manage Events, track tasks,
-          <br />
-          invite guests & more
+          Manage Events, track tasks, invite guests & more
         </p>
         <div className="home-btns">
           <button className="home-btn primary">Get Started</button>
@@ -115,12 +114,21 @@ const Home = () => (
       </div>
     </div>
     <div className="home-features">
-      {features.map((f) => (
-        <div className="feature-card" key={f.label}>
-          <div className="feature-icon">{icons[f.icon]}</div>
-          <div className="feature-label">{f.label}</div>
-        </div>
-      ))}
+      {features.map((f) =>
+        f.label === "Event Organizer" ? (
+          <Link to="/events" style={{ textDecoration: "none" }} key={f.label}>
+            <div className="feature-card">
+              <div className="feature-icon">{icons[f.icon]}</div>
+              <div className="feature-label">{f.label}</div>
+            </div>
+          </Link>
+        ) : (
+          <div className="feature-card" key={f.label}>
+            <div className="feature-icon">{icons[f.icon]}</div>
+            <div className="feature-label">{f.label}</div>
+          </div>
+        )
+      )}
     </div>
   </>
 );

@@ -6,7 +6,16 @@ const Header = () => (
     <div className="logo">LOGO</div>
     <nav className="nav">
       <a href="/">HOME</a>
-      <a href="/planning">WEDDING PLANNING</a>
+      <div className="dropdown">
+        <a href="/planning">WEDDING PLANNING</a>
+        <div className="dropdown-content">
+          <a href="/events">Event Manager</a>
+          <a href="/planning/budget">Budget</a>
+          <a href="/planning/vendors">Vendors</a>
+          <a href="/planning/checklist">Task Checklist</a>
+          <a href="/planning/inspiration">Inspiration</a>
+        </div>
+      </div>
       <a href="/website">WEDDING WEBSITE</a>
       <a href="/about">ABOUT</a>
       <button className="login-btn">LOGIN</button>
