@@ -142,23 +142,47 @@
 
 .event-card-btn-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-start;
   width: 100%;
   margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.event-view-btn {
+  background: none;
+  border: none;
+  color: #eb9895;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-decoration: underline;
+  padding: 0;
+  margin: 16px 0;
+  display: inline-block;
+}
+
+.event-view-btn:hover {
+  color: #d88a87;
 }
 
 .event-edit-btn {
   border-radius: 8px;
   background: #eb9895;
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   border: none;
-  padding: 12px 24px;
+  padding: 10px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   flex: 1;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .event-edit-btn:hover {
@@ -171,12 +195,17 @@
   border: 1px solid #eb9895;
   background: #fff;
   color: #eb9895;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 12px 24px;
+  padding: 10px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   flex: 1;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .event-delete-btn:hover {

@@ -1,0 +1,839 @@
+/* TaskManager - Minimalist Aesthetic Design */
+.taskmanager-root {
+  padding: 1.5rem;
+  background: #ffffff;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
+  color: #374151;
+}
+
+/* Header Section */
+.taskmanager-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.taskmanager-title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.title-icon {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.taskmanager-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Controls Section */
+.taskmanager-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.control-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.month-filter {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 0.875rem;
+  background: #fff;
+  color: #374151;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.month-filter:focus {
+  border-color: #9ca3af;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.1);
+}
+
+.month-filter:hover {
+  border-color: #9ca3af;
+}
+
+/* Toggle Switch */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-slider {
+  width: 44px;
+  height: 22px;
+  background: #e5e7eb;
+  border-radius: 11px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-slider {
+  background: #9ca3af;
+}
+
+.toggle-slider:after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-slider:after {
+  left: 24px;
+}
+
+.toggle-text {
+  font-weight: 400;
+  color: #6b7280;
+}
+
+/* Buttons */
+.add-task-btn {
+  background: #374151;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.add-task-btn:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.add-task-btn:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 0.875rem;
+}
+
+.sort-btns {
+  display: flex;
+  gap: 0.25rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.sort-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sort-btn.active {
+  background: #fff;
+  color: #374151;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.sort-btn:hover:not(.active) {
+  background: rgba(107, 114, 128, 0.1);
+  color: #374151;
+}
+
+/* Stats Section */
+.taskmanager-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: #f9fafb;
+  padding: 1.25rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Task Groups */
+.taskmanager-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.taskmanager-list-group {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.taskmanager-list-group:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.taskmanager-list-group.collapsed {
+  background: #f9fafb;
+}
+
+.taskmanager-list-header {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  background: #6b7280;
+}
+
+.taskmanager-list-header:hover {
+  background: #4b5563;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.header-icon {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.header-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.header-count {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.expand-arrow {
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.taskmanager-list-group:not(.collapsed) .expand-arrow {
+  transform: rotate(90deg);
+}
+
+/* Task List */
+.taskmanager-list {
+  padding: 0.75rem 1.5rem 1.5rem 1.5rem;
+}
+
+/* Task Cards */
+.taskmanager-task-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.taskmanager-task-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: #e5e7eb;
+}
+
+.taskmanager-task-card.completed {
+  opacity: 0.6;
+  background: #f9fafb;
+}
+
+.taskmanager-task-card.completed .task-title {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.task-checkbox-wrapper {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.125rem;
+}
+
+.task-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  position: relative;
+}
+
+.task-checkbox:checked {
+  background: #6b7280;
+  border-color: #6b7280;
+}
+
+.task-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.task-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.task-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.task-priority {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  background: #f3f4f6;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.priority-icon {
+  font-size: 0.625rem;
+}
+
+.task-description {
+  color: #6b7280;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.task-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+}
+
+.task-due,
+.task-category {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.due-icon,
+.category-icon {
+  font-size: 0.75rem;
+}
+
+.task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  align-items: flex-end;
+}
+
+.task-details-btn,
+.task-delete-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 70px;
+  justify-content: center;
+}
+
+.task-details-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.task-details-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.task-delete-btn {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.task-delete-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #9ca3af;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  color: #6b7280;
+}
+
+.empty-add-btn {
+  background: #374151;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.empty-add-btn:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .taskmanager-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .sort-btns {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .taskmanager-root {
+    padding: 1rem;
+  }
+
+  .taskmanager-title {
+    font-size: 1.5rem;
+  }
+
+  .title-icon {
+    font-size: 1.25rem;
+  }
+
+  .taskmanager-controls {
+    padding: 0.75rem;
+  }
+
+  .taskmanager-task-card {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .task-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+
+  .task-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .task-meta {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .taskmanager-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .taskmanager-list {
+    padding: 0.5rem 1rem 1rem 1rem;
+  }
+
+  .taskmanager-list-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .header-title {
+    font-size: 0.75rem;
+  }
+
+  .header-count {
+    font-size: 0.625rem;
+  }
+}
+
+/* Slide-out Panel Styles */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.details-panel {
+  position: fixed;
+  top: 0;
+  right: -500px;
+  width: 500px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  transition: right 0.3s ease-out;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.details-panel.open {
+  right: 0;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.close-btn .btn-icon {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.panel-content {
+  padding: 2rem;
+  flex: 1;
+}
+
+.detail-section {
+  margin-bottom: 2rem;
+}
+
+.detail-section h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-section p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #111827;
+}
+
+.category-badge,
+.priority-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.category-badge {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.priority-badge {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.status-badge.completed {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.edit-task-btn,
+.toggle-complete-btn,
+.delete-task-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.edit-task-btn {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.edit-task-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.toggle-complete-btn {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.toggle-complete-btn:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.delete-task-btn {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.delete-task-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* Responsive Panel */
+@media (max-width: 768px) {
+  .details-panel {
+    width: 100vw;
+    right: -100vw;
+  }
+
+  .panel-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .panel-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .panel-content {
+    padding: 1rem;
+  }
+
+  .detail-section {
+    margin-bottom: 1.5rem;
+  }
+}
