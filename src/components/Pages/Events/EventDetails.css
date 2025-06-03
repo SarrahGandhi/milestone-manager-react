@@ -13,8 +13,15 @@
   padding: 0 20px;
 }
 
+.event-details-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .back-btn,
-.edit-event-btn {
+.edit-event-btn,
+.delete-event-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -49,6 +56,18 @@
   background: #d88a87;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(235, 152, 149, 0.3);
+}
+
+.delete-event-btn {
+  background-color: #dc3545;
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+.delete-event-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
 }
 
 .event-details-container {
@@ -204,9 +223,16 @@
     align-items: stretch;
   }
 
+  .event-details-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .back-btn,
-  .edit-event-btn {
+  .edit-event-btn,
+  .delete-event-btn {
     justify-content: center;
+    width: 100%;
   }
 
   .event-details-title {

@@ -15,9 +15,26 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// Import routes
+const eventRoutes = require("./backend/src/routes/eventRoutes");
+const taskRoutes = require("./backend/src/routes/taskRoutes");
+
+// API routes
+app.use("/api/events", eventRoutes);
+app.use("/api/tasks", taskRoutes);
+
 // Basic route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Milestone Manager API" });
+});
+
+// Health check route
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 });
 
 // Start server

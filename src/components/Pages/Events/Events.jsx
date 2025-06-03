@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../Header/Header";
 import Footer from "../../Footer/Footer";
+import DeleteEventModal from "./DeleteEventModal";
 import "./Events.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,96 +18,158 @@ import {
 
 const Events = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    eventId: null,
+    eventName: "",
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
-  // Enhanced sample events data with additional details
-  const [events] = useState([
-    {
-      id: 1,
-      title: "Bridal Shower",
-      date: "7th October, 2026",
-      time: "7:00 PM | Tuesday",
-      location: "Villa Vayu",
-      theme: "Pink and Purple",
-      numberOfGuests: 25,
-      dressCode: "Cocktail Attire - Pink/Purple Theme",
-      menu: [
-        "Welcome Cocktails",
-        "Canapés & Finger Foods",
-        "Bridal Shower Cake",
-        "Champagne Toast",
-        "Tea & Coffee Service",
-      ],
-      additionalNotes:
-        "Please bring a gift for the bride. Photography will be arranged. Parking available on-site.",
-    },
-    {
-      id: 2,
-      title: "Wedding Ceremony",
-      date: "8th October, 2026",
-      time: "4:00 PM | Wednesday",
-      location: "Grand Ballroom",
-      theme: "White and Gold",
-      numberOfGuests: 150,
-      dressCode: "Formal Attire - No White (Reserved for Bride)",
-      menu: [
-        "Pre-ceremony Refreshments",
-        "Wedding Cake",
-        "Champagne Reception",
-        "Light Appetizers",
-      ],
-      additionalNotes:
-        "Ceremony will be followed by cocktail hour. Please arrive 30 minutes early for seating. Professional photographer will be present.",
-    },
-    {
-      id: 3,
-      title: "Reception Party",
-      date: "8th October, 2026",
-      time: "7:00 PM | Wednesday",
-      location: "Garden Pavilion",
-      theme: "Silver and Blue",
-      numberOfGuests: 200,
-      dressCode: "Semi-Formal to Formal",
-      menu: [
-        "Three-Course Dinner",
-        "Open Bar",
-        "Wedding Cake Cutting",
-        "Late Night Snacks",
-        "Coffee & Dessert Station",
-      ],
-      additionalNotes:
-        "Dancing and live music entertainment. Outdoor venue with backup indoor option in case of weather. Shuttle service provided from ceremony venue.",
-    },
-    {
-      id: 4,
-      title: "Honeymoon Planning",
-      date: "9th October, 2026",
-      time: "10:00 AM | Thursday",
-      location: "Travel Agency",
-      theme: "Tropical",
-      numberOfGuests: 2,
-      dressCode: "Casual",
-      menu: ["Coffee & Pastries", "Light Refreshments"],
-      additionalNotes:
-        "Bring passports and travel preferences. Meeting to finalize honeymoon destination and bookings.",
-    },
-  ]);
+  // Fetch events from the database
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:5001/api/events");
+
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+        setError("");
+      } else {
+        setError("Failed to fetch events");
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setError("Error connecting to server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load events when component mounts
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // Helper function to format time
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+
+    // If it's already in 12-hour format, return as is
+    if (timeString.includes("AM") || timeString.includes("PM")) {
+      return timeString;
+    }
+
+    // Convert 24-hour format to 12-hour format
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Delete event function
+  const handleDeleteEvent = async (eventId, eventName) => {
+    setDeleteModal({
+      isOpen: true,
+      eventId,
+      eventName,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal.eventId) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await fetch(
+        `http://localhost:5001/api/events/${deleteModal.eventId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Refresh the events list after successful deletion
+        fetchEvents();
+        setDeleteModal({ isOpen: false, eventId: null, eventName: "" });
+      } else {
+        alert("Failed to delete event");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Error deleting event");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    if (!isDeleting) {
+      setDeleteModal({ isOpen: false, eventId: null, eventName: "" });
+    }
+  };
 
   // Filter events based on search query
   const filteredEvents = events.filter(
     (event) =>
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.theme.toLowerCase().includes(searchQuery.toLowerCase())
+      (event.dressCode &&
+        event.dressCode.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (event.category &&
+        event.category.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <>
+        <div className="events-root">
+          <div className="loading-message">Loading events...</div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <div className="events-root">
+          <div className="error-message">
+            {error}
+            <button onClick={fetchEvents} className="retry-btn">
+              Try Again
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <div className="events-root">
         <div className="events-header-row">
-          <button className="add-task-btn">
+          <button
+            className="add-task-btn"
+            onClick={() => navigate("/events/add")}
+          >
             <FontAwesomeIcon icon={faPlus} />
-            Add New Task
+            Add New Event
           </button>
           <input
             type="text"
@@ -116,44 +179,69 @@ const Events = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="events-card-row">
-          {filteredEvents.map((event) => (
-            <div key={event.id} className="event-card">
-              <h2 className="event-title">{event.title}</h2>
-              <div className="event-info">
-                <FontAwesomeIcon icon={faCalendarAlt} />
-                {event.date}
-              </div>
-              <div className="event-info">
-                <FontAwesomeIcon icon={faClock} />
-                {event.time}
-              </div>
-              <div className="event-info">
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                {event.location}
-              </div>
-              <div className="event-info">
-                <FontAwesomeIcon icon={faPalette} />
-                {event.theme}
-              </div>
-              <button
-                className="event-view-btn"
-                onClick={() => navigate(`/events/${event.id}`)}
-              >
-                View Details
-              </button>
-              <div className="event-card-btn-row">
-                <button className="event-edit-btn">
-                  <FontAwesomeIcon icon={faEdit} /> Edit
+
+        {filteredEvents.length === 0 ? (
+          <div className="no-events-message">
+            {searchQuery
+              ? "No events match your search."
+              : "No events yet. Create your first event!"}
+          </div>
+        ) : (
+          <div className="events-card-row">
+            {filteredEvents.map((event) => (
+              <div key={event._id} className="event-card">
+                <h2 className="event-title">{event.title}</h2>
+                <div className="event-info">
+                  <FontAwesomeIcon icon={faCalendarAlt} />
+                  {formatDate(event.eventDate)}
+                </div>
+                <div className="event-info">
+                  <FontAwesomeIcon icon={faClock} />
+                  {formatTime(event.startTime)}
+                </div>
+                <div className="event-info">
+                  <FontAwesomeIcon icon={faMapMarkerAlt} />
+                  {event.location}
+                </div>
+                {event.dressCode && (
+                  <div className="event-info">
+                    <FontAwesomeIcon icon={faPalette} />
+                    {event.dressCode}
+                  </div>
+                )}
+                <button
+                  className="event-view-btn"
+                  onClick={() => navigate(`/events/${event._id}`)}
+                >
+                  View Details
                 </button>
-                <button className="event-delete-btn">
-                  <FontAwesomeIcon icon={faTrash} /> Delete
-                </button>
+                <div className="event-card-btn-row">
+                  <button
+                    className="event-edit-btn"
+                    onClick={() => navigate(`/events/edit/${event._id}`)}
+                  >
+                    <FontAwesomeIcon icon={faEdit} /> Edit
+                  </button>
+                  <button
+                    className="event-delete-btn"
+                    onClick={() => handleDeleteEvent(event._id, event.title)}
+                  >
+                    <FontAwesomeIcon icon={faTrash} /> Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <DeleteEventModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        eventName={deleteModal.eventName}
+        isDeleting={isDeleting}
+      />
     </>
   );
 };
