@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import TaskService from "../../services/taskService";
+import AuthService from "../../services/authService";
 import AddTaskForm from "./AddTaskForm";
+import EditTaskForm from "./EditTaskForm";
 import "./TaskManager.css";
 
 // Remove the hardcoded initialTasks array and just define the categories and months
@@ -81,6 +83,8 @@ const TaskManager = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   // Load tasks from database on component mount
   useEffect(() => {
@@ -91,7 +95,14 @@ const TaskManager = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log("TaskManager: Starting to load tasks...");
+      console.log("TaskManager: Auth token exists?", !!AuthService.getToken());
+      console.log("TaskManager: User info:", AuthService.getUser());
+
       const tasksData = await TaskService.getAllTasks();
+      console.log("TaskManager: Received tasks data:", tasksData);
+      console.log("TaskManager: Number of tasks:", tasksData?.length || 0);
+
       // Convert database dates to month names for filtering
       const tasksWithMonths = tasksData.map((task) => ({
         ...task,
@@ -104,10 +115,17 @@ const TaskManager = () => {
           day: "numeric",
         }),
       }));
+
+      console.log("TaskManager: Processed tasks with months:", tasksWithMonths);
       setTasks(tasksWithMonths);
     } catch (err) {
-      setError("Failed to load tasks. Please try again.");
-      console.error("Error loading tasks:", err);
+      console.error("TaskManager: Error loading tasks:", err);
+      console.error("TaskManager: Error details:", {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+      });
+      setError(`Failed to load tasks: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -172,6 +190,39 @@ const TaskManager = () => {
     setShowAddForm(false);
   };
 
+  const handleOpenEditForm = (task) => {
+    setEditingTask(task);
+    setShowEditForm(true);
+    handleClosePanel(); // Close the details panel when opening edit form
+  };
+
+  const handleCloseEditForm = () => {
+    setShowEditForm(false);
+    setEditingTask(null);
+  };
+
+  const handleTaskUpdated = (updatedTask) => {
+    const taskWithMonth = {
+      ...updatedTask,
+      month: new Date(updatedTask.dueDate).toLocaleString("default", {
+        month: "long",
+      }),
+      due: new Date(updatedTask.dueDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    };
+    setTasks((prev) =>
+      prev.map((t) => (t._id === updatedTask._id ? taskWithMonth : t))
+    );
+
+    // Update selected task if it's the one being edited
+    if (selectedTask && selectedTask._id === updatedTask._id) {
+      setSelectedTask(taskWithMonth);
+    }
+  };
+
   const handleTaskAdded = (newTask) => {
     const taskWithMonth = {
       ...newTask,
@@ -185,6 +236,29 @@ const TaskManager = () => {
       }),
     };
     setTasks((prev) => [...prev, taskWithMonth]);
+  };
+
+  // Add a test task for debugging
+  const createTestTask = async () => {
+    try {
+      console.log("Creating test task...");
+      const testTask = {
+        title: "Test Wedding Task",
+        description: "This is a test task to verify everything is working",
+        category: "Planning",
+        priority: "medium",
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        completed: false,
+      };
+
+      const newTask = await TaskService.createTask(testTask);
+      console.log("Test task created:", newTask);
+      handleTaskAdded(newTask);
+      alert("Test task created successfully!");
+    } catch (error) {
+      console.error("Error creating test task:", error);
+      alert(`Error creating test task: ${error.message}`);
+    }
   };
 
   // Group tasks by category or month
@@ -231,13 +305,6 @@ const TaskManager = () => {
   if (loading) {
     return (
       <div className="taskmanager-root">
-        <div className="taskmanager-header">
-          <h1 className="taskmanager-title">
-            <span className="title-icon">📋</span>
-            Task Manager
-          </h1>
-          <p className="taskmanager-subtitle">Loading tasks...</p>
-        </div>
         <div style={{ textAlign: "center", padding: "2rem" }}>
           <div style={{ fontSize: "2rem" }}>⏳</div>
           <p>Loading your tasks...</p>
@@ -250,13 +317,6 @@ const TaskManager = () => {
   if (error) {
     return (
       <div className="taskmanager-root">
-        <div className="taskmanager-header">
-          <h1 className="taskmanager-title">
-            <span className="title-icon">📋</span>
-            Task Manager
-          </h1>
-          <p className="taskmanager-subtitle">Error loading tasks</p>
-        </div>
         <div style={{ textAlign: "center", padding: "2rem" }}>
           <div style={{ color: "#ff6b6b", fontSize: "2rem" }}>⚠️</div>
           <p style={{ color: "#ff6b6b" }}>{error}</p>
@@ -280,12 +340,12 @@ const TaskManager = () => {
 
   return (
     <div className="taskmanager-root">
-      <div className="taskmanager-header">
-        <h1 className="taskmanager-title">
+      <div className="page-title-section">
+        <h1 className="page-title">
           <span className="title-icon">📋</span>
           Task Manager
         </h1>
-        <p className="taskmanager-subtitle">
+        <p className="page-subtitle">
           Organize and track your wedding planning tasks
         </p>
       </div>
@@ -324,6 +384,15 @@ const TaskManager = () => {
         <button className="add-task-btn" onClick={handleOpenAddForm}>
           <span className="btn-icon">➕</span>
           Add New Task
+        </button>
+
+        <button
+          className="add-task-btn"
+          onClick={createTestTask}
+          style={{ backgroundColor: "#28a745", marginLeft: "10px" }}
+        >
+          <span className="btn-icon">🧪</span>
+          Create Test Task
         </button>
 
         <div className="sort-btns">
@@ -554,10 +623,7 @@ const TaskManager = () => {
                 <div className="panel-actions">
                   <button
                     className="edit-task-btn"
-                    onClick={() => {
-                      // TODO: Implement edit functionality
-                      console.log("Edit task:", selectedTask._id);
-                    }}
+                    onClick={() => handleOpenEditForm(selectedTask)}
                   >
                     <span className="btn-icon">✏️</span>
                     Edit Task
@@ -599,13 +665,20 @@ const TaskManager = () => {
         </>
       )}
 
-      {/* Add Task Form Modal */}
-      {showAddForm && (
-        <AddTaskForm
-          onClose={handleCloseAddForm}
-          onTaskAdded={handleTaskAdded}
-        />
-      )}
+      {/* Add Task Form Panel */}
+      <AddTaskForm
+        onClose={handleCloseAddForm}
+        onTaskAdded={handleTaskAdded}
+        isOpen={showAddForm}
+      />
+
+      {/* Edit Task Form Panel */}
+      <EditTaskForm
+        onClose={handleCloseEditForm}
+        onTaskUpdated={handleTaskUpdated}
+        isOpen={showEditForm}
+        task={editingTask}
+      />
     </div>
   );
 };

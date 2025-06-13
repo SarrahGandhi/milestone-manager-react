@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TaskService from "../../services/taskService";
 
-const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
+const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -17,6 +17,22 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
 
   const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
   const priorities = ["low", "medium", "high"];
+
+  // Pre-populate form when task prop changes
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || "",
+        description: task.description || "",
+        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "", // Format date for input
+        category: task.category || "Other",
+        priority: task.priority || "medium",
+        estimatedTime: task.estimatedTime ? task.estimatedTime.toString() : "",
+        assignedTo: task.assignedTo || "",
+        tags: task.tags ? task.tags.join(", ") : "",
+      });
+    }
+  }, [task]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,11 +66,11 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
         }
       });
 
-      const newTask = await TaskService.createTask(taskData);
-      onTaskAdded(newTask);
+      const updatedTask = await TaskService.updateTask(task._id, taskData);
+      onTaskUpdated(updatedTask);
       onClose();
     } catch (err) {
-      setError(err.message || "Failed to create task");
+      setError(err.message || "Failed to update task");
     } finally {
       setLoading(false);
     }
@@ -63,9 +79,9 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
   return (
     <>
       {isOpen && <div className="panel-overlay" onClick={onClose}></div>}
-      <div className={`add-task-panel ${isOpen ? "open" : ""}`}>
+      <div className={`edit-task-panel ${isOpen ? "open" : ""}`}>
         <div className="panel-header">
-          <h2>Add New Task</h2>
+          <h2>Edit Task</h2>
           <button className="close-btn" onClick={onClose}>
             <span className="btn-icon">✕</span>
           </button>
@@ -191,7 +207,7 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
                 Cancel
               </button>
               <button type="submit" disabled={loading} className="btn-primary">
-                {loading ? "Creating..." : "Create Task"}
+                {loading ? "Updating..." : "Update Task"}
               </button>
             </div>
           </form>
@@ -219,7 +235,7 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
           }
         }
 
-        .add-task-panel {
+        .edit-task-panel {
           position: fixed;
           top: 0;
           right: -500px;
@@ -234,7 +250,7 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
           flex-direction: column;
         }
 
-        .add-task-panel.open {
+        .edit-task-panel.open {
           right: 0;
         }
 
@@ -392,7 +408,7 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
         }
 
         @media (max-width: 768px) {
-          .add-task-panel {
+          .edit-task-panel {
             width: 100%;
             right: -100%;
           }
@@ -414,4 +430,4 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
   );
 };
 
-export default AddTaskForm;
+export default EditTaskForm;

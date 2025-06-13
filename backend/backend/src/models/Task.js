@@ -70,6 +70,17 @@ const taskSchema = new mongoose.Schema(
       ref: "Event",
       required: false,
     },
+    // Associate task with user
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -82,6 +93,8 @@ taskSchema.index({ category: 1 });
 taskSchema.index({ priority: 1 });
 taskSchema.index({ completed: 1 });
 taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ userId: 1 }); // Index for user-specific queries
+taskSchema.index({ createdBy: 1 });
 
 // Virtual for determining if task is overdue
 taskSchema.virtual("isOverdue").get(function () {

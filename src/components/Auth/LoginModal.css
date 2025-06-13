@@ -1,0 +1,396 @@
+/* Login Modal - Clean & Compact */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap");
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+  font-family: "Poppins", sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.login-modal {
+  background: #ffffff;
+  border-radius: 0;
+  width: 100%;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid #d4c4a8;
+  position: relative;
+}
+
+/* Floral decorations - smaller */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 30px 25px 30px;
+  background: #ffffff;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 400;
+  color: #6b5b47;
+  font-family: "Cinzel", serif;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  letter-spacing: 1px;
+  padding: 30px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #8b7355;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 3;
+}
+
+.close-button:hover {
+  color: #6b5b47;
+  transform: scale(1.1);
+}
+
+.modal-content {
+  padding: 0 30px 40px 30px;
+  background: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-group input,
+.form-row input {
+  padding: 14px 16px;
+  border: 1px solid #d4c4a8;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  color: #6b5b47;
+  font-family: "Poppins", sans-serif;
+}
+
+.form-group input::placeholder,
+.form-row input::placeholder {
+  color: #a69885;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-row input:focus {
+  outline: none;
+  border-color: #b8a082;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(184, 160, 130, 0.1);
+}
+
+.form-group input:disabled,
+.form-row input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-button {
+  background: #e5989b;
+  color: white;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 2px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  font-family: "Poppins", sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #af6163;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(184, 160, 130, 0.3);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #f5c6cb;
+  margin-bottom: 15px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.form-footer {
+  text-align: center;
+  margin-top: 25px;
+  color: #8b7355;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.form-footer .forgot-password {
+  display: block;
+  margin-bottom: 12px;
+  color: #8b7355;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.form-footer .forgot-password:hover {
+  color: #6b5b47;
+  text-decoration: underline;
+}
+
+.switch-button {
+  background: none;
+  border: none;
+  color: #8b7355;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+  padding: 0;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.switch-button:hover {
+  color: #6b5b47;
+}
+
+/* Additional floral elements for register form - smaller */
+.auth-form.register-form::before {
+  content: "🌿";
+  position: absolute;
+  bottom: -15px;
+  left: 15px;
+  font-size: 20px;
+  opacity: 0.3;
+  z-index: 1;
+}
+
+.auth-form.register-form::after {
+  content: "🌸";
+  position: absolute;
+  bottom: -10px;
+  right: 20px;
+  font-size: 18px;
+  opacity: 0.3;
+  z-index: 1;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 600px) {
+  .login-modal {
+    margin: 15px;
+    max-width: none;
+  }
+
+  .login-modal::before {
+    font-size: 28px;
+    top: 15px;
+    left: 15px;
+  }
+
+  .login-modal::after {
+    font-size: 20px;
+    top: 18px;
+    right: 18px;
+  }
+
+  .modal-header {
+    padding: 40px 25px 20px 25px;
+  }
+
+  .modal-header h2 {
+    font-size: 28px;
+    letter-spacing: 0.5px;
+    font-family: "Poppins", sans-serif;
+  }
+
+  .modal-content {
+    padding: 0 25px 30px 25px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-group input,
+  .form-row input {
+    padding: 12px 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .submit-button {
+    padding: 12px 25px;
+    font-size: 14px;
+  }
+
+  .form-footer {
+    font-size: 13px;
+  }
+
+  .form-footer .forgot-password,
+  .switch-button {
+    font-size: 13px;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .login-modal {
+    background: #2d2520;
+    border-color: #4a3f35;
+  }
+
+  .modal-header {
+    background: #2d2520;
+  }
+
+  .modal-header h2 {
+    color: #e8dcc6;
+  }
+
+  .modal-content {
+    background: #2d2520;
+  }
+
+  .form-group input,
+  .form-row input {
+    background: #3a2f26;
+    border-color: #4a3f35;
+    color: #e8dcc6;
+  }
+
+  .form-group input::placeholder,
+  .form-row input::placeholder {
+    color: #8b7355;
+  }
+
+  .form-group input:focus,
+  .form-row input:focus {
+    border-color: #b8a082;
+    background: #3a2f26;
+  }
+
+  .close-button {
+    color: #b8a082;
+  }
+
+  .close-button:hover {
+    color: #e8dcc6;
+  }
+
+  .form-footer {
+    color: #b8a082;
+  }
+
+  .form-footer .forgot-password,
+  .switch-button {
+    color: #b8a082;
+  }
+
+  .form-footer .forgot-password:hover,
+  .switch-button:hover {
+    color: #e8dcc6;
+  }
+}
