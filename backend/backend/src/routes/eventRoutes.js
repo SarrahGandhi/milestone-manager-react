@@ -10,21 +10,18 @@ const {
   getUpcomingEvents,
   updateEventStatus,
 } = require("../controllers/eventController");
+const { authenticateToken, optionalAuth } = require("../middleware/auth");
 
-// GET routes
-router.get("/", getAllEvents); // GET /api/events
-router.get("/upcoming", getUpcomingEvents); // GET /api/events/upcoming
-router.get("/status/:status", getEventsByStatus); // GET /api/events/status/published
-router.get("/:id", getEventById); // GET /api/events/:id
+// Public routes (no authentication required)
+router.get("/upcoming", getUpcomingEvents);
 
-// POST routes
-router.post("/", createEvent); // POST /api/events
-
-// PUT routes
-router.put("/:id", updateEvent); // PUT /api/events/:id
-router.put("/:id/status", updateEventStatus); // PUT /api/events/:id/status
-
-// DELETE routes
-router.delete("/:id", deleteEvent); // DELETE /api/events/:id
+// Protected routes (authentication required)
+router.get("/", authenticateToken, getAllEvents);
+router.get("/status/:status", authenticateToken, getEventsByStatus);
+router.get("/:id", authenticateToken, getEventById);
+router.post("/", authenticateToken, createEvent);
+router.put("/:id", authenticateToken, updateEvent);
+router.put("/:id/status", authenticateToken, updateEventStatus);
+router.delete("/:id", authenticateToken, deleteEvent);
 
 module.exports = router;

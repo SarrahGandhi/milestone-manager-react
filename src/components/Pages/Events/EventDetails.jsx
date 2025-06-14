@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../../Header/Header";
 import Footer from "../../Footer/Footer";
 import DeleteEventModal from "./DeleteEventModal";
+import AuthService from "../../../services/authService";
 import "./EventDetails.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -37,7 +38,10 @@ const EventDetails = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:5001/api/events/${eventId}`
+        `http://localhost:5001/api/events/${eventId}`,
+        {
+          headers: AuthService.getAuthHeaders(),
+        }
       );
 
       if (response.ok) {
@@ -47,7 +51,8 @@ const EventDetails = () => {
       } else if (response.status === 404) {
         setError("Event not found");
       } else {
-        setError("Failed to fetch event details");
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to fetch event details");
       }
     } catch (error) {
       console.error("Error fetching event:", error);
@@ -114,6 +119,7 @@ const EventDetails = () => {
         `http://localhost:5001/api/events/${deleteModal.eventId}`,
         {
           method: "DELETE",
+          headers: AuthService.getAuthHeaders(),
         }
       );
 
@@ -121,7 +127,8 @@ const EventDetails = () => {
         // Navigate back to events list after successful deletion
         navigate("/events");
       } else {
-        alert("Failed to delete event");
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to delete event");
         setIsDeleting(false);
       }
     } catch (error) {

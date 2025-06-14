@@ -375,6 +375,81 @@ const upsertRSVP = async (req, res) => {
   }
 };
 
+// Lookup guest by name for wedding website
+const lookupGuest = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    if (!name) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    // Case-insensitive search for the guest name and ensure they have selected events
+    const guest = await Guest.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+      selectedEvents: { $exists: true, $ne: [] }, // Only find guests with selected events
+    }).populate("selectedEvents", "title eventDate location");
+
+    if (!guest) {
+      return res.status(404).json({ message: "Guest not found" });
+    }
+
+    // Get all guest events
+    const guestEvents = await GuestEvent.find({ guestId: guest._id }).populate(
+      "eventId",
+      "title eventDate location"
+    );
+
+    // Add guest events to the response
+    const guestWithEvents = {
+      ...guest.toObject(),
+      guestEvents,
+    };
+
+    res.json({ guest: guestWithEvents });
+  } catch (error) {
+    console.error("Error looking up guest:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update RSVP status for a specific event
+const updateEventRSVP = async (req, res) => {
+  try {
+    const { guestId, eventId } = req.params;
+    const { rsvpStatus, attendeeCount, dietaryRestrictions, specialRequests } =
+      req.body;
+
+    const guestEvent = await GuestEvent.findOneAndUpdate(
+      { guestId, eventId },
+      {
+        rsvpStatus,
+        attendeeCount,
+        dietaryRestrictions,
+        specialRequests,
+        rsvpDate: new Date(),
+      },
+      { new: true }
+    ).populate("eventId", "title eventDate location");
+
+    if (!guestEvent) {
+      return res.status(404).json({ message: "Guest event not found" });
+    }
+
+    // Update the guest's eventAttendees count
+    await Guest.findByIdAndUpdate(guestId, {
+      $set: {
+        [`eventAttendees.${eventId}`]: attendeeCount,
+      },
+    });
+
+    res.json(guestEvent);
+  } catch (error) {
+    console.error("Error updating RSVP:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   getGuests,
   getGuestById,
@@ -383,4 +458,6 @@ module.exports = {
   deleteGuest,
   getRSVPData,
   upsertRSVP,
+  lookupGuest,
+  updateEventRSVP,
 };

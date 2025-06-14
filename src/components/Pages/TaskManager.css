@@ -265,16 +265,17 @@
 .taskmanager-list-header {
   padding: 1rem 1.5rem;
   cursor: pointer;
-  color: #fff;
+  color: #4b5563;
   font-weight: 500;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  background: #6b7280;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .taskmanager-list-header:hover {
-  background: #4b5563;
+  background: #f9fafb;
 }
 
 .header-content {

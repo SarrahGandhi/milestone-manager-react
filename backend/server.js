@@ -33,7 +33,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB Atlas Connection - Hardcoded for now
+// MongoDB Atlas Connection
 const MONGODB_URI =
   "mongodb+srv://admin:admin@cluster0.6brfp.mongodb.net/WeddingData";
 
@@ -189,6 +189,47 @@ app.get("/api/debug/budgets", async (req, res) => {
     });
   } catch (error) {
     console.error("🚨 DEBUG budgets error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// TEMPORARY DEBUG ROUTE - check events
+app.get("/api/debug/events", async (req, res) => {
+  try {
+    const Event = require("./backend/src/models/Event");
+    const allEvents = await Event.find({});
+    console.log("🔍 DEBUG: Found", allEvents.length, "events in database");
+    console.log("🔍 DEBUG: Events:", allEvents);
+    res.json({
+      count: allEvents.length,
+      events: allEvents,
+    });
+  } catch (error) {
+    console.error("🚨 DEBUG events error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// TEMPORARY DEBUG ROUTE - publish all events
+app.post("/api/debug/publish-events", async (req, res) => {
+  try {
+    const Event = require("./backend/src/models/Event");
+    const result = await Event.updateMany({}, { status: "published" });
+
+    // Get all events after update
+    const allEvents = await Event.find({});
+
+    console.log("🔍 DEBUG: Published", result.modifiedCount, "events");
+    console.log("🔍 DEBUG: Updated events:", allEvents);
+
+    res.json({
+      message: "Events published!",
+      eventsUpdated: result.modifiedCount,
+      totalEvents: allEvents.length,
+      events: allEvents,
+    });
+  } catch (error) {
+    console.error("🚨 DEBUG publish events error:", error);
     res.status(500).json({ error: error.message });
   }
 });

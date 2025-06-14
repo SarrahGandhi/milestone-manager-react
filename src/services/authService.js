@@ -1,6 +1,5 @@
-// Use relative URL if in development, or environment variable
-const API_BASE_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5001/api";
+// Use relative URL with proxy
+const API_BASE_URL = "/api";
 
 // Token management
 const TOKEN_KEY = "milestone_manager_token";

@@ -85,8 +85,9 @@
 }
 
 .rsvp-table thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #ffffff;
+  color: #4b5563;
+  border-bottom: 2px solid #e5e7eb;
 }
 
 .rsvp-table th {
@@ -96,6 +97,7 @@
   font-size: 0.9rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  color: #4b5563;
 }
 
 .rsvp-table td {

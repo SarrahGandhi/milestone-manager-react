@@ -338,59 +338,59 @@
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   .login-modal {
-    background: #2d2520;
-    border-color: #4a3f35;
+    background: #ffffff;
+    border-color: #e5e7eb;
   }
 
   .modal-header {
-    background: #2d2520;
+    background: #ffffff;
   }
 
   .modal-header h2 {
-    color: #e8dcc6;
+    color: #2d3748;
   }
 
   .modal-content {
-    background: #2d2520;
+    background: #ffffff;
   }
 
   .form-group input,
   .form-row input {
-    background: #3a2f26;
-    border-color: #4a3f35;
-    color: #e8dcc6;
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #2d3748;
   }
 
   .form-group input::placeholder,
   .form-row input::placeholder {
-    color: #8b7355;
+    color: #6b7280;
   }
 
   .form-group input:focus,
   .form-row input:focus {
-    border-color: #b8a082;
-    background: #3a2f26;
+    border-color: #eb9895;
+    background: #ffffff;
   }
 
   .close-button {
-    color: #b8a082;
+    color: #4b5563;
   }
 
   .close-button:hover {
-    color: #e8dcc6;
+    color: #2d3748;
   }
 
   .form-footer {
-    color: #b8a082;
+    color: #4b5563;
   }
 
   .form-footer .forgot-password,
   .switch-button {
-    color: #b8a082;
+    color: #4b5563;
   }
 
   .form-footer .forgot-password:hover,
   .switch-button:hover {
-    color: #e8dcc6;
+    color: #2d3748;
   }
 }

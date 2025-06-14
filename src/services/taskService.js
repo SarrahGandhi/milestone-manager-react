@@ -200,10 +200,15 @@ class TaskService {
   // Get task statistics
   static async getTaskStats() {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/stats`, {
-        headers: this.getHeaders(),
-      });
-      return await this.handleResponse(response);
+      // First get all tasks
+      const tasks = await this.getAllTasks();
+
+      // Calculate statistics
+      return {
+        totalTasks: tasks.length,
+        completedTasks: tasks.filter((task) => task.completed).length,
+        pendingTasks: tasks.filter((task) => !task.completed).length,
+      };
     } catch (error) {
       console.error("Error fetching task statistics:", error);
       throw error;

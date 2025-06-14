@@ -60,6 +60,41 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Optional auth middleware (doesn't fail if no token)
+const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      // No token provided, continue as public access
+      req.user = null;
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId).select("-password");
+
+      if (user && user.isActive) {
+        req.user = user;
+      } else {
+        req.user = null;
+      }
+    } catch (error) {
+      // Invalid token, continue as public access
+      req.user = null;
+    }
+
+    next();
+  } catch (error) {
+    // Any other error, continue as public access
+    console.error("Optional auth error:", error);
+    req.user = null;
+    next();
+  }
+};
+
 // Middleware to check if user is admin
 const requireAdmin = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
@@ -69,28 +104,6 @@ const requireAdmin = (req, res, next) => {
       success: false,
       message: "Access denied. Admin privileges required.",
     });
-  }
-};
-
-// Optional auth middleware (doesn't fail if no token)
-const optionalAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select("-password");
-
-      if (user && user.isActive) {
-        req.user = user;
-      }
-    }
-
-    next();
-  } catch (error) {
-    // Continue without user if token is invalid/expired
-    next();
   }
 };
 

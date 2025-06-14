@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import LoginModal from "../Auth/LoginModal";
 import AuthService from "../../services/authService";
 import "./Header.css"; // We'll add styles here
@@ -6,6 +7,8 @@ import "./Header.css"; // We'll add styles here
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -13,6 +16,20 @@ const Header = () => {
     if (currentUser) {
       setUser(currentUser);
     }
+  }, []);
+
+  // Add click outside listener to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleLogin = (userData) => {
@@ -32,27 +49,38 @@ const Header = () => {
     setIsLoginModalOpen(false);
   };
 
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   return (
     <>
       <header className="header">
         <div className="logo">MILESTONE MANAGER</div>
         <nav className="nav">
-          <a href="/">HOME</a>
-          <div className="dropdown">
-            <a href="/planning">WEDDING PLANNING</a>
-            <div className="dropdown-content">
-              <a href="/events">Event Manager</a>
-              <a href="/guests">Guest List</a>
-              <a href="/rsvp-manager">RSVP Manager</a>
-              <a href="/budget">Budget</a>
-              <a href="/planning/vendors">Vendors</a>
-              <a href="/taskmanager">Task Manager</a>
-              <a href="/planning/checklist">Task Checklist</a>
-              <a href="/planning/inspiration">Inspiration</a>
+          <Link to="/">HOME</Link>
+          <Link to="/wedding-website">WEDDING WEBSITE</Link>
+          <Link to="/about">ABOUT</Link>
+          {user && (
+            <div className="dropdown" ref={dropdownRef}>
+              <Link to="/planning" onClick={toggleDropdown}>
+                WEDDING PLANNING {isDropdownOpen ? "▼" : "▶"}
+              </Link>
+              <div
+                className={`dropdown-content ${isDropdownOpen ? "show" : ""}`}
+              >
+                <Link to="/events">Event Manager</Link>
+                <Link to="/guests">Guest List</Link>
+                <Link to="/rsvp-manager">RSVP Manager</Link>
+                <Link to="/budget">Budget</Link>
+                <Link to="/planning/vendors">Vendors</Link>
+                <Link to="/taskmanager">Task Manager</Link>
+                <Link to="/planning/checklist">Task Checklist</Link>
+                <Link to="/inspiration">Inspiration</Link>
+              </div>
             </div>
-          </div>
-          <a href="/website">WEDDING WEBSITE</a>
-          <a href="/about">ABOUT</a>
+          )}
 
           {user ? (
             <div className="user-menu">

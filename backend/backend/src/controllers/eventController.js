@@ -100,13 +100,33 @@ const getUpcomingEvents = async (req, res) => {
     const today = new Date();
     const events = await Event.find({
       eventDate: { $gte: today },
-      status: { $in: ["published", "draft"] },
+      status: "published", // Only return published events for public access
     })
       .sort({ eventDate: 1 })
-      .limit(10);
-    res.json(events);
+      .select(
+        "title eventDate location description dressCode menu additionalDetails startTime endTime"
+      )
+      .lean();
+
+    // Format dates and times for frontend
+    const formattedEvents = events.map((event) => ({
+      ...event,
+      eventDate: event.eventDate.toISOString(),
+      formattedDate: event.eventDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      formattedTime: `${event.startTime}${
+        event.endTime ? ` - ${event.endTime}` : ""
+      }`,
+    }));
+
+    res.json(formattedEvents);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching upcoming events:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

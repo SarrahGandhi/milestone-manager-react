@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -19,34 +19,15 @@ import About from "./components/Pages/About/About";
 import AddEventForm from "./components/Pages/Events/AddEventForm";
 import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
-import AuthService from "./services/authService";
+import Inspiration from "./components/Pages/Inspiration/Inspiration";
+import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = loading
-  const [showLogin, setShowLogin] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authenticated = await AuthService.validateToken();
-        setIsAuthenticated(authenticated);
-        if (!authenticated) {
-          // Clear any invalid tokens
-          AuthService.removeToken();
-          setShowLogin(true);
-        }
-      } catch (error) {
-        console.error("Authentication check failed:", error);
-        AuthService.removeToken();
-        setIsAuthenticated(false);
-        setShowLogin(true);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div
         style={{
@@ -62,7 +43,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated && showLogin) {
+  if (!isAuthenticated) {
     return (
       <div
         style={{
@@ -76,7 +57,7 @@ const ProtectedRoute = ({ children }) => {
         }}
       >
         <h2>Authentication Required</h2>
-        <p>Please log in to access the Task Manager.</p>
+        <p>Please log in to access this feature.</p>
         <div style={{ marginTop: "1rem" }}>
           <button
             onClick={() => (window.location.href = "/")}
@@ -92,98 +73,122 @@ const ProtectedRoute = ({ children }) => {
           >
             Go to Home
           </button>
-          <button
-            onClick={() => {
-              // For now, just clear everything and go home
-              // You can implement a proper login modal here
-              AuthService.removeToken();
-              window.location.href = "/";
-            }}
-            style={{
-              padding: "0.5rem 1rem",
-              backgroundColor: "#6c757d",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Clear & Return
-          </button>
         </div>
       </div>
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return children;
 };
 
 function App() {
   return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Home />
-              <Walkthrough />
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/events"
-          element={
-            <>
-              <Events />
-              <Footer />
-            </>
-          }
-        />
-        <Route path="/events/add" element={<AddEventForm />} />
-        <Route path="/events/edit/:eventId" element={<EditEventForm />} />
-        <Route
-          path="/events/:eventId"
-          element={
-            <>
-              <EventDetails />
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/taskmanager"
-          element={
-            <ProtectedRoute>
-              <TaskManager />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/guests" element={<Guests />} />
-        <Route
-          path="/budget"
-          element={
-            <ProtectedRoute>
-              <Budget />
-              <Footer />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/rsvp-manager"
-          element={
-            <ProtectedRoute>
-              <RSVPManager />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/about" element={<About />} />
-        {/* Redirect any unknown routes to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Header />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Home />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/wedding-website"
+            element={
+              <>
+                <WeddingWebsite />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/inspiration"
+            element={
+              <>
+                <Inspiration />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <>
+                <About />
+                <Footer />
+              </>
+            }
+          />
+          {/* Protected Routes */}
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <Events />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/add"
+            element={
+              <ProtectedRoute>
+                <AddEventForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/edit/:eventId"
+            element={
+              <ProtectedRoute>
+                <EditEventForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/:eventId"
+            element={
+              <ProtectedRoute>
+                <EventDetails />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/taskmanager"
+            element={
+              <ProtectedRoute>
+                <TaskManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/guests" element={<Guests />} />
+          <Route
+            path="/budget"
+            element={
+              <ProtectedRoute>
+                <Budget />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rsvp-manager"
+            element={
+              <ProtectedRoute>
+                <RSVPManager />
+              </ProtectedRoute>
+            }
+          />
+          {/* Redirect any unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

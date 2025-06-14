@@ -1,6 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Home.css";
+import Dashboard from "../Dashboard/Dashboard";
+import Walkthrough from "../Walkthrough/Walkthrough";
+import { useAuth } from "../../context/AuthContext";
 
 const features = [
   { label: "Event Organizer", icon: "calendar" },
@@ -98,50 +101,83 @@ const icons = {
   ),
 };
 
-const Home = () => (
-  <>
-    <div className="home-root">
-      <div className="home-hero">
-        <h1>PLAN EVERY WEDDING</h1>
-        <h1>MOMENT - TOGETHER</h1>
-        <p className="home-sub">
-          Manage Events, track tasks, invite guests & more
-        </p>
-        <div className="home-btns">
-          <button className="home-btn primary">Get Started</button>
-          <button className="home-btn secondary">Explore Demo</button>
+const Home = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  return (
+    <>
+      <div className="home-root">
+        <div className="home-hero">
+          <h1>PLAN EVERY WEDDING</h1>
+          <h1>MOMENT - TOGETHER</h1>
+          <p className="home-sub">
+            Manage Events, track tasks, invite guests & more
+          </p>
+          <div className="home-btns">
+            <button className="home-btn primary">Get Started</button>
+            <button className="home-btn secondary">Explore Demo</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div className="home-features">
-      {features.map((f) =>
-        f.label === "Event Organizer" ? (
-          <Link to="/events" style={{ textDecoration: "none" }} key={f.label}>
-            <div className="feature-card">
+      <div className="home-features">
+        {features.map((f) =>
+          f.label === "Event Organizer" ? (
+            <Link to="/events" style={{ textDecoration: "none" }} key={f.label}>
+              <div className="feature-card">
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
+          ) : f.label === "Task Manager" ? (
+            <Link
+              to="/taskmanager"
+              style={{ textDecoration: "none" }}
+              key={f.label}
+            >
+              <div className="feature-card">
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
+          ) : f.label === "RSVP Manager" ? (
+            <Link
+              to="/rsvp-manager"
+              style={{ textDecoration: "none" }}
+              key={f.label}
+            >
+              <div className="feature-card">
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
+          ) : f.label === "Pinterest Board" ? (
+            <Link
+              to="/inspiration"
+              style={{ textDecoration: "none" }}
+              key={f.label}
+            >
+              <div className="feature-card">
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
+          ) : (
+            <div className="feature-card" key={f.label}>
               <div className="feature-icon">{icons[f.icon]}</div>
               <div className="feature-label">{f.label}</div>
             </div>
-          </Link>
-        ) : f.label === "Task Manager" ? (
-          <Link
-            to="/taskmanager"
-            style={{ textDecoration: "none" }}
-            key={f.label}
-          >
-            <div className="feature-card">
-              <div className="feature-icon">{icons[f.icon]}</div>
-              <div className="feature-label">{f.label}</div>
-            </div>
-          </Link>
-        ) : (
-          <div className="feature-card" key={f.label}>
-            <div className="feature-icon">{icons[f.icon]}</div>
-            <div className="feature-label">{f.label}</div>
-          </div>
-        )
+          )
+        )}
+      </div>
+      {isLoading ? (
+        <div style={{ textAlign: "center", padding: "2rem" }}>Loading...</div>
+      ) : isAuthenticated ? (
+        <Dashboard />
+      ) : (
+        <Walkthrough />
       )}
-    </div>
-  </>
-);
+    </>
+  );
+};
 
 export default Home;
