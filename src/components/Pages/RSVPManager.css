@@ -15,6 +15,12 @@
   padding-bottom: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .rsvp-header h1 {
   color: #2c3e50;
   margin: 0;
@@ -38,6 +44,27 @@
 .add-guest-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.export-csv-btn {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.export-csv-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
 }
 
 .event-filter {
@@ -104,6 +131,11 @@
   padding: 1rem 0.75rem;
   border-bottom: 1px solid #f8f9fa;
   vertical-align: middle;
+}
+
+.rsvp-table td.actions {
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .rsvp-table tbody tr {
@@ -206,10 +238,15 @@
 .actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 250px;
+  justify-content: flex-start;
 }
 
 .edit-btn,
-.delete-btn {
+.delete-btn,
+.delete-rsvp-btn {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -230,10 +267,24 @@
   transform: translateY(-1px);
 }
 
+.delete-rsvp-btn {
+  background-color: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffcc02;
+}
+
+.delete-rsvp-btn:hover {
+  background-color: #ffcc02;
+  transform: translateY(-1px);
+}
+
 .delete-btn {
-  background-color: #ffebee;
-  color: #d32f2f;
-  border: 1px solid #ffcdd2;
+  background-color: #ffebee !important;
+  color: #d32f2f !important;
+  border: 1px solid #ffcdd2 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .delete-btn:hover {
@@ -417,6 +468,11 @@
     text-align: center;
   }
 
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
   .rsvp-header h1 {
     font-size: 2rem;
   }
@@ -434,17 +490,108 @@
     min-width: 800px;
   }
 
-  .guest-form-modal {
-    width: 95%;
-    padding: 1.5rem;
+  .actions {
+    min-width: 200px;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
+  .edit-btn,
+  .delete-btn,
+  .delete-rsvp-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    width: 100%;
   }
+}
 
-  .form-actions {
-    flex-direction: column;
+/* Delete Confirmation Modal */
+.delete-confirmation-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.delete-confirmation-modal .modal-header {
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: none;
+}
+
+.delete-confirmation-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.delete-confirmation-modal .modal-body {
+  padding: 1rem 1.5rem;
+}
+
+.delete-confirmation-modal .modal-body p {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.delete-confirmation-modal .warning-text {
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.delete-confirmation-modal .modal-actions {
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.delete-modal-cancel-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-modal-cancel-btn:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.confirm-delete-btn {
+  background-color: #dc2626;
+  color: white;
+  border: 1px solid #dc2626;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-delete-btn:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

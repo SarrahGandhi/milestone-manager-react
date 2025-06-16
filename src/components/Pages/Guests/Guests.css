@@ -24,6 +24,12 @@
   gap: 1rem;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .add-guest-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -43,6 +49,27 @@
 .add-guest-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.export-csv-btn {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 161, 105, 0.4);
+}
+
+.export-csv-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 161, 105, 0.6);
 }
 
 .guests-search-bar {
@@ -320,6 +347,11 @@
   .guests-header-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .action-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .guests-search-bar {

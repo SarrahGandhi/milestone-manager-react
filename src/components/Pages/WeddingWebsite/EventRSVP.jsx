@@ -1,31 +1,46 @@
 import React, { useState } from "react";
 import "./WeddingWebsite.css";
 
-const EventRSVP = ({ event, guestEvent, onRSVPSubmit }) => {
+const EventRSVP = ({
+  event,
+  guestEvent,
+  onRSVPSubmit,
+  onRSVPDelete,
+  guestEmail,
+}) => {
   const [rsvpData, setRsvpData] = useState({
     rsvpStatus: guestEvent?.rsvpStatus || "pending",
-    attendeeCount: {
-      men: guestEvent?.attendeeCount?.men || 0,
-      women: guestEvent?.attendeeCount?.women || 0,
-      kids: guestEvent?.attendeeCount?.kids || 0,
-    },
+    email: guestEmail || "",
     dietaryRestrictions: guestEvent?.dietaryRestrictions || "",
     specialRequests: guestEvent?.specialRequests || "",
+    wantsEmailConfirmation: true,
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic email validation if email confirmation is requested
+    if (rsvpData.wantsEmailConfirmation && rsvpData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(rsvpData.email)) {
+        alert(
+          "Please enter a valid email address or uncheck the email confirmation option."
+        );
+        return;
+      }
+    }
+
     onRSVPSubmit(event._id, rsvpData);
   };
 
-  const handleAttendeeChange = (type, value) => {
-    setRsvpData((prev) => ({
-      ...prev,
-      attendeeCount: {
-        ...prev.attendeeCount,
-        [type]: parseInt(value) || 0,
-      },
-    }));
+  const handleDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to cancel your RSVP for "${event.title}"? This action cannot be undone.`
+      )
+    ) {
+      onRSVPDelete(event._id);
+    }
   };
 
   return (
@@ -41,7 +56,15 @@ const EventRSVP = ({ event, guestEvent, onRSVPSubmit }) => {
           minute: "2-digit",
         })}
       </p>
-      <p className="event-location">{event.location}</p>
+      {event.location && <p className="event-location">{event.location}</p>}
+
+      {guestEvent?.rsvpStatus && guestEvent.rsvpStatus !== "pending" && (
+        <div className="current-rsvp-status">
+          <p>
+            <strong>Current RSVP Status:</strong> {guestEvent.rsvpStatus}
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="rsvp-form">
         <div className="form-group">
@@ -60,47 +83,26 @@ const EventRSVP = ({ event, guestEvent, onRSVPSubmit }) => {
           </select>
         </div>
 
+        <div className="form-group">
+          <label>Email Address</label>
+          <input
+            type="email"
+            value={rsvpData.email}
+            onChange={(e) =>
+              setRsvpData((prev) => ({ ...prev, email: e.target.value }))
+            }
+            placeholder="your.email@example.com"
+            className="email-input"
+          />
+          <small className="email-help-text">
+            {rsvpData.wantsEmailConfirmation
+              ? "Required for email confirmation"
+              : "Optional - for any future wedding updates"}
+          </small>
+        </div>
+
         {rsvpData.rsvpStatus === "confirmed" && (
           <>
-            <div className="attendee-count-section">
-              <label>Number of Guests:</label>
-              <div className="attendee-inputs">
-                <div className="attendee-input-group">
-                  <label>Men</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={rsvpData.attendeeCount.men}
-                    onChange={(e) =>
-                      handleAttendeeChange("men", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="attendee-input-group">
-                  <label>Women</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={rsvpData.attendeeCount.women}
-                    onChange={(e) =>
-                      handleAttendeeChange("women", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="attendee-input-group">
-                  <label>Children</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={rsvpData.attendeeCount.kids}
-                    onChange={(e) =>
-                      handleAttendeeChange("kids", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
             <div className="form-group">
               <label>Dietary Restrictions</label>
               <textarea
@@ -131,9 +133,40 @@ const EventRSVP = ({ event, guestEvent, onRSVPSubmit }) => {
           </>
         )}
 
+        <div className="form-group checkbox-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={rsvpData.wantsEmailConfirmation}
+              onChange={(e) =>
+                setRsvpData((prev) => ({
+                  ...prev,
+                  wantsEmailConfirmation: e.target.checked,
+                }))
+              }
+              className="email-confirmation-checkbox"
+            />
+            <span className="checkbox-text">
+              Send me an email confirmation of my RSVP
+            </span>
+          </label>
+        </div>
+
         <button type="submit" className="submit-rsvp-btn">
-          Submit RSVP
+          {guestEvent?.rsvpStatus && guestEvent.rsvpStatus !== "pending"
+            ? "Update RSVP"
+            : "Submit RSVP"}
         </button>
+
+        {guestEvent?.rsvpStatus && guestEvent.rsvpStatus !== "pending" && (
+          <button
+            type="button"
+            className="cancel-rsvp-btn"
+            onClick={handleDelete}
+          >
+            Cancel RSVP
+          </button>
+        )}
       </form>
     </div>
   );

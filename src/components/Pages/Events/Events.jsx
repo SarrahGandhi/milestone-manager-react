@@ -34,7 +34,7 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5001/api/events", {
+      const response = await fetch("/api/events", {
         headers: AuthService.getAuthHeaders(),
       });
 
@@ -100,13 +100,10 @@ const Events = () => {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(
-        `http://localhost:5001/api/events/${deleteModal.eventId}`,
-        {
-          method: "DELETE",
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
+      const response = await fetch(`/api/events/${deleteModal.eventId}`, {
+        method: "DELETE",
+        headers: AuthService.getAuthHeaders(),
+      });
 
       if (response.ok) {
         // Refresh the events list after successful deletion

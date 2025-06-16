@@ -37,12 +37,9 @@ const EventDetails = () => {
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:5001/api/events/${eventId}`,
-        {
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
+      const response = await fetch(`/api/events/${eventId}`, {
+        headers: AuthService.getAuthHeaders(),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -115,13 +112,10 @@ const EventDetails = () => {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(
-        `http://localhost:5001/api/events/${deleteModal.eventId}`,
-        {
-          method: "DELETE",
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
+      const response = await fetch(`/api/events/${deleteModal.eventId}`, {
+        method: "DELETE",
+        headers: AuthService.getAuthHeaders(),
+      });
 
       if (response.ok) {
         // Navigate back to events list after successful deletion

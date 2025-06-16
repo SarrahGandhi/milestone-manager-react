@@ -198,7 +198,7 @@ app.get("/api/debug/budgets", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - check events
 app.get("/api/debug/events", async (req, res) => {
   try {
-    const Event = require("./backend/src/models/Event");
+    const Event = require("./src/models/Event");
     const allEvents = await Event.find({});
     console.log("🔍 DEBUG: Found", allEvents.length, "events in database");
     console.log("🔍 DEBUG: Events:", allEvents);
@@ -215,7 +215,7 @@ app.get("/api/debug/events", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - publish all events
 app.post("/api/debug/publish-events", async (req, res) => {
   try {
-    const Event = require("./backend/src/models/Event");
+    const Event = require("./src/models/Event");
     const result = await Event.updateMany({}, { status: "published" });
 
     // Get all events after update

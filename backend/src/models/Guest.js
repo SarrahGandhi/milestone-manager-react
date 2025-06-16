@@ -7,6 +7,20 @@ const guestSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    email: {
+      type: String,
+      required: false,
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          // Only validate if email is provided
+          if (!v) return true;
+          return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
+        },
+        message: "Please enter a valid email address",
+      },
+    },
     phone: {
       type: String,
       required: false,
@@ -27,6 +41,11 @@ const guestSchema = new mongoose.Schema(
       required: false,
       trim: true,
       default: "US",
+    },
+    category: {
+      type: String,
+      enum: ["bride", "groom"],
+      required: true,
     },
     selectedEvents: [
       {
@@ -94,5 +113,6 @@ guestSchema.virtual("totalAttendees").get(function () {
 guestSchema.index({ userId: 1 });
 guestSchema.index({ name: 1 });
 guestSchema.index({ category: 1 });
+guestSchema.index({ email: 1 });
 
 module.exports = mongoose.model("Guest", guestSchema);

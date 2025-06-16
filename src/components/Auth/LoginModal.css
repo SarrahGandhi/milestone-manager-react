@@ -1,7 +1,8 @@
-/* Login Modal - Clean & Compact */
+/* Login Modal - Clean & Compact - UPDATED v2 */
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap");
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -15,6 +16,7 @@
   z-index: 2000;
   animation: fadeIn 0.3s ease-out;
   font-family: "Poppins", sans-serif;
+  padding: 20px;
 }
 
 @keyframes fadeIn {
@@ -26,20 +28,20 @@
   }
 }
 
-.login-modal {
-  background: #ffffff;
-  border-radius: 0;
-  width: 100%;
-  max-width: 380px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid #d4c4a8;
-  position: relative;
+.login-modal,
+.auth-modal-container {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  border: 1px solid #d4c4a8 !important;
+  position: relative !important;
+  margin: auto !important;
 }
-
-/* Floral decorations - smaller */
 
 @keyframes slideUp {
   from {
@@ -52,66 +54,108 @@
   }
 }
 
+/* SUPER SPECIFIC selectors for auth modal - OVERRIDE ALL */
+div.login-modal.auth-modal-container .modal-header.auth-modal-header,
+div.login-modal .modal-header.auth-modal-header,
+.auth-modal-container .modal-header,
+.auth-modal-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 30px 30px 0 30px !important;
+  background: #ffffff !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
 .modal-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 50px 30px 25px 30px;
-  background: #ffffff;
-  border-radius: 0;
-  position: relative;
-  overflow: hidden;
-  padding: 20px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 30px 30px 0 30px !important;
+  background: #ffffff !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* SUPER SPECIFIC selectors for auth modal header title - OVERRIDE ALL */
+div.login-modal.auth-modal-container .modal-header.auth-modal-header h2,
+div.login-modal .modal-header.auth-modal-header h2,
+.auth-modal-container .modal-header h2,
+.auth-modal-header h2 {
+  margin: 0 !important;
+  font-size: 28px !important;
+  font-weight: 400 !important;
+  color: #6b5b47 !important;
+  font-family: "Cinzel", serif !important;
+  text-align: center !important;
+  position: relative !important;
+  z-index: 2 !important;
+  letter-spacing: 1px !important;
+  flex: 1 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .modal-header h2 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 400;
-  color: #6b5b47;
-  font-family: "Cinzel", serif;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  letter-spacing: 1px;
-  padding: 30px;
+  margin: 0 !important;
+  font-size: 28px !important;
+  font-weight: 400 !important;
+  color: #6b5b47 !important;
+  font-family: "Cinzel", serif !important;
+  text-align: center !important;
+  position: relative !important;
+  z-index: 2 !important;
+  letter-spacing: 1px !important;
+  flex: 1 !important;
+  padding: 0 !important;
 }
 
+/* SUPER SPECIFIC selectors for close button - OVERRIDE ALL */
+div.login-modal.auth-modal-container .close-button.auth-close-button,
+div.login-modal .close-button.auth-close-button,
+.auth-modal-container .close-button,
 .close-button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: #8b7355;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0;
-  transition: all 0.3s ease;
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 3;
+  background: none !important;
+  border: none !important;
+  font-size: 24px !important;
+  color: #8b7355 !important;
+  cursor: pointer !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 3 !important;
+  box-sizing: border-box !important;
 }
 
 .close-button:hover {
   color: #6b5b47;
+  background: rgba(107, 91, 71, 0.1);
   transform: scale(1.1);
 }
 
 .modal-content {
-  padding: 0 30px 40px 30px;
+  padding: 30px 30px 40px 30px;
   background: #ffffff;
-  position: relative;
+  max-width: 100%;
+
   z-index: 2;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .form-group {
@@ -126,17 +170,20 @@
   gap: 15px;
 }
 
-.form-group input,
-.form-row input {
-  padding: 14px 16px;
-  border: 1px solid #d4c4a8;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 400;
-  transition: all 0.3s ease;
-  background: #ffffff;
-  color: #6b5b47;
-  font-family: "Poppins", sans-serif;
+.auth-modal-container .form-group input,
+.auth-modal-container .form-row input,
+.login-modal .form-group input,
+.login-modal .form-row input {
+  padding: 16px 18px !important;
+  border: 2px solid #d4c4a8 !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  transition: all 0.3s ease !important;
+  background: #ffffff !important;
+  color: #6b5b47 !important;
+  font-family: "Poppins", sans-serif !important;
+  box-sizing: border-box !important;
 }
 
 .form-group input::placeholder,
@@ -151,7 +198,7 @@
   outline: none;
   border-color: #b8a082;
   background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(184, 160, 130, 0.1);
+  box-shadow: 0 0 0 3px rgba(184, 160, 130, 0.15);
 }
 
 .form-group input:disabled,
@@ -164,21 +211,21 @@
   background: #e5989b;
   color: white;
   border: none;
-  padding: 14px 30px;
-  border-radius: 2px;
+  padding: 16px 30px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 12px;
+  margin-top: 10px;
   font-family: "Poppins", sans-serif;
   letter-spacing: 0.5px;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #af6163;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 15px rgba(184, 160, 130, 0.3);
+  background: #d17a7d;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(229, 152, 155, 0.4);
 }
 
 .submit-button:active:not(:disabled) {
@@ -192,15 +239,23 @@
 }
 
 .error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 12px 16px;
-  border-radius: 15px;
-  font-size: 13px;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
-  border: 1px solid #f5c6cb;
-  margin-bottom: 15px;
+  border: 1px solid #fecaca;
+  margin-bottom: 20px;
   animation: shake 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-message::before {
+  content: "⚠️";
+  font-size: 16px;
 }
 
 @keyframes shake {
@@ -209,10 +264,10 @@
     transform: translateX(0);
   }
   25% {
-    transform: translateX(-5px);
+    transform: translateX(-3px);
   }
   75% {
-    transform: translateX(5px);
+    transform: translateX(3px);
   }
 }
 
@@ -222,15 +277,16 @@
   color: #8b7355;
   font-size: 14px;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .form-footer .forgot-password {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
   color: #8b7355;
   text-decoration: none;
   font-size: 14px;
+  transition: color 0.2s ease;
 }
 
 .form-footer .forgot-password:hover {
@@ -241,8 +297,8 @@
 .switch-button {
   background: none;
   border: none;
-  color: #8b7355;
-  font-weight: 500;
+  color: #e5989b;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
   font-size: 14px;
@@ -252,10 +308,14 @@
 }
 
 .switch-button:hover {
-  color: #6b5b47;
+  color: #d17a7d;
 }
 
-/* Additional floral elements for register form - smaller */
+/* Additional floral elements for register form */
+.auth-form.register-form {
+  position: relative;
+}
+
 .auth-form.register-form::before {
   content: "🌿";
   position: absolute;
@@ -278,50 +338,49 @@
 
 /* Enhanced Responsive Design */
 @media (max-width: 600px) {
+  .modal-overlay {
+    padding: 15px;
+  }
+
   .login-modal {
-    margin: 15px;
+    margin: 0;
     max-width: none;
-  }
-
-  .login-modal::before {
-    font-size: 28px;
-    top: 15px;
-    left: 15px;
-  }
-
-  .login-modal::after {
-    font-size: 20px;
-    top: 18px;
-    right: 18px;
+    border-radius: 8px;
   }
 
   .modal-header {
-    padding: 40px 25px 20px 25px;
+    padding: 25px 25px 0 25px;
+    border-radius: 8px 8px 0 0;
   }
 
   .modal-header h2 {
-    font-size: 28px;
+    font-size: 24px;
     letter-spacing: 0.5px;
-    font-family: "Poppins", sans-serif;
+  }
+
+  .close-button {
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
   }
 
   .modal-content {
-    padding: 0 25px 30px 25px;
+    padding: 25px 25px 30px 25px;
   }
 
   .form-row {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 15px;
   }
 
   .form-group input,
   .form-row input {
-    padding: 12px 14px;
+    padding: 14px 16px;
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
   .submit-button {
-    padding: 12px 25px;
+    padding: 14px 25px;
     font-size: 14px;
   }
 
@@ -393,4 +452,102 @@
   .switch-button:hover {
     color: #2d3748;
   }
+}
+
+/* ===== FINAL OVERRIDES - MAXIMUM SPECIFICITY ===== */
+/* These styles should override everything else */
+
+/* Container */
+div.auth-modal-container.login-modal {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  border: 1px solid #d4c4a8 !important;
+  max-width: 400px !important;
+  margin: auto !important;
+}
+
+/* Header Layout */
+div.auth-modal-container.login-modal .auth-modal-header.modal-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 30px 30px 0 30px !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+}
+
+/* Header Title */
+div.auth-modal-container.login-modal .auth-modal-header.modal-header h2 {
+  margin: 0 !important;
+  font-size: 28px !important;
+  font-weight: 400 !important;
+  color: #6b5b47 !important;
+  font-family: "Cinzel", serif !important;
+  text-align: center !important;
+  flex: 1 !important;
+  padding: 0 !important;
+}
+
+/* Close Button */
+div.auth-modal-container.login-modal .auth-close-button.close-button {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  background: none !important;
+  border: none !important;
+  font-size: 24px !important;
+  color: #8b7355 !important;
+  cursor: pointer !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  z-index: 10 !important;
+}
+
+/* Modal Content */
+div.auth-modal-container.login-modal .modal-content {
+  padding: 30px 30px 40px 30px !important;
+}
+
+/* Form Inputs */
+div.auth-modal-container.login-modal .form-group input,
+div.auth-modal-container.login-modal .form-row input {
+  padding: 16px 18px !important;
+  border: 2px solid #d4c4a8 !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  background: #ffffff !important;
+  color: #6b5b47 !important;
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Submit Button */
+div.auth-modal-container.login-modal .submit-button {
+  background: #e5989b !important;
+  color: white !important;
+  border: none !important;
+  padding: 16px 30px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  margin-top: 10px !important;
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Error Message */
+div.auth-modal-container.login-modal .error-message {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  padding: 14px 18px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  border: 1px solid #fecaca !important;
+  margin-bottom: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }

@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 const Guest = require("../models/Guest");
 const GuestEvent = require("../models/GuestEvent");
 const Event = require("../models/Event");
+const { sendRSVPConfirmation } = require("../utils/emailService");
 
-// Get all guests for a user
+// Get all guests (globally visible to all users)
 const getGuests = async (req, res) => {
   try {
-    const guests = await Guest.find({ userId: req.user.id })
+    const guests = await Guest.find({})
       .populate("selectedEvents", "title eventDate")
       .sort({ name: 1 });
 
@@ -15,7 +16,6 @@ const getGuests = async (req, res) => {
       guests.map(async (guest) => {
         const guestEvents = await GuestEvent.find({
           guestId: guest._id,
-          userId: req.user.id,
         }).populate("eventId", "title eventDate");
 
         return {
@@ -37,7 +37,6 @@ const getGuestById = async (req, res) => {
   try {
     const guest = await Guest.findOne({
       _id: req.params.id,
-      userId: req.user.id,
     }).populate("selectedEvents", "title eventDate");
 
     if (!guest) {
@@ -66,7 +65,6 @@ const createGuest = async (req, res) => {
       ...guestData,
       selectedEvents,
       eventAttendees,
-      userId: req.user.id,
     });
 
     await guest.save();
@@ -91,7 +89,6 @@ const createGuest = async (req, res) => {
         return new GuestEvent({
           guestId: guest._id,
           eventId,
-          userId: req.user.id,
           attendeeCount,
           rsvpStatus: "pending",
           invitationStatus: "not_sent",
@@ -180,7 +177,7 @@ const updateGuest = async (req, res) => {
 
     // First update the guest
     const guest = await Guest.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
+      { _id: req.params.id },
       {
         ...newGuestData,
         selectedEvents: newSelectedEvents,
@@ -218,7 +215,6 @@ const updateGuest = async (req, res) => {
           const newGuestEvent = new GuestEvent({
             guestId: guest._id,
             eventId,
-            userId: req.user.id,
             attendeeCount,
             invitationStatus: eventStatus.invitationStatus,
             rsvpStatus: eventStatus.rsvpStatus,
@@ -280,7 +276,6 @@ const deleteGuest = async (req, res) => {
   try {
     const guest = await Guest.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user.id,
     });
 
     if (!guest) {
@@ -300,7 +295,7 @@ const deleteGuest = async (req, res) => {
 // Get RSVP data for all guests and events
 const getRSVPData = async (req, res) => {
   try {
-    const guests = await Guest.find({ userId: req.user.id })
+    const guests = await Guest.find({})
       .populate("selectedEvents", "title eventDate")
       .sort({ name: 1 });
 
@@ -322,7 +317,7 @@ const upsertRSVP = async (req, res) => {
   try {
     const { guestId, eventId, rsvpStatus, invitationStatus } = req.body;
 
-    const guest = await Guest.findOne({ _id: guestId, userId: req.user.id });
+    const guest = await Guest.findOne({ _id: guestId });
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
     }
@@ -335,7 +330,6 @@ const upsertRSVP = async (req, res) => {
       guestEvent = new GuestEvent({
         guestId,
         eventId,
-        userId: req.user.id,
         attendeeCount: 1,
       });
     }
@@ -417,14 +411,23 @@ const lookupGuest = async (req, res) => {
 const updateEventRSVP = async (req, res) => {
   try {
     const { guestId, eventId } = req.params;
-    const { rsvpStatus, attendeeCount, dietaryRestrictions, specialRequests } =
-      req.body;
+    const {
+      rsvpStatus,
+      attendeeCount,
+      dietaryRestrictions,
+      specialRequests,
+      wantsEmailConfirmation,
+      email,
+    } = req.body;
+
+    // Set default attendee count to 1 if not provided (for wedding website RSVPs)
+    const finalAttendeeCount = attendeeCount || 1;
 
     const guestEvent = await GuestEvent.findOneAndUpdate(
       { guestId, eventId },
       {
         rsvpStatus,
-        attendeeCount,
+        attendeeCount: finalAttendeeCount,
         dietaryRestrictions,
         specialRequests,
         rsvpDate: new Date(),
@@ -436,17 +439,104 @@ const updateEventRSVP = async (req, res) => {
       return res.status(404).json({ message: "Guest event not found" });
     }
 
-    // Update the guest's eventAttendees count
+    // Update the guest's eventAttendees count and email if provided
+    const updateFields = {
+      [`eventAttendees.${eventId}`]: finalAttendeeCount,
+    };
+
+    if (email) {
+      updateFields.email = email;
+    }
+
     await Guest.findByIdAndUpdate(guestId, {
-      $set: {
-        [`eventAttendees.${eventId}`]: attendeeCount,
-      },
+      $set: updateFields,
     });
+
+    // Send email confirmation if requested and email is available
+    if (wantsEmailConfirmation && email && rsvpStatus !== "pending") {
+      try {
+        const guest = await Guest.findById(guestId);
+        if (guest) {
+          const emailResult = await sendRSVPConfirmation(
+            guest,
+            guestEvent.eventId,
+            {
+              rsvpStatus,
+              dietaryRestrictions,
+              specialRequests,
+            },
+            email
+          );
+
+          if (emailResult.success) {
+            console.log(
+              `Email confirmation sent to ${email} for ${guestEvent.eventId.title}`
+            );
+          } else {
+            console.error(
+              "Failed to send email confirmation:",
+              emailResult.error
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error("Error sending RSVP confirmation email:", emailError);
+        // Don't fail the RSVP if email fails - just log the error
+      }
+    }
 
     res.json(guestEvent);
   } catch (error) {
     console.error("Error updating RSVP:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Delete RSVP for a specific event
+const deleteEventRSVP = async (req, res) => {
+  try {
+    const { guestId, eventId } = req.params;
+
+    // Find and delete the GuestEvent record
+    const guestEvent = await GuestEvent.findOneAndDelete({
+      guestId,
+      eventId,
+    });
+
+    if (!guestEvent) {
+      return res.status(404).json({ message: "RSVP not found for this event" });
+    }
+
+    // Remove the event from the guest's selectedEvents array
+    await Guest.findByIdAndUpdate(guestId, {
+      $pull: { selectedEvents: eventId },
+      $unset: { [`eventAttendees.${eventId}`]: "" },
+    });
+
+    res.json({ message: "RSVP deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting RSVP:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Debug endpoint to check all guests
+const debugGuests = async (req, res) => {
+  try {
+    const guests = await Guest.find({})
+      .populate("selectedEvents", "title eventDate")
+      .sort({ name: 1 });
+
+    console.log(`🔍 DEBUG: Found ${guests.length} guests in database`);
+    console.log("🔍 DEBUG: Guests:", guests);
+
+    res.json({
+      count: guests.length,
+      guests: guests,
+    });
+  } catch (error) {
+    console.error("Error in debug guests:", error);
+    res.status(500).json({ message: "Debug error" });
   }
 };
 
@@ -460,4 +550,6 @@ module.exports = {
   upsertRSVP,
   lookupGuest,
   updateEventRSVP,
+  deleteEventRSVP,
+  debugGuests,
 };

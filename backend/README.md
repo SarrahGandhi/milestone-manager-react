@@ -15,7 +15,18 @@
    MONGODB_URI=mongodb://localhost:27017/milestone-manager
    PORT=5000
    NODE_ENV=development
+
+   # Email Configuration for RSVP Confirmations
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
    ```
+
+   **Email Setup Instructions:**
+
+   - For Gmail: Enable 2-factor authentication and create an App Password
+   - Go to: Google Account Settings > Security > 2-Step Verification > App passwords
+   - Generate a new app password and use it as EMAIL_PASS
+   - Use your Gmail address as EMAIL_USER
 
 3. **Start MongoDB**
    Make sure MongoDB is running on your local machine or update the MONGODB_URI to point to your MongoDB instance.
@@ -56,6 +67,17 @@
 - `PUT /api/events/:id` - Update event
 - `DELETE /api/events/:id` - Delete event
 
+### Guests
+
+- `GET /api/guests` - Get all guests
+- `GET /api/guests/:id` - Get guest by ID
+- `POST /api/guests` - Create new guest
+- `PUT /api/guests/:id` - Update guest
+- `DELETE /api/guests/:id` - Delete guest
+- `POST /api/guests/:guestId/events/:eventId/rsvp` - Submit/Update RSVP
+- `DELETE /api/guests/:guestId/events/:eventId/rsvp` - Cancel RSVP
+- `GET /api/guests/lookup` - Lookup guest by name for wedding website
+
 ## Database Schema
 
 ### Task Model
@@ -75,3 +97,16 @@
 - `completedAt` (Date)
 - `reminders` (Array of objects with date and message)
 - `relatedEvent` (ObjectId, ref: Event)
+
+## Features
+
+### RSVP Email Confirmations
+
+When guests submit their RSVP through the wedding website, they can opt to receive an email confirmation. The system will automatically send a beautifully formatted email with:
+
+- Event details (title, date, location)
+- RSVP status confirmation
+- Dietary restrictions and special requests (if provided)
+- Wedding couple's message
+
+**Note:** Make sure to configure the EMAIL_USER and EMAIL_PASS environment variables for email functionality to work.

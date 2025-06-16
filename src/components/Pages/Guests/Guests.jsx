@@ -15,9 +15,7 @@ import {
   faTrash,
   faEye,
   faUserFriends,
-  faChild,
-  faMale,
-  faFemale,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Guests = () => {
@@ -163,19 +161,25 @@ const Guests = () => {
   // Calculate totals for the selected event
   const totals = filteredGuests.reduce(
     (acc, guest) => {
-      const eventAttendees = guest.eventAttendees?.[selectedEvent] || {};
-      return {
-        men: acc.men + (eventAttendees.men || 0),
-        women: acc.women + (eventAttendees.women || 0),
-        kids: acc.kids + (eventAttendees.kids || 0),
-        total:
-          acc.total +
-          (eventAttendees.men || 0) +
-          (eventAttendees.women || 0) +
-          (eventAttendees.kids || 0),
-      };
+      if (selectedEvent === "all") {
+        // For "all" events, sum up attendee counts from all guest events
+        const totalForGuest =
+          guest.guestEvents?.reduce((sum, ge) => {
+            return sum + (ge.attendeeCount || 0);
+          }, 0) || 0;
+        return {
+          total: acc.total + totalForGuest,
+        };
+      } else {
+        // For specific event, get attendee count from guestEvent
+        const guestEvent = getGuestEvent(guest, selectedEvent);
+        const attendeeCount = guestEvent?.attendeeCount || 0;
+        return {
+          total: acc.total + attendeeCount,
+        };
+      }
     },
-    { men: 0, women: 0, kids: 0, total: 0 }
+    { total: 0 }
   );
 
   const handleAddGuest = () => {
@@ -234,6 +238,87 @@ const Guests = () => {
     return guest.guestEvents?.find((ge) => ge.eventId._id === eventId);
   };
 
+  // CSV Export functionality
+  const exportToCSV = () => {
+    // Define CSV headers
+    const headers = [
+      "Name",
+      "Phone",
+      "Address",
+      "City",
+      "Country",
+      "Category",
+      "Attendee Count",
+      "Selected Events",
+      "Invitation Status",
+      "RSVP Status",
+      "Notes",
+    ];
+
+    // Convert guest data to CSV rows
+    const csvData = filteredGuests.map((guest) => {
+      const guestEvent =
+        selectedEvent !== "all" ? getGuestEvent(guest, selectedEvent) : null;
+
+      const attendeeCount =
+        selectedEvent !== "all"
+          ? guestEvent?.attendeeCount || 0
+          : guest.guestEvents?.reduce(
+              (sum, ge) => sum + (ge.attendeeCount || 0),
+              0
+            ) || 0;
+
+      const selectedEvents =
+        guest.selectedEvents?.map((event) => event.title).join("; ") || "None";
+
+      const invitationStatus = guestEvent?.invitationStatus || "not_sent";
+      const rsvpStatus = guestEvent?.rsvpStatus || "pending";
+
+      return [
+        `"${guest.name || ""}"`,
+        `"${guest.phone || ""}"`,
+        `"${guest.address || ""}"`,
+        `"${guest.city || ""}"`,
+        `"${guest.country || ""}"`,
+        `"${guest.category === "bride" ? "Bride's Side" : "Groom's Side"}"`,
+        attendeeCount,
+        `"${selectedEvents}"`,
+        `"${invitationStatus.toUpperCase()}"`,
+        `"${rsvpStatus.toUpperCase()}"`,
+        `"${guest.notes || ""}"`,
+      ];
+    });
+
+    // Combine headers and data
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map((row) => row.join(",")),
+    ].join("\n");
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split("T")[0];
+    const eventName =
+      selectedEvent !== "all"
+        ? events.find((e) => e._id === selectedEvent)?.title || "Selected"
+        : "All";
+    const filename = `guests_${eventName.replace(
+      /\s+/g,
+      "_"
+    )}_${currentDate}.csv`;
+
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <>
@@ -264,10 +349,20 @@ const Guests = () => {
       <div className="guests-root">
         <div className="guests-header">
           <div className="guests-header-row">
-            <button className="add-guest-btn" onClick={handleAddGuest}>
-              <FontAwesomeIcon icon={faPlus} />
-              Add New Guest
-            </button>
+            <div className="action-buttons">
+              <button className="add-guest-btn" onClick={handleAddGuest}>
+                <FontAwesomeIcon icon={faPlus} />
+                Add New Guest
+              </button>
+              <button
+                className="export-csv-btn"
+                onClick={exportToCSV}
+                style={{ backgroundColor: "red", color: "white" }}
+              >
+                <FontAwesomeIcon icon={faDownload} />
+                Export CSV TEST
+              </button>
+            </div>
             <input
               type="text"
               placeholder="Search guests..."
@@ -318,27 +413,7 @@ const Guests = () => {
                 <div className="summary-label">Guest Entries</div>
               </div>
             </div>
-            <div className="summary-card">
-              <FontAwesomeIcon icon={faMale} className="summary-icon men" />
-              <div className="summary-content">
-                <div className="summary-number">{totals.men}</div>
-                <div className="summary-label">Men</div>
-              </div>
-            </div>
-            <div className="summary-card">
-              <FontAwesomeIcon icon={faFemale} className="summary-icon women" />
-              <div className="summary-content">
-                <div className="summary-number">{totals.women}</div>
-                <div className="summary-label">Women</div>
-              </div>
-            </div>
-            <div className="summary-card">
-              <FontAwesomeIcon icon={faChild} className="summary-icon kids" />
-              <div className="summary-content">
-                <div className="summary-number">{totals.kids}</div>
-                <div className="summary-label">Kids</div>
-              </div>
-            </div>
+
             <div className="summary-card total">
               <FontAwesomeIcon icon={faUserFriends} className="summary-icon" />
               <div className="summary-content">
@@ -367,10 +442,7 @@ const Guests = () => {
                   <th>Category</th>
                   <th>Invitation Status</th>
                   <th>RSVP Status</th>
-                  <th>Men</th>
-                  <th>Women</th>
-                  <th>Kids</th>
-                  <th>Total</th>
+                  <th>Attendee Count</th>
                   <th>Notes</th>
                   <th>Actions</th>
                 </tr>
@@ -442,17 +514,13 @@ const Guests = () => {
                           <option value="maybe">MAYBE</option>
                         </select>
                       </td>
-                      <td>{guest.eventAttendees?.[selectedEvent]?.men || 0}</td>
-                      <td>
-                        {guest.eventAttendees?.[selectedEvent]?.women || 0}
-                      </td>
-                      <td>
-                        {guest.eventAttendees?.[selectedEvent]?.kids || 0}
-                      </td>
-                      <td className="total-count">
-                        {(guest.eventAttendees?.[selectedEvent]?.men || 0) +
-                          (guest.eventAttendees?.[selectedEvent]?.women || 0) +
-                          (guest.eventAttendees?.[selectedEvent]?.kids || 0)}
+                      <td className="attendee-count">
+                        {selectedEvent !== "all"
+                          ? guestEvent?.attendeeCount || 0
+                          : guest.guestEvents?.reduce(
+                              (sum, ge) => sum + (ge.attendeeCount || 0),
+                              0
+                            ) || 0}
                       </td>
                       <td className="notes-cell">
                         {guest.notes ? (

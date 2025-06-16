@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../../Header/Header";
-import Footer from "../../Footer/Footer";
+import AuthService from "../../../services/authService";
 import "./AddEventForm.css";
 
 const EditEventForm = () => {
@@ -26,9 +25,9 @@ const EditEventForm = () => {
     const fetchEvent = async () => {
       try {
         setFetchLoading(true);
-        const response = await fetch(
-          `http://localhost:5001/api/events/${eventId}`
-        );
+        const response = await fetch(`/api/events/${eventId}`, {
+          headers: AuthService.getAuthHeaders(),
+        });
 
         if (response.ok) {
           const eventData = await response.json();
@@ -138,16 +137,11 @@ const EditEventForm = () => {
         description: formData.additionalDetails || "Event updated via form",
       };
 
-      const response = await fetch(
-        `http://localhost:5001/api/events/${eventId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(eventData),
-        }
-      );
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: AuthService.getAuthHeaders(),
+        body: JSON.stringify(eventData),
+      });
 
       if (response.ok) {
         setMessage("Event updated successfully!");
@@ -168,194 +162,184 @@ const EditEventForm = () => {
 
   if (fetchLoading) {
     return (
-      <>
-        <Header />
-        <div className="add-event-container">
-          <div className="loading-message">Loading event data...</div>
-        </div>
-        <Footer />
-      </>
+      <div className="add-event-container">
+        <div className="loading-message">Loading event data...</div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="add-event-container">
-        <div className="add-event-form">
-          <h1>Edit Event</h1>
+    <div className="add-event-container">
+      <div className="add-event-form">
+        <h1>Edit Event</h1>
 
-          {message && (
-            <div
-              className={`message ${
-                message.includes("Error") ? "error" : "success"
-              }`}
+        {message && (
+          <div
+            className={`message ${
+              message.includes("Error") ? "error" : "success"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {/* Basic Event Information Section */}
+          <div className="form-section">
+            <div className="section-header">
+              <span className="section-icon">📅</span>
+              <h2 className="section-title">Event Information</h2>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="eventName">Event Name</label>
+              <input
+                type="text"
+                id="eventName"
+                name="eventName"
+                value={formData.eventName}
+                onChange={handleInputChange}
+                placeholder="Enter a memorable event name..."
+                required
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="date">Event Date</label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="time">Start Time</label>
+                <input
+                  type="time"
+                  id="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Location & Dress Code Section */}
+          <div className="form-section">
+            <div className="section-header">
+              <span className="section-icon">📍</span>
+              <h2 className="section-title">Venue Details</h2>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="location">Event Location</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                placeholder="Venue name or address..."
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="dressCode">Dress Code</label>
+              <input
+                type="text"
+                id="dressCode"
+                name="dressCode"
+                value={formData.dressCode}
+                onChange={handleInputChange}
+                placeholder="e.g., Cocktail Attire, Formal, Casual"
+              />
+            </div>
+          </div>
+
+          {/* Menu Section */}
+          <div className="form-section">
+            <div className="section-header">
+              <span className="section-icon">🍽️</span>
+              <h2 className="section-title">Menu Options</h2>
+            </div>
+
+            <div className="form-group">
+              <label>Menu Items</label>
+              <div className="menu-options">
+                {menuOptions.map((option, index) => (
+                  <div key={index} className="menu-option">
+                    <input
+                      type="text"
+                      value={option}
+                      onChange={(e) => handleMenuChange(index, e.target.value)}
+                      placeholder={`Menu option ${index + 1}...`}
+                    />
+                    {menuOptions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMenuOption(index)}
+                        className="remove-option-btn"
+                        title="Remove this option"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addMenuOption}
+                  className="add-option-btn"
+                >
+                  Add Menu Option
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Details Section */}
+          <div className="form-section">
+            <div className="section-header">
+              <span className="section-icon">📝</span>
+              <h2 className="section-title">Additional Details</h2>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="additionalDetails">Event Description</label>
+              <textarea
+                id="additionalDetails"
+                name="additionalDetails"
+                value={formData.additionalDetails}
+                onChange={handleInputChange}
+                rows="5"
+                placeholder="Share more details about your event, special instructions, or any additional information your guests should know..."
+              />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button
+              type="button"
+              onClick={() => navigate("/events")}
+              className="cancel-btn"
             >
-              {message}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            {/* Basic Event Information Section */}
-            <div className="form-section">
-              <div className="section-header">
-                <span className="section-icon">📅</span>
-                <h2 className="section-title">Event Information</h2>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="eventName">Event Name</label>
-                <input
-                  type="text"
-                  id="eventName"
-                  name="eventName"
-                  value={formData.eventName}
-                  onChange={handleInputChange}
-                  placeholder="Enter a memorable event name..."
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="date">Event Date</label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="time">Start Time</label>
-                  <input
-                    type="time"
-                    id="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Location & Dress Code Section */}
-            <div className="form-section">
-              <div className="section-header">
-                <span className="section-icon">📍</span>
-                <h2 className="section-title">Venue Details</h2>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="location">Event Location</label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Venue name or address..."
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="dressCode">Dress Code</label>
-                <input
-                  type="text"
-                  id="dressCode"
-                  name="dressCode"
-                  value={formData.dressCode}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Cocktail Attire, Formal, Casual"
-                />
-              </div>
-            </div>
-
-            {/* Menu Section */}
-            <div className="form-section">
-              <div className="section-header">
-                <span className="section-icon">🍽️</span>
-                <h2 className="section-title">Menu Options</h2>
-              </div>
-
-              <div className="form-group">
-                <label>Menu Items</label>
-                <div className="menu-options">
-                  {menuOptions.map((option, index) => (
-                    <div key={index} className="menu-option">
-                      <input
-                        type="text"
-                        value={option}
-                        onChange={(e) =>
-                          handleMenuChange(index, e.target.value)
-                        }
-                        placeholder={`Menu option ${index + 1}...`}
-                      />
-                      {menuOptions.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeMenuOption(index)}
-                          className="remove-option-btn"
-                          title="Remove this option"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addMenuOption}
-                    className="add-option-btn"
-                  >
-                    Add Menu Option
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Details Section */}
-            <div className="form-section">
-              <div className="section-header">
-                <span className="section-icon">📝</span>
-                <h2 className="section-title">Additional Details</h2>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="additionalDetails">Event Description</label>
-                <textarea
-                  id="additionalDetails"
-                  name="additionalDetails"
-                  value={formData.additionalDetails}
-                  onChange={handleInputChange}
-                  rows="5"
-                  placeholder="Share more details about your event, special instructions, or any additional information your guests should know..."
-                />
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="button"
-                onClick={() => navigate("/events")}
-                className="cancel-btn"
-              >
-                Cancel
-              </button>
-              <button type="submit" disabled={loading} className="submit-btn">
-                {loading ? "Updating Event..." : "Update Event"}
-              </button>
-            </div>
-          </form>
-        </div>
+              Cancel
+            </button>
+            <button type="submit" disabled={loading} className="submit-btn">
+              {loading ? "Updating Event..." : "Update Event"}
+            </button>
+          </div>
+        </form>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 };
 

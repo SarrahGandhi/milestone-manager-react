@@ -3,6 +3,8 @@ import "./RSVPManager.css";
 import AuthService from "../../services/authService";
 import AddGuestForm from "../Pages/Guests/AddGuestForm";
 import EditGuestForm from "../Pages/Guests/EditGuestForm";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
 // Use the same API base URL configuration as AuthService
 const API_BASE_URL =
@@ -17,6 +19,8 @@ const RSVPManager = () => {
   const [error, setError] = useState("");
   const [showAddGuestForm, setShowAddGuestForm] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [guestToDelete, setGuestToDelete] = useState(null);
 
   useEffect(() => {
     fetchRSVPData();
@@ -154,28 +158,77 @@ const RSVPManager = () => {
     }
   };
 
-  const handleDeleteGuest = async (guestId) => {
-    if (!window.confirm("Are you sure you want to delete this guest?")) {
-      return;
-    }
+  const handleDeleteGuest = (guestId) => {
+    const guest = guests.find((g) => g._id === guestId);
+    setGuestToDelete(guest);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteGuest = async () => {
+    if (!guestToDelete) return;
 
     try {
       const token = AuthService.getToken();
-      const response = await fetch(`${API_BASE_URL}/guests/${guestId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/guests/${guestToDelete._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete guest");
       }
 
       fetchRSVPData();
+      setShowDeleteModal(false);
+      setGuestToDelete(null);
     } catch (error) {
       console.error("Error deleting guest:", error);
       setError("Failed to delete guest");
+    }
+  };
+
+  const cancelDeleteGuest = () => {
+    setShowDeleteModal(false);
+    setGuestToDelete(null);
+  };
+
+  const handleDeleteRSVP = async (guestId, eventId) => {
+    const event = events.find((e) => e._id === eventId);
+    const guest = guests.find((g) => g._id === guestId);
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${guest?.name}'s RSVP for "${event?.title}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = AuthService.getToken();
+      const response = await fetch(
+        `${API_BASE_URL}/guests/${guestId}/events/${eventId}/rsvp`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete RSVP");
+      }
+
+      fetchRSVPData();
+    } catch (error) {
+      console.error("Error deleting RSVP:", error);
+      setError("Failed to delete RSVP");
     }
   };
 
@@ -188,10 +241,20 @@ const RSVPManager = () => {
       return guests;
     }
 
-    // Show guests who have the selected event in their guestEvents
-    return guests.filter((guest) =>
-      guest.guestEvents?.some((event) => event.eventId._id === selectedEvent)
-    );
+    // Show guests who have the selected event in their guestEvents OR selectedEvents
+    return guests.filter((guest) => {
+      // Check if guest has this event in guestEvents
+      const hasGuestEvent = guest.guestEvents?.some(
+        (event) => event.eventId && event.eventId._id === selectedEvent
+      );
+
+      // Check if guest has this event in selectedEvents (for backwards compatibility)
+      const hasSelectedEvent = guest.selectedEvents?.some(
+        (event) => event._id === selectedEvent
+      );
+
+      return hasGuestEvent || hasSelectedEvent;
+    });
   };
 
   const formatAddress = (address) => {
@@ -203,6 +266,114 @@ const RSVPManager = () => {
       address.zipCode,
     ].filter(Boolean);
     return parts.length > 0 ? parts.join(", ") : "N/A";
+  };
+
+  // CSV Export functionality
+  const exportToCSV = () => {
+    const filteredGuests = getFilteredGuests();
+
+    // Define CSV headers
+    const headers = [
+      "Guest Name",
+      "Phone",
+      "Address",
+      "City",
+      "Country",
+      "Category",
+      "Men",
+      "Women",
+      "Kids",
+      "Total Attendees",
+      "Selected Events",
+      "Invitation Status",
+      "RSVP Status",
+      "Notes",
+    ];
+
+    // Convert guest data to CSV rows
+    const csvData = filteredGuests.map((guest) => {
+      const eventAttendees =
+        selectedEvent !== "all"
+          ? guest.eventAttendees?.[selectedEvent] || {}
+          : Object.values(guest.eventAttendees || {}).reduce(
+              (acc, counts) => ({
+                men: acc.men + (counts.men || 0),
+                women: acc.women + (counts.women || 0),
+                kids: acc.kids + (counts.kids || 0),
+              }),
+              { men: 0, women: 0, kids: 0 }
+            );
+
+      const guestEvent =
+        selectedEvent !== "all"
+          ? getGuestRSVPForEvent(guest, selectedEvent)
+          : null;
+
+      const totalAttendees =
+        (eventAttendees.men || 0) +
+        (eventAttendees.women || 0) +
+        (eventAttendees.kids || 0);
+
+      const selectedEvents =
+        guest.selectedEvents?.map((event) => event.title).join("; ") ||
+        guest.guestEvents?.map((ge) => ge.eventId.title).join("; ") ||
+        "None";
+
+      const invitationStatus = guestEvent?.invitationStatus || "not_sent";
+      const rsvpStatus = guestEvent?.rsvpStatus || "pending";
+
+      return [
+        `"${guest.name || ""}"`,
+        `"${guest.phone || ""}"`,
+        `"${guest.address || ""}"`,
+        `"${guest.city || ""}"`,
+        `"${guest.country || ""}"`,
+        `"${
+          guest.category === "bride"
+            ? "Bride's Side"
+            : guest.category === "groom"
+            ? "Groom's Side"
+            : guest.category || ""
+        }"`,
+        eventAttendees.men || 0,
+        eventAttendees.women || 0,
+        eventAttendees.kids || 0,
+        totalAttendees,
+        `"${selectedEvents}"`,
+        `"${invitationStatus.toUpperCase()}"`,
+        `"${rsvpStatus.toUpperCase()}"`,
+        `"${guest.notes || ""}"`,
+      ];
+    });
+
+    // Combine headers and data
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map((row) => row.join(",")),
+    ].join("\n");
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split("T")[0];
+    const eventName =
+      selectedEvent !== "all"
+        ? events.find((e) => e._id === selectedEvent)?.title || "Selected"
+        : "All";
+    const filename = `rsvp_manager_${eventName.replace(
+      /\s+/g,
+      "_"
+    )}_${currentDate}.csv`;
+
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -217,12 +388,18 @@ const RSVPManager = () => {
     <div className="rsvp-manager">
       <div className="rsvp-header">
         <h1>RSVP Manager</h1>
-        <button
-          className="add-guest-btn"
-          onClick={() => setShowAddGuestForm(true)}
-        >
-          Add Guest
-        </button>
+        <div className="header-actions">
+          <button className="export-csv-btn" onClick={exportToCSV}>
+            <FontAwesomeIcon icon={faDownload} />
+            Export CSV
+          </button>
+          <button
+            className="add-guest-btn"
+            onClick={() => setShowAddGuestForm(true)}
+          >
+            Add Guest
+          </button>
+        </div>
       </div>
 
       <div className="event-filter">
@@ -318,17 +495,51 @@ const RSVPManager = () => {
                   )}
                   <td className="actions">
                     <button
-                      className="edit-btn"
-                      onClick={() => setEditingGuest(guest)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="delete-btn"
+                      className="rsvp-delete-guest-btn"
                       onClick={() => handleDeleteGuest(guest._id)}
+                      title="Delete this guest completely"
+                      style={{
+                        backgroundColor: "#ffebee",
+                        color: "#d32f2f",
+                        border: "1px solid #ffcdd2",
+                        padding: "0.5rem 1rem",
+                        borderRadius: "6px",
+                        fontSize: "0.85rem",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        marginRight: "0.5rem",
+                        display: "inline-block !important",
+                        visibility: "visible !important",
+                        opacity: "1 !important",
+                        transition: "all 0.3s ease",
+                      }}
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = "#ffcdd2";
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = "#ffebee";
+                      }}
                     >
                       Delete
                     </button>
+                    <button
+                      className="edit-btn"
+                      onClick={() => setEditingGuest(guest)}
+                      title="Edit guest information"
+                    >
+                      Edit
+                    </button>
+                    {selectedEvent !== "all" && rsvp && (
+                      <button
+                        className="delete-rsvp-btn"
+                        onClick={() =>
+                          handleDeleteRSVP(guest._id, selectedEvent)
+                        }
+                        title="Delete RSVP for this event"
+                      >
+                        Delete RSVP
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -353,6 +564,40 @@ const RSVPManager = () => {
             fetchRSVPData();
           }}
         />
+      )}
+
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="delete-confirmation-modal">
+            <div className="modal-header">
+              <h3>Confirm Delete</h3>
+            </div>
+            <div className="modal-body">
+              <p>
+                Are you sure you want to delete{" "}
+                <strong>{guestToDelete?.name}</strong>?
+              </p>
+              <p className="warning-text">
+                This action cannot be undone. The guest will be permanently
+                removed from all events.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="delete-modal-cancel-btn"
+                onClick={cancelDeleteGuest}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-delete-btn"
+                onClick={confirmDeleteGuest}
+              >
+                Delete Guest
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

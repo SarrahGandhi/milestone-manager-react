@@ -46,7 +46,41 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       onClose();
       resetForm();
     } catch (error) {
-      setError(error.message || "Login failed");
+      console.error("Login error:", error);
+
+      // More specific error handling
+      if (error.message.includes("Invalid email/username or password")) {
+        setError(
+          "The email/username or password you entered is incorrect. Please check your credentials and try again."
+        );
+      } else if (error.message.includes("User not found")) {
+        setError(
+          "No account found with this email/username. Please check your email/username or sign up for a new account."
+        );
+      } else if (error.message.includes("Invalid password")) {
+        setError("The password you entered is incorrect. Please try again.");
+      } else if (error.message.includes("Account not verified")) {
+        setError(
+          "Please verify your account before logging in. Check your email for verification instructions."
+        );
+      } else if (error.message.includes("Account suspended")) {
+        setError(
+          "Your account has been suspended. Please contact support for assistance."
+        );
+      } else if (
+        error.message.includes("Network") ||
+        error.message.includes("fetch")
+      ) {
+        setError(
+          "Connection error. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("Server error")) {
+        setError(
+          "Server temporarily unavailable. Please try again in a few minutes."
+        );
+      } else {
+        setError(error.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +110,41 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       onClose();
       resetForm();
     } catch (error) {
-      setError(error.message || "Registration failed");
+      console.error("Registration error:", error);
+
+      // More specific error handling for registration
+      if (
+        error.message.includes(
+          "User with this email or username already exists"
+        )
+      ) {
+        setError(
+          "An account with this email or username already exists. Please try logging in or use a different email/username."
+        );
+      } else if (error.message.includes("Username is already taken")) {
+        setError(
+          "This username is already taken. Please choose a different username."
+        );
+      } else if (error.message.includes("Invalid email")) {
+        setError("Please enter a valid email address.");
+      } else if (error.message.includes("Password")) {
+        setError(
+          "Password must be at least 6 characters long and contain both letters and numbers."
+        );
+      } else if (
+        error.message.includes("Network") ||
+        error.message.includes("fetch")
+      ) {
+        setError(
+          "Connection error. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("Server error")) {
+        setError(
+          "Server temporarily unavailable. Please try again in a few minutes."
+        );
+      } else {
+        setError(error.message || "Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -105,10 +173,16 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="login-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+      <div
+        className="login-modal auth-modal-container"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header auth-modal-header">
           <h2>{showRegister ? "Sign up" : "Log in"}</h2>
-          <button className="close-button" onClick={handleClose}>
+          <button
+            className="close-button auth-close-button"
+            onClick={handleClose}
+          >
             ×
           </button>
         </div>
