@@ -43,11 +43,12 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Import routes
-const authRoutes = require("./backend/src/routes/authRoutes");
-const eventRoutes = require("./backend/src/routes/eventRoutes");
-const taskRoutes = require("./backend/src/routes/taskRoutes");
-const guestRoutes = require("./backend/src/routes/guestRoutes");
-const budgetRoutes = require("./backend/src/routes/budgetRoutes");
+const authRoutes = require("./src/routes/authRoutes");
+const eventRoutes = require("./src/routes/eventRoutes");
+const taskRoutes = require("./src/routes/taskRoutes");
+const guestRoutes = require("./src/routes/guestRoutes");
+const budgetRoutes = require("./src/routes/budgetRoutes");
+const inspirationRoutes = require("./src/routes/inspirationRoutes");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -55,6 +56,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/budget", budgetRoutes);
+app.use("/api/inspiration", inspirationRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
@@ -64,7 +66,7 @@ app.get("/", (req, res) => {
 // TEMPORARY DEBUG ROUTE - bypasses all auth
 app.get("/api/debug/tasks", async (req, res) => {
   try {
-    const Task = require("./backend/src/models/Task");
+    const Task = require("./src/models/Task");
     const allTasks = await Task.find({});
     console.log("🔍 DEBUG: Found", allTasks.length, "tasks in database");
     console.log(
@@ -92,7 +94,7 @@ app.get("/api/debug/tasks", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - see users
 app.get("/api/debug/users", async (req, res) => {
   try {
-    const User = require("./backend/src/models/User");
+    const User = require("./src/models/User");
     const allUsers = await User.find({}, { password: 0 }); // Exclude passwords
     console.log("🔍 DEBUG: Found", allUsers.length, "users in database");
     console.log(
@@ -116,7 +118,7 @@ app.get("/api/debug/users", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - fix orphaned tasks
 app.post("/api/debug/fix-tasks", async (req, res) => {
   try {
-    const Task = require("./backend/src/models/Task");
+    const Task = require("./src/models/Task");
     const userId = "684b0412491a81292f6cb8e9"; // Your user ID
 
     // Find tasks without userId
@@ -154,7 +156,7 @@ app.post("/api/debug/fix-tasks", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - check guest events
 app.get("/api/debug/guest-events", async (req, res) => {
   try {
-    const GuestEvent = require("./backend/src/models/GuestEvent");
+    const GuestEvent = require("./src/models/GuestEvent");
     const allGuestEvents = await GuestEvent.find({})
       .populate("guestId", "name")
       .populate("eventId", "title");
@@ -179,7 +181,7 @@ app.get("/api/debug/guest-events", async (req, res) => {
 // TEMPORARY DEBUG ROUTE - check budgets
 app.get("/api/debug/budgets", async (req, res) => {
   try {
-    const Budget = require("./backend/src/models/Budget");
+    const Budget = require("./src/models/Budget");
     const allBudgets = await Budget.find({});
     console.log("🔍 DEBUG: Found", allBudgets.length, "budgets in database");
     console.log("🔍 DEBUG: Budget details:", allBudgets);

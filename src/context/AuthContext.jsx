@@ -6,14 +6,23 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const checkAuthStatus = async () => {
     try {
       const authenticated = await AuthService.validateToken();
-      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        const userData = AuthService.getUser();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -25,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      await AuthService.login(credentials);
+      const result = await AuthService.login(credentials);
       await checkAuthStatus();
       return true;
     } catch (error) {
@@ -38,17 +47,51 @@ export const AuthProvider = ({ children }) => {
     try {
       await AuthService.logout();
       setIsAuthenticated(false);
+      setUser(null);
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
+  // Role-based access control helpers
+  const hasRole = (role) => {
+    return user && user.role === role;
+  };
+
+  const isAdmin = () => {
+    return hasRole("admin");
+  };
+
+  const isUser = () => {
+    return hasRole("user");
+  };
+
+  const canEdit = () => {
+    return isAdmin();
+  };
+
+  const canAdd = () => {
+    return isAdmin();
+  };
+
+  const canDelete = () => {
+    return isAdmin();
+  };
+
   const value = {
     isAuthenticated,
     isLoading,
+    user,
     login,
     logout,
     checkAuthStatus,
+    // Role-based access methods
+    hasRole,
+    isAdmin,
+    isUser,
+    canEdit,
+    canAdd,
+    canDelete,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,22 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import LoginModal from "../Auth/LoginModal";
-import AuthService from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import "./Header.css"; // We'll add styles here
 
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Check if user is logged in on component mount
-  useEffect(() => {
-    const currentUser = AuthService.getUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-  }, []);
+  // Use the auth context instead of local state
+  const { user, logout, isAuthenticated } = useAuth();
 
   // Add click outside listener to close dropdown
   useEffect(() => {
@@ -33,12 +27,12 @@ const Header = () => {
   }, []);
 
   const handleLogin = (userData) => {
-    setUser(userData);
+    // The AuthContext will handle the login state
+    // We don't need to manage user state locally anymore
   };
 
   const handleLogout = async () => {
-    await AuthService.logout();
-    setUser(null);
+    await logout();
   };
 
   const openLoginModal = () => {
@@ -62,7 +56,7 @@ const Header = () => {
           <Link to="/">HOME</Link>
           <Link to="/wedding-website">WEDDING WEBSITE</Link>
           <Link to="/about">ABOUT</Link>
-          {user && (
+          {isAuthenticated && (
             <div className="dropdown" ref={dropdownRef}>
               <Link to="/planning" onClick={toggleDropdown}>
                 WEDDING PLANNING {isDropdownOpen ? "▼" : "▶"}
@@ -71,20 +65,23 @@ const Header = () => {
                 className={`dropdown-content ${isDropdownOpen ? "show" : ""}`}
               >
                 <Link to="/events">Event Manager</Link>
-                <Link to="/guests">Guest List</Link>
                 <Link to="/rsvp-manager">RSVP Manager</Link>
                 <Link to="/budget">Budget</Link>
                 <Link to="/planning/vendors">Vendors</Link>
                 <Link to="/taskmanager">Task Manager</Link>
-                <Link to="/planning/checklist">Task Checklist</Link>
                 <Link to="/inspiration">Inspiration</Link>
               </div>
             </div>
           )}
 
-          {user ? (
+          {isAuthenticated ? (
             <div className="user-menu">
-              <span className="user-greeting">Hi, {user.firstName}!</span>
+              <span className="user-greeting">
+                Hi, {user?.firstName}!
+                {user?.role === "admin" && (
+                  <span className="admin-badge">Admin</span>
+                )}
+              </span>
               <button className="logout-btn" onClick={handleLogout}>
                 LOGOUT
               </button>

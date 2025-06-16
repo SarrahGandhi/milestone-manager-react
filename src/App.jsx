@@ -22,6 +22,7 @@ import Budget from "./components/Pages/Budget/Budget";
 import Inspiration from "./components/Pages/Inspiration/Inspiration";
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import AdminRoute from "./components/Auth/AdminRoute";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -136,17 +137,17 @@ function App() {
           <Route
             path="/events/add"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <AddEventForm />
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
           <Route
             path="/events/edit/:eventId"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <EditEventForm />
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
           <Route
