@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AddEventForm from "./AddEventForm";
 import EventsList from "./EventsList";
+import { API_BASE_URL } from "../../config";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -18,7 +19,7 @@ const AdminDashboard = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/events");
+      const response = await fetch(`${API_BASE_URL}/events`);
       const data = await response.json();
       setEvents(data);
 

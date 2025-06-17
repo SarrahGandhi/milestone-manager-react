@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./EventsList.css";
+import { API_BASE_URL } from "../../config";
 
 const EventsList = ({ events, onEventDeleted, onRefresh }) => {
   const [filter, setFilter] = useState("all");
@@ -10,12 +11,9 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
       setLoading(true);
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/events/${eventId}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+          method: "DELETE",
+        });
 
         if (response.ok) {
           onEventDeleted();
@@ -34,16 +32,13 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
   const handleStatusChange = async (eventId, newStatus) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/events/${eventId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/events/${eventId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
       if (response.ok) {
         onRefresh();

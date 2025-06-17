@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./WeddingWebsite.css";
 
-// Use the same API base URL configuration
-const API_BASE_URL = "/api";
+// Use the centralized API configuration
+import { API_BASE_URL } from "../../../config";
 
 const GuestLookup = ({ onGuestFound }) => {
   const [name, setName] = useState("");

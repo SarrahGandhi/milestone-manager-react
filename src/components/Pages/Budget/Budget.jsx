@@ -10,6 +10,7 @@ import {
   faChartPie,
 } from "@fortawesome/free-solid-svg-icons";
 import BudgetService from "../../../services/budgetService";
+import { API_BASE_URL } from "../../../config";
 import AddBudgetForm from "./AddBudgetForm";
 import EditBudgetForm from "./EditBudgetForm";
 import DeleteBudgetModal from "./DeleteBudgetModal";
@@ -47,7 +48,7 @@ const Budget = () => {
   // Fetch events from the database
   const fetchEvents = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/events");
+      const response = await fetch(`${API_BASE_URL}/events`);
       if (response.ok) {
         const data = await response.json();
         setEvents(data);

@@ -4,9 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUserEdit } from "@fortawesome/free-solid-svg-icons";
 import AuthService from "../../../services/authService";
 
-// Use the same API base URL configuration as AuthService
-const API_BASE_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5001/api";
+// Use the centralized API configuration
+import { API_BASE_URL } from "../../../config";
 
 const EditGuestForm = ({ guest, onClose, events }) => {
   const [formData, setFormData] = useState({

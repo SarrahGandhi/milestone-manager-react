@@ -6,9 +6,8 @@ import EditGuestForm from "../Pages/Guests/EditGuestForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
-// Use the same API base URL configuration as AuthService
-const API_BASE_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5001/api";
+// Use the centralized API configuration
+import { API_BASE_URL } from "../../config";
 
 const RSVPManager = () => {
   const [guests, setGuests] = useState([]);

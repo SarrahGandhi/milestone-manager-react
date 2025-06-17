@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../../config";
 import "./AddEventForm.css";
 
 const AddEventForm = ({ onEventAdded }) => {
@@ -67,7 +68,7 @@ const AddEventForm = ({ onEventAdded }) => {
           : null,
       };
 
-      const response = await fetch("http://localhost:5000/api/events", {
+      const response = await fetch(`${API_BASE_URL}/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

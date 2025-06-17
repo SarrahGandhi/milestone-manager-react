@@ -3,8 +3,8 @@ import GuestLookup from "./GuestLookup";
 import EventRSVP from "./EventRSVP";
 import "./WeddingWebsite.css";
 
-// Use the same API base URL configuration
-const API_BASE_URL = "/api";
+// Use the centralized API configuration
+import { API_BASE_URL } from "../../../config";
 
 const WeddingWebsite = () => {
   const [guest, setGuest] = useState(null);
