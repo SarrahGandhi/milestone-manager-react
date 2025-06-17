@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AuthService from "../../../services/authService";
+import { getApiUrl } from "../../../config";
 import "./AddEventForm.css";
 
 const EditEventForm = () => {
@@ -25,7 +26,7 @@ const EditEventForm = () => {
     const fetchEvent = async () => {
       try {
         setFetchLoading(true);
-        const response = await fetch(`/api/events/${eventId}`, {
+        const response = await fetch(getApiUrl(`/events/${eventId}`), {
           headers: AuthService.getAuthHeaders(),
         });
 
@@ -137,7 +138,7 @@ const EditEventForm = () => {
         description: formData.additionalDetails || "Event updated via form",
       };
 
-      const response = await fetch(`/api/events/${eventId}`, {
+      const response = await fetch(getApiUrl(`/events/${eventId}`), {
         method: "PUT",
         headers: AuthService.getAuthHeaders(),
         body: JSON.stringify(eventData),
