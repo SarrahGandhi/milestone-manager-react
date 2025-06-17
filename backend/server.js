@@ -40,10 +40,37 @@ const MONGODB_URI =
     ? "mongodb+srv://admin:admin@cluster0.6brfp.mongodb.net/WeddingData"
     : "mongodb://localhost:27017/WeddingData"; // Use local MongoDB for development
 
+// MongoDB connection options
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // 30 seconds
+  socketTimeoutMS: 45000, // 45 seconds
+  bufferMaxEntries: 0,
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  maxIdleTimeMS: 30000,
+  retryWrites: true,
+  w: "majority",
+};
+
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGODB_URI, mongooseOptions)
   .then(() => console.log("✅ Connected to MongoDB Atlas"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// Handle MongoDB connection events
+mongoose.connection.on("connected", () => {
+  console.log("✅ Mongoose connected to MongoDB");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Mongoose connection error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.log("⚠️ Mongoose disconnected");
+});
 
 // Import routes
 const authRoutes = require("./src/routes/authRoutes");
@@ -70,6 +97,33 @@ app.get("/api/health", (req, res) => {
     status: "OK",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    mongodb:
+      mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
+  });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error("Global error handler:", error);
+
+  if (error.name === "MongooseError" || error.name === "MongoError") {
+    return res.status(503).json({
+      success: false,
+      message: "Database connection error. Please try again later.",
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
+// Handle 404 routes
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
   });
 });
 
