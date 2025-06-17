@@ -20,6 +20,7 @@ import About from "./components/Pages/About/About";
 import AddEventForm from "./components/Pages/Events/AddEventForm";
 import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
+import Admins from "./components/Pages/Admins/Admins";
 
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -113,8 +114,17 @@ function App() {
           <Route
             path="/admin"
             element={
-              <AdminRoute>
+              <>
                 <Home />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/admins"
+            element={
+              <AdminRoute>
+                <Admins />
                 <Footer />
               </AdminRoute>
             }

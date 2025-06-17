@@ -279,6 +279,195 @@ const logout = async (req, res) => {
   }
 };
 
+// @desc Get all users (Admin only)
+// @route GET /api/auth/users
+// @access Private/Admin
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      users,
+      count: users.length,
+    });
+  } catch (error) {
+    console.error("Get all users error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// @desc Update user role (Admin only)
+// @route PUT /api/auth/users/:id/role
+// @access Private/Admin
+const updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const userId = req.params.id;
+
+    // Validate role
+    if (!["user", "admin"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role. Must be "user" or "admin"',
+      });
+    }
+
+    // Prevent admin from changing their own role
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot change your own role",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { role },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User role updated successfully",
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    console.error("Update user role error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// @desc Delete user (Admin only)
+// @route DELETE /api/auth/users/:id
+// @access Private/Admin
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Prevent admin from deleting themselves
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete your own account",
+      });
+    }
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// @desc Create new user (Admin only)
+// @route POST /api/auth/users
+// @access Private/Admin
+const createUser = async (req, res) => {
+  try {
+    const {
+      username,
+      email,
+      password,
+      firstName,
+      lastName,
+      role = "user",
+    } = req.body;
+
+    // Validation
+    if (!username || !email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields",
+      });
+    }
+
+    // Validate role
+    if (!["user", "admin"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role. Must be "user" or "admin"',
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username: username }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email or username already exists",
+      });
+    }
+
+    // Create user
+    const user = new User({
+      username,
+      email: email.toLowerCase(),
+      password,
+      firstName,
+      lastName,
+      role,
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    console.error("Create user error:", error);
+
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error during user creation",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -286,4 +475,8 @@ module.exports = {
   updateProfile,
   changePassword,
   logout,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+  createUser,
 };

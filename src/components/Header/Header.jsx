@@ -10,7 +10,7 @@ const Header = () => {
   const dropdownRef = useRef(null);
 
   // Use the auth context instead of local state
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isAdmin } = useAuth();
 
   // Add click outside listener to close dropdown
   useEffect(() => {
@@ -55,7 +55,10 @@ const Header = () => {
         <nav className="nav">
           <Link to="/">WEDDING WEBSITE</Link>
           <Link to="/about">ABOUT</Link>
-          {isAuthenticated && <Link to="/admin">ADMIN</Link>}
+          <Link to="/admin">ADMIN</Link>
+          {isAuthenticated && isAdmin() && (
+            <Link to="/admins">USER MANAGEMENT</Link>
+          )}
           {isAuthenticated && (
             <div className="dropdown" ref={dropdownRef}>
               <Link to="/planning" onClick={toggleDropdown}>
