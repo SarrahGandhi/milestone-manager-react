@@ -5,6 +5,7 @@ import Footer from "../../Footer/Footer";
 import DeleteEventModal from "./DeleteEventModal";
 import AuthService from "../../../services/authService";
 import { getApiUrl } from "../../../config";
+import { useAuth } from "../../../context/AuthContext";
 import "./Events.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -30,6 +31,7 @@ const Events = () => {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
+  const { canEdit, canDelete } = useAuth();
 
   // Fetch events from the database
   const fetchEvents = async () => {
@@ -222,20 +224,28 @@ const Events = () => {
                 >
                   View Details
                 </button>
-                <div className="event-card-btn-row">
-                  <button
-                    className="event-edit-btn"
-                    onClick={() => navigate(`/events/edit/${event._id}`)}
-                  >
-                    <FontAwesomeIcon icon={faEdit} /> Edit
-                  </button>
-                  <button
-                    className="event-delete-btn"
-                    onClick={() => handleDeleteEvent(event._id, event.title)}
-                  >
-                    <FontAwesomeIcon icon={faTrash} /> Delete
-                  </button>
-                </div>
+                {(canEdit() || canDelete()) && (
+                  <div className="event-card-btn-row">
+                    {canEdit() && (
+                      <button
+                        className="event-edit-btn"
+                        onClick={() => navigate(`/events/edit/${event._id}`)}
+                      >
+                        <FontAwesomeIcon icon={faEdit} /> Edit
+                      </button>
+                    )}
+                    {canDelete() && (
+                      <button
+                        className="event-delete-btn"
+                        onClick={() =>
+                          handleDeleteEvent(event._id, event.title)
+                        }
+                      >
+                        <FontAwesomeIcon icon={faTrash} /> Delete
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

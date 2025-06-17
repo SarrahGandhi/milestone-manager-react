@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
@@ -82,23 +83,26 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Component to conditionally render Header
+const ConditionalHeader = () => {
+  const location = useLocation();
+
+  // Hide header on wedding website page
+  if (location.pathname === "/") {
+    return null;
+  }
+
+  return <Header />;
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Header />
+        <ConditionalHeader />
         <Routes>
           <Route
             path="/"
-            element={
-              <>
-                <Home />
-                <Footer />
-              </>
-            }
-          />
-          <Route
-            path="/wedding-website"
             element={
               <>
                 <WeddingWebsite />
@@ -106,7 +110,15 @@ function App() {
               </>
             }
           />
-
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Home />
+                <Footer />
+              </AdminRoute>
+            }
+          />
           <Route
             path="/about"
             element={

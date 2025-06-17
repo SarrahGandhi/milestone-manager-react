@@ -461,3 +461,128 @@
     font-size: 0.8rem;
   }
 }
+
+/* Search Results Styles */
+.search-results {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.guest-result-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.guest-result-card:hover {
+  border-color: #9c8164;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.guest-result-card.no-events {
+  border-color: #ffcccc;
+  background: #fef5f5;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.guest-result-card.no-events:hover {
+  border-color: #ffcccc;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.guest-result-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.guest-events {
+  margin: 0;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.guest-events.no-events-text {
+  color: #cc6666;
+  font-style: italic;
+}
+
+.guest-address {
+  margin: 0.5rem 0 0 0;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.guest-warning {
+  margin: 0.5rem 0 0 0;
+  color: #cc6666;
+  font-size: 0.8rem;
+  font-style: italic;
+  background: rgba(255, 204, 204, 0.2);
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #cc6666;
+}
+
+.new-search-btn {
+  background: #f8f8f8;
+  color: #333;
+  border: 2px solid #ddd;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.new-search-btn:hover {
+  background: #e0e0e0;
+  border-color: #bbb;
+}
+
+.retry-btn {
+  background: #9c8164;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-left: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: #8a7158;
+}
+
+@media (max-width: 768px) {
+  .guest-result-card {
+    padding: 1rem;
+  }
+
+  .guest-result-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .guest-events {
+    font-size: 0.85rem;
+  }
+
+  .new-search-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+}

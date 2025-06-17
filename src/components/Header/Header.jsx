@@ -53,9 +53,9 @@ const Header = () => {
       <header className="header">
         <div className="logo">MILESTONE MANAGER</div>
         <nav className="nav">
-          <Link to="/">HOME</Link>
-          <Link to="/wedding-website">WEDDING WEBSITE</Link>
+          <Link to="/">WEDDING WEBSITE</Link>
           <Link to="/about">ABOUT</Link>
+          {isAuthenticated && <Link to="/admin">ADMIN</Link>}
           {isAuthenticated && (
             <div className="dropdown" ref={dropdownRef}>
               <Link to="/planning" onClick={toggleDropdown}>

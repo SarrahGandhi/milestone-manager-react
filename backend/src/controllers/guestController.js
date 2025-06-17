@@ -378,29 +378,94 @@ const lookupGuest = async (req, res) => {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    // Case-insensitive search for the guest name and ensure they have selected events
-    const guest = await Guest.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") },
-      selectedEvents: { $exists: true, $ne: [] }, // Only find guests with selected events
+    // Trim and prepare search term
+    const searchTerm = name.trim();
+
+    // Create search patterns for different matching strategies
+    const exactMatch = new RegExp(`^${searchTerm}$`, "i");
+    const firstNameMatch = new RegExp(`^${searchTerm}\\s+`, "i"); // First name + space
+    const containsMatch = new RegExp(searchTerm, "i"); // Contains anywhere
+
+    // Try different search strategies in order of preference
+    let guests = [];
+    let allMatchingGuests = []; // Keep track of all matches for duplicate detection
+
+    // 1. Try exact match first - check all guests first
+    allMatchingGuests = await Guest.find({
+      name: exactMatch,
     }).populate("selectedEvents", "title eventDate location");
 
-    if (!guest) {
-      return res.status(404).json({ message: "Guest not found" });
+    // If we have exact matches, use them
+    if (allMatchingGuests.length > 0) {
+      guests = allMatchingGuests;
+    } else {
+      // 2. If no exact match, try first name match
+      allMatchingGuests = await Guest.find({
+        name: firstNameMatch,
+      }).populate("selectedEvents", "title eventDate location");
+
+      if (allMatchingGuests.length > 0) {
+        guests = allMatchingGuests;
+      } else {
+        // 3. If still no match, try partial match anywhere in name
+        allMatchingGuests = await Guest.find({
+          name: containsMatch,
+        }).populate("selectedEvents", "title eventDate location");
+
+        guests = allMatchingGuests;
+      }
     }
 
-    // Get all guest events
-    const guestEvents = await GuestEvent.find({ guestId: guest._id }).populate(
-      "eventId",
-      "title eventDate location"
+    if (guests.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No guests found matching your search" });
+    }
+
+    // Filter guests: if multiple guests with similar names, show all (including those without events)
+    // If only one guest, they must have events to proceed
+    let finalGuests;
+    if (guests.length > 1) {
+      // Multiple guests - show all so user can choose, but mark which ones have events
+      finalGuests = guests;
+    } else {
+      // Single guest - they must have events
+      const guestWithEvents = guests.filter(
+        (guest) => guest.selectedEvents && guest.selectedEvents.length > 0
+      );
+
+      if (guestWithEvents.length === 0) {
+        return res.status(404).json({
+          message:
+            "No active invitations found for this guest. Please contact the hosts if you believe this is an error.",
+        });
+      }
+
+      finalGuests = guestWithEvents;
+    }
+
+    // Get guest events for all matching guests
+    const guestsWithGuestEvents = await Promise.all(
+      finalGuests.map(async (guest) => {
+        const guestEvents = await GuestEvent.find({
+          guestId: guest._id,
+        }).populate("eventId", "title eventDate location");
+
+        return {
+          ...guest.toObject(),
+          guestEvents,
+          hasEvents: guest.selectedEvents && guest.selectedEvents.length > 0,
+        };
+      })
     );
 
-    // Add guest events to the response
-    const guestWithEvents = {
-      ...guest.toObject(),
-      guestEvents,
-    };
-
-    res.json({ guest: guestWithEvents });
+    // If only one guest found, return it directly (backward compatibility)
+    if (guestsWithGuestEvents.length === 1) {
+      res.json({ guest: guestsWithGuestEvents[0] });
+    } else {
+      // Multiple guests found, return them for selection
+      res.json({ guests: guestsWithGuestEvents });
+    }
   } catch (error) {
     console.error("Error looking up guest:", error);
     res.status(500).json({ message: "Server error" });
