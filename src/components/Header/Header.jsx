@@ -70,7 +70,6 @@ const Header = () => {
                 <Link to="/events">Event Manager</Link>
                 <Link to="/rsvp-manager">RSVP Manager</Link>
                 <Link to="/budget">Budget</Link>
-                <Link to="/planning/vendors">Vendors</Link>
                 <Link to="/taskmanager">Task Manager</Link>
               </div>
             </div>

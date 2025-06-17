@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../../Header/Header";
 import Footer from "../../Footer/Footer";
 import AuthService from "../../../services/authService";
+import { getApiUrl } from "../../../config";
 import "./AddEventForm.css";
 
 const AddEventForm = () => {
@@ -71,7 +71,7 @@ const AddEventForm = () => {
         description: formData.additionalDetails || "Event created via form",
       };
 
-      const response = await fetch("/api/events", {
+      const response = await fetch(getApiUrl("/events"), {
         method: "POST",
         headers: AuthService.getAuthHeaders(),
         body: JSON.stringify(eventData),
@@ -102,7 +102,6 @@ const AddEventForm = () => {
 
   return (
     <>
-      <Header />
       <div className="add-event-container">
         <div className="add-event-form">
           <h1>Add New Event</h1>

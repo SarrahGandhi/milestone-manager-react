@@ -46,7 +46,7 @@
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.export-csv-btn {
+.export-excel-btn {
   background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
   color: white;
   border: none;
@@ -62,7 +62,7 @@
   gap: 0.5rem;
 }
 
-.export-csv-btn:hover {
+.export-excel-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
 }

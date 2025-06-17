@@ -63,7 +63,7 @@ const ProtectedRoute = ({ children }) => {
         <p>Please log in to access this feature.</p>
         <div style={{ marginTop: "1rem" }}>
           <button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => (window.location.href = "/admin")}
             style={{
               padding: "0.5rem 1rem",
               marginRight: "1rem",

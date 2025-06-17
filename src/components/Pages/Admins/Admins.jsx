@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import userService from "../../../services/userService";
+import AddAdminForm from "./AddAdminForm";
+import DeleteAdminModal from "./DeleteAdminModal";
 import "./Admins.css";
 
 const Admins = () => {
@@ -11,17 +13,8 @@ const Admins = () => {
   const [success, setSuccess] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  // Form data for adding new user
-  const [newUser, setNewUser] = useState({
-    username: "",
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    role: "user",
-  });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Load users on component mount
   useEffect(() => {
@@ -42,29 +35,6 @@ const Admins = () => {
     }
   };
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      await userService.createUser(newUser);
-      setSuccess("User created successfully");
-      setNewUser({
-        username: "",
-        email: "",
-        password: "",
-        firstName: "",
-        lastName: "",
-        role: "user",
-      });
-      setShowAddForm(false);
-      loadUsers();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to create user");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRoleChange = async (userId, newRole) => {
     try {
       setLoading(true);
@@ -72,21 +42,7 @@ const Admins = () => {
       setSuccess("User role updated successfully");
       loadUsers();
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to update user role");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async (userId) => {
-    try {
-      setLoading(true);
-      await userService.deleteUser(userId);
-      setSuccess("User deleted successfully");
-      setDeleteConfirm(null);
-      loadUsers();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to delete user");
+      setError(error.message || "Failed to update user role");
     } finally {
       setLoading(false);
     }
@@ -140,136 +96,25 @@ const Admins = () => {
 
       {/* Add User Form */}
       {showAddForm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Add New User</h2>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowAddForm(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleAddUser} className="add-user-form">
-              <div className="form-group">
-                <label>Username:</label>
-                <input
-                  type="text"
-                  value={newUser.username}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, username: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email:</label>
-                <input
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Password:</label>
-                <input
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>First Name:</label>
-                <input
-                  type="text"
-                  value={newUser.firstName}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, firstName: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name:</label>
-                <input
-                  type="text"
-                  value={newUser.lastName}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, lastName: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Role:</label>
-                <select
-                  value={newUser.role}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, role: e.target.value })
-                  }
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="submit-btn" disabled={loading}>
-                  {loading ? "Creating..." : "Create User"}
-                </button>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setShowAddForm(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AddAdminForm
+          onUserAdded={loadUsers}
+          onCancel={() => setShowAddForm(false)}
+        />
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Confirm Delete</h2>
-            </div>
-            <div className="modal-content">
-              <p>
-                Are you sure you want to delete user:{" "}
-                <strong>
-                  {deleteConfirm.firstName} {deleteConfirm.lastName}
-                </strong>
-                ?
-              </p>
-              <p>This action cannot be undone.</p>
-            </div>
-            <div className="form-actions">
-              <button
-                className="delete-btn"
-                onClick={() => handleDeleteUser(deleteConfirm._id)}
-                disabled={loading}
-              >
-                {loading ? "Deleting..." : "Delete"}
-              </button>
-              <button
-                className="cancel-btn"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {showDeleteModal && userToDelete && (
+        <DeleteAdminModal
+          user={userToDelete}
+          onUserDeleted={() => {
+            setSuccess("User deleted successfully");
+            loadUsers();
+          }}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+          }}
+        />
       )}
 
       {/* Users Table */}
@@ -316,7 +161,10 @@ const Admins = () => {
                 <td>
                   <button
                     className="delete-user-btn"
-                    onClick={() => setDeleteConfirm(userItem)}
+                    onClick={() => {
+                      setUserToDelete(userItem);
+                      setShowDeleteModal(true);
+                    }}
                     disabled={userItem._id === user._id || loading}
                     title={
                       userItem._id === user._id

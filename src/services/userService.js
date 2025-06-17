@@ -32,6 +32,10 @@ const userService = {
 
   // Create a new user
   createUser: async (userData) => {
+    console.log("Creating user with data:", userData);
+    console.log("API URL:", getApiUrl("/auth/users"));
+    console.log("Headers:", getAuthHeaders());
+
     const response = await fetch(getApiUrl("/auth/users"), {
       method: "POST",
       headers: getAuthHeaders(),
@@ -39,6 +43,7 @@ const userService = {
     });
 
     const data = await response.json();
+    console.log("Create user response:", { status: response.status, data });
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to create user");
@@ -66,12 +71,17 @@ const userService = {
 
   // Delete user
   deleteUser: async (userId) => {
+    console.log("Deleting user with ID:", userId);
+    console.log("API URL:", getApiUrl(`/auth/users/${userId}`));
+    console.log("Headers:", getAuthHeaders());
+
     const response = await fetch(getApiUrl(`/auth/users/${userId}`), {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
 
     const data = await response.json();
+    console.log("Delete user response:", { status: response.status, data });
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to delete user");

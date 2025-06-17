@@ -5,6 +5,7 @@ import AddGuestForm from "../Pages/Guests/AddGuestForm";
 import EditGuestForm from "../Pages/Guests/EditGuestForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import * as XLSX from "xlsx";
 
 // Use the centralized API configuration
 import { getApiUrl } from "../../config";
@@ -264,11 +265,12 @@ const RSVPManager = () => {
     return parts.length > 0 ? parts.join(", ") : "N/A";
   };
 
-  // CSV Export functionality
-  const exportToCSV = () => {
-    const filteredGuests = getFilteredGuests();
+  // Excel Export functionality with separate sheets for each event
+  const exportToExcel = () => {
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
 
-    // Define CSV headers
+    // Define headers
     const headers = [
       "Guest Name",
       "Phone",
@@ -280,96 +282,170 @@ const RSVPManager = () => {
       "Women",
       "Kids",
       "Total Attendees",
-      "Selected Events",
       "Invitation Status",
       "RSVP Status",
       "Notes",
     ];
 
-    // Convert guest data to CSV rows
-    const csvData = filteredGuests.map((guest) => {
-      const eventAttendees =
-        selectedEvent !== "all"
-          ? guest.eventAttendees?.[selectedEvent] || {}
-          : Object.values(guest.eventAttendees || {}).reduce(
-              (acc, counts) => ({
-                men: acc.men + (counts.men || 0),
-                women: acc.women + (counts.women || 0),
-                kids: acc.kids + (counts.kids || 0),
-              }),
-              { men: 0, women: 0, kids: 0 }
-            );
+    // Helper function to create sheet data for an event
+    const createSheetDataForEvent = (eventId, eventTitle) => {
+      // Get guests for this specific event
+      const eventGuests = guests.filter((guest) => {
+        const hasGuestEvent = guest.guestEvents?.some(
+          (event) => event.eventId && event.eventId._id === eventId
+        );
+        const hasSelectedEvent = guest.selectedEvents?.some(
+          (event) => event._id === eventId
+        );
+        return hasGuestEvent || hasSelectedEvent;
+      });
 
-      const guestEvent =
-        selectedEvent !== "all"
-          ? getGuestRSVPForEvent(guest, selectedEvent)
-          : null;
+      // Convert guest data to sheet rows
+      const sheetData = eventGuests.map((guest) => {
+        const eventAttendees = guest.eventAttendees?.[eventId] || {};
+        const guestEvent = getGuestRSVPForEvent(guest, eventId);
 
-      const totalAttendees =
-        (eventAttendees.men || 0) +
-        (eventAttendees.women || 0) +
-        (eventAttendees.kids || 0);
+        const totalAttendees =
+          (eventAttendees.men || 0) +
+          (eventAttendees.women || 0) +
+          (eventAttendees.kids || 0);
+
+        const invitationStatus = guestEvent?.invitationStatus || "not_sent";
+        const rsvpStatus = guestEvent?.rsvpStatus || "pending";
+
+        return {
+          "Guest Name": guest.name || "",
+          Phone: guest.phone || "",
+          Address: guest.address || "",
+          City: guest.city || "",
+          Country: guest.country || "",
+          Category:
+            guest.category === "bride"
+              ? "Bride's Side"
+              : guest.category === "groom"
+              ? "Groom's Side"
+              : guest.category || "",
+          Men: eventAttendees.men || 0,
+          Women: eventAttendees.women || 0,
+          Kids: eventAttendees.kids || 0,
+          "Total Attendees": totalAttendees,
+          "Invitation Status": invitationStatus.toUpperCase(),
+          "RSVP Status": rsvpStatus.toUpperCase(),
+          Notes: guest.notes || "",
+        };
+      });
+
+      return sheetData;
+    };
+
+    // Create a sheet for each event
+    events.forEach((event) => {
+      const sheetData = createSheetDataForEvent(event._id, event.title);
+
+      // Only create sheet if there are guests for this event
+      if (sheetData.length > 0) {
+        const worksheet = XLSX.utils.json_to_sheet(sheetData);
+
+        // Auto-size columns
+        const colWidths = headers.map((header) => {
+          const maxLength = Math.max(
+            header.length,
+            ...sheetData.map((row) => String(row[header] || "").length)
+          );
+          return { wch: Math.min(maxLength + 2, 50) }; // Cap at 50 characters
+        });
+        worksheet["!cols"] = colWidths;
+
+        // Clean sheet name (remove special characters for Excel compatibility)
+        const cleanSheetName = event.title
+          .replace(/[:\\\/?*\[\]]/g, "")
+          .substring(0, 31);
+        XLSX.utils.book_append_sheet(workbook, worksheet, cleanSheetName);
+      }
+    });
+
+    // Create an "All Events" summary sheet
+    const allGuestsData = guests.map((guest) => {
+      // Calculate totals across all events
+      const totalAttendees = Object.values(guest.eventAttendees || {}).reduce(
+        (acc, counts) => ({
+          men: acc.men + (counts.men || 0),
+          women: acc.women + (counts.women || 0),
+          kids: acc.kids + (counts.kids || 0),
+        }),
+        { men: 0, women: 0, kids: 0 }
+      );
 
       const selectedEvents =
         guest.selectedEvents?.map((event) => event.title).join("; ") ||
         guest.guestEvents?.map((ge) => ge.eventId.title).join("; ") ||
         "None";
 
-      const invitationStatus = guestEvent?.invitationStatus || "not_sent";
-      const rsvpStatus = guestEvent?.rsvpStatus || "pending";
+      const totalCount =
+        totalAttendees.men + totalAttendees.women + totalAttendees.kids;
 
-      return [
-        `"${guest.name || ""}"`,
-        `"${guest.phone || ""}"`,
-        `"${guest.address || ""}"`,
-        `"${guest.city || ""}"`,
-        `"${guest.country || ""}"`,
-        `"${
+      return {
+        "Guest Name": guest.name || "",
+        Phone: guest.phone || "",
+        Address: guest.address || "",
+        City: guest.city || "",
+        Country: guest.country || "",
+        Category:
           guest.category === "bride"
             ? "Bride's Side"
             : guest.category === "groom"
             ? "Groom's Side"
-            : guest.category || ""
-        }"`,
-        eventAttendees.men || 0,
-        eventAttendees.women || 0,
-        eventAttendees.kids || 0,
-        totalAttendees,
-        `"${selectedEvents}"`,
-        `"${invitationStatus.toUpperCase()}"`,
-        `"${rsvpStatus.toUpperCase()}"`,
-        `"${guest.notes || ""}"`,
-      ];
+            : guest.category || "",
+        Men: totalAttendees.men,
+        Women: totalAttendees.women,
+        Kids: totalAttendees.kids,
+        "Total Attendees": totalCount,
+        "Selected Events": selectedEvents,
+        Notes: guest.notes || "",
+      };
     });
 
-    // Combine headers and data
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map((row) => row.join(",")),
-    ].join("\n");
+    if (allGuestsData.length > 0) {
+      const summaryHeaders = [
+        "Guest Name",
+        "Phone",
+        "Address",
+        "City",
+        "Country",
+        "Category",
+        "Men",
+        "Women",
+        "Kids",
+        "Total Attendees",
+        "Selected Events",
+        "Notes",
+      ];
 
-    // Create and download the file
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
+      const summaryWorksheet = XLSX.utils.json_to_sheet(allGuestsData);
+
+      // Auto-size columns for summary sheet
+      const summaryColWidths = summaryHeaders.map((header) => {
+        const maxLength = Math.max(
+          header.length,
+          ...allGuestsData.map((row) => String(row[header] || "").length)
+        );
+        return { wch: Math.min(maxLength + 2, 50) };
+      });
+      summaryWorksheet["!cols"] = summaryColWidths;
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        summaryWorksheet,
+        "All Events Summary"
+      );
+    }
 
     // Generate filename with current date
     const currentDate = new Date().toISOString().split("T")[0];
-    const eventName =
-      selectedEvent !== "all"
-        ? events.find((e) => e._id === selectedEvent)?.title || "Selected"
-        : "All";
-    const filename = `rsvp_manager_${eventName.replace(
-      /\s+/g,
-      "_"
-    )}_${currentDate}.csv`;
+    const filename = `rsvp_manager_${currentDate}.xlsx`;
 
-    link.setAttribute("download", filename);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Write and download the file
+    XLSX.writeFile(workbook, filename);
   };
 
   if (loading) {
@@ -385,9 +461,9 @@ const RSVPManager = () => {
       <div className="rsvp-header">
         <h1>RSVP Manager</h1>
         <div className="header-actions">
-          <button className="export-csv-btn" onClick={exportToCSV}>
+          <button className="export-excel-btn" onClick={exportToExcel}>
             <FontAwesomeIcon icon={faDownload} />
-            Export CSV
+            Export Excel
           </button>
           <button
             className="add-guest-btn"
