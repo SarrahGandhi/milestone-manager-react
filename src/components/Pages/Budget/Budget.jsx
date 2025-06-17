@@ -272,40 +272,6 @@ const Budget = () => {
           </div>
         </div>
       </div>
-
-      {/* Category Summary Table */}
-      <div className="category-summary">
-        <h3>Category Summary</h3>
-        <table className="category-table">
-          <thead>
-            <tr>
-              <th>Category</th>
-              <th>Estimated Cost</th>
-              <th>Actual Cost</th>
-              <th>Difference</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categoryTotals.map((cat) => (
-              <tr key={cat.category}>
-                <td>{cat.category}</td>
-                <td>${cat.estimated.toLocaleString()}</td>
-                <td>${cat.actual.toLocaleString()}</td>
-                <td
-                  className={
-                    cat.actual - cat.estimated > 0
-                      ? "over-budget"
-                      : "under-budget"
-                  }
-                >
-                  ${(cat.actual - cat.estimated).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       {/* Budget Items Table */}
       <div className="budget-table-container">
         {filteredBudgetItems.length === 0 ? (
@@ -402,6 +368,38 @@ const Budget = () => {
             </tbody>
           </table>
         )}
+      </div>
+      {/* Category Summary Table */}
+      <div className="category-summary">
+        <h3>Category Summary</h3>
+        <table className="category-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Estimated Cost</th>
+              <th>Actual Cost</th>
+              <th>Difference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categoryTotals.map((cat) => (
+              <tr key={cat.category}>
+                <td>{cat.category}</td>
+                <td>${cat.estimated.toLocaleString()}</td>
+                <td>${cat.actual.toLocaleString()}</td>
+                <td
+                  className={
+                    cat.actual - cat.estimated > 0
+                      ? "over-budget"
+                      : "under-budget"
+                  }
+                >
+                  ${(cat.actual - cat.estimated).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Modals */}
