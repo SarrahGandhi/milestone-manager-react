@@ -41,6 +41,13 @@ exports.createBudgetItem = async (req, res) => {
     const { description, category, eventId, estimatedCost, actualCost, notes } =
       req.body;
 
+    console.log("Budget item data received:", req.body);
+    console.log("User ID:", req.user._id);
+
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
     }
@@ -55,12 +62,16 @@ exports.createBudgetItem = async (req, res) => {
       userId: req.user._id,
     });
 
+    console.log("Budget item before saving:", budgetItem);
+
     await budgetItem.save();
 
     const populatedBudgetItem = await Budget.findById(budgetItem._id).populate(
       "eventId",
       "title"
     );
+
+    console.log("Budget item after saving:", populatedBudgetItem);
 
     res.status(201).json(populatedBudgetItem);
   } catch (error) {

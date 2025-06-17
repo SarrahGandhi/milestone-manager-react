@@ -62,6 +62,8 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
+      console.log("Budget data being sent to API:", budgetData);
+
       const response = await fetch(getApiUrl("/budget"), {
         method: "POST",
         headers: {
@@ -71,8 +73,11 @@ class BudgetService {
         body: JSON.stringify(budgetData),
       });
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error("API Error:", error);
         throw new Error(error.message || "Failed to create budget item");
       }
 

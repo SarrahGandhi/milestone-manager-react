@@ -17,10 +17,11 @@ const EditBudgetForm = ({ budgetItem, onClose, events, categories }) => {
 
   useEffect(() => {
     if (budgetItem) {
+      console.log("Budget item in edit form:", budgetItem);
       setFormData({
         description: budgetItem.description || "",
         category: budgetItem.category || "",
-        eventId: budgetItem.eventId || "",
+        eventId: budgetItem.eventId?._id || budgetItem.eventId || "",
         estimatedCost: budgetItem.estimatedCost || "",
         actualCost: budgetItem.actualCost || "",
         notes: budgetItem.notes || "",

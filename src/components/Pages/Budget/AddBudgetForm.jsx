@@ -28,8 +28,17 @@ const AddBudgetForm = ({ onClose, events, categories }) => {
     setLoading(true);
     setError("");
 
+    // Validate required fields
+    if (!formData.eventId) {
+      setError("Please select an event");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await BudgetService.createBudgetItem(formData);
+      console.log("Form data being submitted:", formData);
+      const result = await BudgetService.createBudgetItem(formData);
+      console.log("Budget item created successfully:", result);
       onClose();
     } catch (error) {
       console.error("Error adding budget item:", error);

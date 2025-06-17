@@ -19,7 +19,7 @@ import About from "./components/Pages/About/About";
 import AddEventForm from "./components/Pages/Events/AddEventForm";
 import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
-import Inspiration from "./components/Pages/Inspiration/Inspiration";
+
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import AdminRoute from "./components/Auth/AdminRoute";
@@ -106,15 +106,7 @@ function App() {
               </>
             }
           />
-          <Route
-            path="/inspiration"
-            element={
-              <>
-                <Inspiration />
-                <Footer />
-              </>
-            }
-          />
+
           <Route
             path="/about"
             element={

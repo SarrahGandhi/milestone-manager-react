@@ -49,7 +49,6 @@ const eventRoutes = require("./src/routes/eventRoutes");
 const taskRoutes = require("./src/routes/taskRoutes");
 const guestRoutes = require("./src/routes/guestRoutes");
 const budgetRoutes = require("./src/routes/budgetRoutes");
-const inspirationRoutes = require("./src/routes/inspirationRoutes");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -57,7 +56,6 @@ app.use("/api/events", eventRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/budget", budgetRoutes);
-app.use("/api/inspiration", inspirationRoutes);
 
 // Basic route
 app.get("/", (req, res) => {

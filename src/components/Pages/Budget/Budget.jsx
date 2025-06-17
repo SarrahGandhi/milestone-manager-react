@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import BudgetService from "../../../services/budgetService";
 import { getApiUrl } from "../../../config";
+import AuthService from "../../../services/authService";
 import AddBudgetForm from "./AddBudgetForm";
 import EditBudgetForm from "./EditBudgetForm";
 import DeleteBudgetModal from "./DeleteBudgetModal";
@@ -48,7 +49,9 @@ const Budget = () => {
   // Fetch events from the database
   const fetchEvents = async () => {
     try {
-      const response = await fetch(getApiUrl("/events"));
+      const response = await fetch(getApiUrl("/events"), {
+        headers: AuthService.getAuthHeaders(),
+      });
       if (response.ok) {
         const data = await response.json();
         setEvents(data);
@@ -73,6 +76,7 @@ const Budget = () => {
         data = await BudgetService.getBudgetItemsByEvent(selectedEvent);
       }
 
+      console.log("Fetched budget items:", data);
       setBudgetItems(data);
     } catch (error) {
       console.error("Error fetching budget items:", error);
@@ -329,7 +333,19 @@ const Budget = () => {
                 const difference =
                   (parseFloat(item.actualCost) || 0) -
                   (parseFloat(item.estimatedCost) || 0);
-                const event = events.find((e) => e._id === item.eventId);
+
+                // Handle both populated and non-populated eventId
+                let eventTitle = "-";
+                if (item.eventId) {
+                  if (typeof item.eventId === "object" && item.eventId.title) {
+                    // eventId is populated with event object
+                    eventTitle = item.eventId.title;
+                  } else {
+                    // eventId is just the ID, find the event in the events array
+                    const event = events.find((e) => e._id === item.eventId);
+                    eventTitle = event ? event.title : "-";
+                  }
+                }
 
                 return (
                   <tr key={item._id}>
@@ -341,7 +357,7 @@ const Budget = () => {
                         {item.category}
                       </span>
                     </td>
-                    <td>{event ? event.title : "-"}</td>
+                    <td>{eventTitle}</td>
                     <td>${parseFloat(item.estimatedCost).toLocaleString()}</td>
                     <td>${parseFloat(item.actualCost).toLocaleString()}</td>
                     <td

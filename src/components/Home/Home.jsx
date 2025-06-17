@@ -151,16 +151,10 @@ const Home = () => {
               </div>
             </Link>
           ) : f.label === "Pinterest Board" ? (
-            <Link
-              to="/inspiration"
-              style={{ textDecoration: "none" }}
-              key={f.label}
-            >
-              <div className="feature-card">
-                <div className="feature-icon">{icons[f.icon]}</div>
-                <div className="feature-label">{f.label}</div>
-              </div>
-            </Link>
+            <div className="feature-card" key={f.label}>
+              <div className="feature-icon">{icons[f.icon]}</div>
+              <div className="feature-label">{f.label}</div>
+            </div>
           ) : (
             <div className="feature-card" key={f.label}>
               <div className="feature-icon">{icons[f.icon]}</div>
