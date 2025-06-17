@@ -14,3 +14,12 @@ export default defineConfig({
     },
   },
 });
+
+// API Configuration
+export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
+  ? `${import.meta.env.VITE_BACKEND_URL}/api` // Full URL in production
+  : "/api";
+
+console.log("Mode:", import.meta.env.MODE);
+console.log("VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
+console.log("Final API_BASE_URL:", API_BASE_URL);
