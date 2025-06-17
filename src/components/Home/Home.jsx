@@ -168,7 +168,7 @@ const Home = () => {
       ) : isAuthenticated ? (
         <Dashboard />
       ) : (
-       
+        <Walkthrough />
       )}
     </>
   );

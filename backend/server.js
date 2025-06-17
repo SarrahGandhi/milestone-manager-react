@@ -18,7 +18,6 @@ app.use(
       "http://localhost:5174",
       "http://localhost:3000",
       "https://milestone-manager-react.vercel.app",
-      a,
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
