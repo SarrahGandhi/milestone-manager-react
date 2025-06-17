@@ -18,6 +18,7 @@ app.use(
       "http://localhost:5174",
       "http://localhost:3000",
       "https://milestone-manager-react.vercel.app",
+      a,
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -36,7 +37,9 @@ app.use((req, res, next) => {
 
 // MongoDB Atlas Connection
 const MONGODB_URI =
-  "mongodb+srv://admin:admin@cluster0.6brfp.mongodb.net/WeddingData";
+  process.env.NODE_ENV === "production"
+    ? "mongodb+srv://admin:admin@cluster0.6brfp.mongodb.net/WeddingData"
+    : "mongodb://localhost:27017/WeddingData"; // Use local MongoDB for development
 
 mongoose
   .connect(MONGODB_URI)

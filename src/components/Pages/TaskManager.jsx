@@ -15,6 +15,7 @@ const months = [
   "June",
   "July",
   "August",
+  "September",
   "October",
   "November",
   "December",
@@ -51,6 +52,31 @@ const categoryConfig = {
 };
 
 const monthConfig = {
+  January: {
+    gradient: "linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)",
+    icon: "❄️",
+    color: "#e8f4f8",
+  },
+  February: {
+    gradient: "linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%)",
+    icon: "💕",
+    color: "#f8d7da",
+  },
+  March: {
+    gradient: "linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%)",
+    icon: "🌱",
+    color: "#d1ecf1",
+  },
+  April: {
+    gradient: "linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)",
+    icon: "🌷",
+    color: "#d4edda",
+  },
+  May: {
+    gradient: "linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)",
+    icon: "🌼",
+    color: "#fff3cd",
+  },
   June: {
     gradient: "linear-gradient(135deg, #eb9895 0%, #f7d6e0 100%)",
     icon: "🌸",
@@ -66,6 +92,11 @@ const monthConfig = {
     icon: "🌺",
     color: "#e8b4bc",
   },
+  September: {
+    gradient: "linear-gradient(135deg, #fde2e4 0%, #fad2cf 100%)",
+    icon: "🍇",
+    color: "#fde2e4",
+  },
   October: {
     gradient: "linear-gradient(135deg, #f7d6e0 0%, #eb9895 100%)",
     icon: "🍂",
@@ -75,6 +106,11 @@ const monthConfig = {
     gradient: "linear-gradient(135deg, #eb9895 0%, #f3b6b3 100%)",
     icon: "🍁",
     color: "#eb9895",
+  },
+  December: {
+    gradient: "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)",
+    icon: "🎄",
+    color: "#f0f8ff",
   },
 };
 
@@ -279,7 +315,19 @@ const TaskManager = () => {
   };
 
   const getGroupConfig = (group) => {
-    return sortMode === "category" ? categoryConfig[group] : monthConfig[group];
+    const config =
+      sortMode === "category" ? categoryConfig[group] : monthConfig[group];
+
+    // Fallback configuration if month/category config is missing
+    if (!config) {
+      return {
+        gradient: "linear-gradient(135deg, #eb9895 0%, #f3b6b3 100%)",
+        icon: "📅",
+        color: "#eb9895",
+      };
+    }
+
+    return config;
   };
 
   const getTaskCount = (group) => {

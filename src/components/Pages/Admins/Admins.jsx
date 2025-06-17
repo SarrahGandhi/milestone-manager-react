@@ -25,11 +25,12 @@ const Admins = () => {
     try {
       setLoading(true);
       const response = await userService.getAllUsers();
-      setUsers(response.users);
+      setUsers(response || []);
       setError("");
     } catch (error) {
       setError("Failed to load users");
       console.error("Error loading users:", error);
+      setUsers([]); // Ensure users is always an array
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ const Admins = () => {
     setSuccess("");
   };
 
-  if (loading && users.length === 0) {
+  if (loading && (!users || users.length === 0)) {
     return (
       <div className="admins-container">
         <div className="loading">Loading users...</div>
@@ -132,62 +133,63 @@ const Admins = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((userItem) => (
-              <tr key={userItem._id}>
-                <td>
-                  {userItem.firstName} {userItem.lastName}
-                </td>
-                <td>{userItem.username}</td>
-                <td>{userItem.email}</td>
-                <td>
-                  <select
-                    value={userItem.role}
-                    onChange={(e) =>
-                      handleRoleChange(userItem._id, e.target.value)
-                    }
-                    disabled={userItem._id === user._id || loading}
-                    className="role-select"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </td>
-                <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
-                <td>
-                  {userItem.lastLogin
-                    ? new Date(userItem.lastLogin).toLocaleDateString()
-                    : "Never"}
-                </td>
-                <td>
-                  <button
-                    className="delete-user-btn"
-                    onClick={() => {
-                      setUserToDelete(userItem);
-                      setShowDeleteModal(true);
-                    }}
-                    disabled={userItem._id === user._id || loading}
-                    title={
-                      userItem._id === user._id
-                        ? "Cannot delete your own account"
-                        : "Delete user"
-                    }
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {users &&
+              users.map((userItem) => (
+                <tr key={userItem._id}>
+                  <td>
+                    {userItem.firstName} {userItem.lastName}
+                  </td>
+                  <td>{userItem.username}</td>
+                  <td>{userItem.email}</td>
+                  <td>
+                    <select
+                      value={userItem.role}
+                      onChange={(e) =>
+                        handleRoleChange(userItem._id, e.target.value)
+                      }
+                      disabled={userItem._id === user._id || loading}
+                      className="role-select"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
+                  <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    {userItem.lastLogin
+                      ? new Date(userItem.lastLogin).toLocaleDateString()
+                      : "Never"}
+                  </td>
+                  <td>
+                    <button
+                      className="delete-user-btn"
+                      onClick={() => {
+                        setUserToDelete(userItem);
+                        setShowDeleteModal(true);
+                      }}
+                      disabled={userItem._id === user._id || loading}
+                      title={
+                        userItem._id === user._id
+                          ? "Cannot delete your own account"
+                          : "Delete user"
+                      }
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
 
-        {users.length === 0 && !loading && (
+        {users && users.length === 0 && !loading && (
           <div className="no-users">
             <p>No users found.</p>
           </div>
         )}
       </div>
 
-      <div className="users-count">Total Users: {users.length}</div>
+      <div className="users-count">Total Users: {users ? users.length : 0}</div>
     </div>
   );
 };
