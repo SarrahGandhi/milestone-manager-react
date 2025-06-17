@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TaskService from "../../services/taskService";
+import userService from "../../services/userService";
 
 const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   const [formData, setFormData] = useState({
@@ -14,9 +15,33 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
   const priorities = ["low", "medium", "high"];
+
+  // Load users when component mounts
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const allUsers = await userService.getAllUsers();
+        // Ensure we always set an array, even if the API returns something unexpected
+        setUsers(Array.isArray(allUsers) ? allUsers : []);
+      } catch (err) {
+        console.error("Failed to load users:", err);
+        // Set empty array on error
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    if (isOpen) {
+      loadUsers();
+    }
+  }, [isOpen]);
 
   // Pre-populate form when task prop changes
   useEffect(() => {
@@ -28,7 +53,9 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
         category: task.category || "Other",
         priority: task.priority || "medium",
         estimatedTime: task.estimatedTime ? task.estimatedTime.toString() : "",
-        assignedTo: task.assignedTo || "",
+        assignedTo: task.assignedTo
+          ? task.assignedTo._id || task.assignedTo
+          : "",
         tags: task.tags ? task.tags.join(", ") : "",
       });
     }
@@ -180,14 +207,22 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
 
             <div className="form-group">
               <label htmlFor="assignedTo">Assigned To</label>
-              <input
-                type="text"
+              <select
                 id="assignedTo"
                 name="assignedTo"
                 value={formData.assignedTo}
                 onChange={handleChange}
-                placeholder="Person responsible for this task"
-              />
+                disabled={loadingUsers}
+              >
+                <option value="">Select a team member (optional)</option>
+                {Array.isArray(users) &&
+                  users.map((user) => (
+                    <option key={user._id} value={user._id}>
+                      {user.firstName} {user.lastName} ({user.username})
+                    </option>
+                  ))}
+              </select>
+              {loadingUsers && <small>Loading team members...</small>}
             </div>
 
             <div className="form-group">

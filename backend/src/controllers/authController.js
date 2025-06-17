@@ -279,14 +279,14 @@ const logout = async (req, res) => {
   }
 };
 
-// @desc Get all users (Admin only)
+// @desc Get all users (For task assignment)
 // @route GET /api/auth/users
-// @access Private/Admin
+// @access Private (All authenticated users can see team members for task assignment)
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({})
-      .select("-password")
-      .sort({ createdAt: -1 });
+      .select("firstName lastName username email role")
+      .sort({ firstName: 1, lastName: 1 });
 
     res.json({
       success: true,

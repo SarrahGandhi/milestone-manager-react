@@ -30,7 +30,8 @@ const taskSchema = new mongoose.Schema(
       default: false,
     },
     assignedTo: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: false,
     },
     estimatedTime: {

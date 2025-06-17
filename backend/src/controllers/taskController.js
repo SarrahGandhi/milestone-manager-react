@@ -3,7 +3,10 @@ const Task = require("../models/Task");
 // GET all tasks - GLOBAL (all users can see all tasks)
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({}).sort({ dueDate: 1 });
+    const tasks = await Task.find({})
+      .populate("assignedTo", "firstName lastName username email")
+      .populate("createdBy", "firstName lastName username email")
+      .sort({ dueDate: 1 });
     res.json(tasks);
   } catch (error) {
     console.error("Get all tasks error:", error);
@@ -14,7 +17,9 @@ const getAllTasks = async (req, res) => {
 // GET task by ID - GLOBAL (all users can see any task)
 const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id });
+    const task = await Task.findOne({ _id: req.params.id })
+      .populate("assignedTo", "firstName lastName username email")
+      .populate("createdBy", "firstName lastName username email");
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -40,7 +45,12 @@ const createTask = async (req, res) => {
     const task = new Task(taskData);
     await task.save();
 
-    res.status(201).json(task);
+    // Populate the user information before returning
+    const populatedTask = await Task.findById(task._id)
+      .populate("assignedTo", "firstName lastName username email")
+      .populate("createdBy", "firstName lastName username email");
+
+    res.status(201).json(populatedTask);
   } catch (error) {
     console.error("Create task error:", error);
 
@@ -62,7 +72,9 @@ const updateTask = async (req, res) => {
     const task = await Task.findOneAndUpdate({ _id: req.params.id }, req.body, {
       new: true,
       runValidators: true,
-    });
+    })
+      .populate("assignedTo", "firstName lastName username email")
+      .populate("createdBy", "firstName lastName username email");
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -103,7 +115,9 @@ const deleteTask = async (req, res) => {
 // TOGGLE task completion - GLOBAL (any user can toggle any task)
 const toggleTaskCompletion = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id });
+    const task = await Task.findOne({ _id: req.params.id })
+      .populate("assignedTo", "firstName lastName username email")
+      .populate("createdBy", "firstName lastName username email");
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });

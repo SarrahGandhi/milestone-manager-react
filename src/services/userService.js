@@ -27,7 +27,8 @@ const userService = {
       throw new Error(data.message || "Failed to get users");
     }
 
-    return data;
+    // Return the users array from the response
+    return data.users || [];
   },
 
   // Create a new user

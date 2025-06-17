@@ -496,6 +496,13 @@ const TaskManager = () => {
                               </span>
                               {task.category}
                             </div>
+                            {task.assignedTo && (
+                              <div className="task-assigned">
+                                <span className="assigned-icon">👤</span>
+                                {task.assignedTo.firstName}{" "}
+                                {task.assignedTo.lastName}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -587,6 +594,21 @@ const TaskManager = () => {
                     </span>
                     {priorityConfig[selectedTask.priority].label}
                   </div>
+                </div>
+
+                <div className="detail-section">
+                  <h3>Assigned To</h3>
+                  {selectedTask.assignedTo ? (
+                    <div className="assigned-user-info">
+                      <span className="assigned-icon">👤</span>
+                      {selectedTask.assignedTo.firstName}{" "}
+                      {selectedTask.assignedTo.lastName}
+                      <br />
+                      <small>@{selectedTask.assignedTo.username}</small>
+                    </div>
+                  ) : (
+                    <p>Not assigned to anyone</p>
+                  )}
                 </div>
 
                 <div className="detail-section">
