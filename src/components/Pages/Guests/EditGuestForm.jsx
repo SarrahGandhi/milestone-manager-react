@@ -34,6 +34,37 @@ const EditGuestForm = ({ guest, onClose, events }) => {
         };
       });
 
+      // Ensure eventAttendees has the correct structure for all selected events
+      const normalizedEventAttendees = {};
+      const selectedEventIds =
+        guest.selectedEvents?.map((event) => event._id) || [];
+
+      selectedEventIds.forEach((eventId) => {
+        // Check if attendee data exists for this event
+        const existingCounts = guest.eventAttendees?.[eventId];
+
+        if (existingCounts && typeof existingCounts === "object") {
+          // Ensure all required fields exist and are numbers
+          normalizedEventAttendees[eventId] = {
+            men:
+              typeof existingCounts.men === "number" ? existingCounts.men : 0,
+            women:
+              typeof existingCounts.women === "number"
+                ? existingCounts.women
+                : 0,
+            kids:
+              typeof existingCounts.kids === "number" ? existingCounts.kids : 0,
+          };
+        } else {
+          // Initialize with default values if no data exists
+          normalizedEventAttendees[eventId] = {
+            men: 0,
+            women: 0,
+            kids: 0,
+          };
+        }
+      });
+
       setFormData({
         name: guest.name || "",
         phone: guest.phone || "",
@@ -41,8 +72,8 @@ const EditGuestForm = ({ guest, onClose, events }) => {
         city: guest.city || "",
         country: guest.country || "",
         notes: guest.notes || "",
-        selectedEvents: guest.selectedEvents?.map((event) => event._id) || [],
-        eventAttendees: guest.eventAttendees || {},
+        selectedEvents: selectedEventIds,
+        eventAttendees: normalizedEventAttendees,
         eventStatuses: eventStatuses,
       });
     }
@@ -104,13 +135,18 @@ const EditGuestForm = ({ guest, onClose, events }) => {
   };
 
   const handleAttendeeCountChange = (eventId, category, value) => {
+    const numValue = Math.max(0, parseInt(value) || 0); // Ensure non-negative integer
+
     setFormData((prev) => ({
       ...prev,
       eventAttendees: {
         ...prev.eventAttendees,
         [eventId]: {
-          ...prev.eventAttendees[eventId],
-          [category]: parseInt(value) || 0,
+          // Ensure the object always has all required fields
+          men: prev.eventAttendees[eventId]?.men || 0,
+          women: prev.eventAttendees[eventId]?.women || 0,
+          kids: prev.eventAttendees[eventId]?.kids || 0,
+          [category]: numValue,
         },
       },
     }));
@@ -137,6 +173,26 @@ const EditGuestForm = ({ guest, onClose, events }) => {
         return;
       }
 
+      // Validate and normalize eventAttendees structure before sending
+      const validatedEventAttendees = {};
+      for (const eventId of formData.selectedEvents) {
+        const counts = formData.eventAttendees[eventId];
+        if (counts && typeof counts === "object") {
+          validatedEventAttendees[eventId] = {
+            men: typeof counts.men === "number" ? counts.men : 0,
+            women: typeof counts.women === "number" ? counts.women : 0,
+            kids: typeof counts.kids === "number" ? counts.kids : 0,
+          };
+        } else {
+          // Default structure if missing
+          validatedEventAttendees[eventId] = {
+            men: 0,
+            women: 0,
+            kids: 0,
+          };
+        }
+      }
+
       // Update the guest
       const response = await fetch(getApiUrl(`/guests/${guest._id}`), {
         method: "PUT",
@@ -152,7 +208,7 @@ const EditGuestForm = ({ guest, onClose, events }) => {
           country: formData.country.trim(),
           notes: formData.notes.trim(),
           selectedEvents: formData.selectedEvents,
-          eventAttendees: formData.eventAttendees,
+          eventAttendees: validatedEventAttendees,
           eventStatuses: formData.eventStatuses,
         }),
       });
