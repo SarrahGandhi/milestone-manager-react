@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Task = require("../models/Task");
-require("dotenv").config({ path: "../../../.env" });
+require("dotenv").config({ path: "../../.env" });
 
 const seedTasks = [
   {
@@ -96,9 +96,18 @@ async function seedDatabase() {
     console.log("Clearing existing tasks...");
     await Task.deleteMany({});
 
-    // Insert seed tasks
+    // Insert seed tasks - make them global by not including userId
     console.log("Inserting seed tasks...");
-    const createdTasks = await Task.insertMany(seedTasks);
+
+    // Create a fake ObjectId for userId and createdBy to satisfy the schema
+    const fakeUserId = new mongoose.Types.ObjectId();
+    const tasksWithUserId = seedTasks.map((task) => ({
+      ...task,
+      userId: fakeUserId,
+      createdBy: fakeUserId,
+    }));
+
+    const createdTasks = await Task.insertMany(tasksWithUserId);
     console.log(`Successfully created ${createdTasks.length} tasks`);
 
     // Display created tasks

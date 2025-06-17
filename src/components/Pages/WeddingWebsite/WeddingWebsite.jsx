@@ -98,7 +98,7 @@ const WeddingWebsite = () => {
   return (
     <div className="wedding-website">
       <div className="hero-section">
-        <h1>Sarrah & The Dumb Kid</h1>
+        <h1>Rachel & John</h1>
         <p className="date">October 7, 2026</p>
         <p className="tagline">Join us for our special day</p>
       </div>

@@ -105,7 +105,7 @@ const sendRSVPConfirmation = async (
           
           <p style="margin-top: 30px;">
             With love,<br>
-            <strong>Sarrah & The Dumb Kid</strong>
+            <strong>Rachel & John</strong>
           </p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">

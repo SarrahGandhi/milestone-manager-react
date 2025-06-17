@@ -1,10 +1,9 @@
 const Task = require("../models/Task");
 
-// GET all tasks for authenticated user
+// GET all tasks - GLOBAL (all users can see all tasks)
 const getAllTasks = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const tasks = await Task.find({ userId }).sort({ dueDate: 1 });
+    const tasks = await Task.find({}).sort({ dueDate: 1 });
     res.json(tasks);
   } catch (error) {
     console.error("Get all tasks error:", error);
@@ -12,11 +11,10 @@ const getAllTasks = async (req, res) => {
   }
 };
 
-// GET task by ID (user-specific)
+// GET task by ID - GLOBAL (all users can see any task)
 const getTaskById = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const task = await Task.findOne({ _id: req.params.id, userId });
+    const task = await Task.findOne({ _id: req.params.id });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -29,7 +27,7 @@ const getTaskById = async (req, res) => {
   }
 };
 
-// CREATE new task
+// CREATE new task - Still tracks creator
 const createTask = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -58,15 +56,13 @@ const createTask = async (req, res) => {
   }
 };
 
-// UPDATE task
+// UPDATE task - GLOBAL (any user can update any task)
 const updateTask = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const task = await Task.findOneAndUpdate({ _id: req.params.id }, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -88,11 +84,10 @@ const updateTask = async (req, res) => {
   }
 };
 
-// DELETE task
+// DELETE task - GLOBAL (any user can delete any task)
 const deleteTask = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const task = await Task.findOneAndDelete({ _id: req.params.id, userId });
+    const task = await Task.findOneAndDelete({ _id: req.params.id });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -105,11 +100,10 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// TOGGLE task completion
+// TOGGLE task completion - GLOBAL (any user can toggle any task)
 const toggleTaskCompletion = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const task = await Task.findOne({ _id: req.params.id, userId });
+    const task = await Task.findOne({ _id: req.params.id });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -125,12 +119,10 @@ const toggleTaskCompletion = async (req, res) => {
   }
 };
 
-// GET tasks by category
+// GET tasks by category - GLOBAL
 const getTasksByCategory = async (req, res) => {
   try {
-    const userId = req.user._id;
     const tasks = await Task.find({
-      userId,
       category: req.params.category,
     }).sort({ dueDate: 1 });
 
@@ -141,12 +133,10 @@ const getTasksByCategory = async (req, res) => {
   }
 };
 
-// GET tasks by priority
+// GET tasks by priority - GLOBAL
 const getTasksByPriority = async (req, res) => {
   try {
-    const userId = req.user._id;
     const tasks = await Task.find({
-      userId,
       priority: req.params.priority,
     }).sort({ dueDate: 1 });
 
@@ -157,13 +147,11 @@ const getTasksByPriority = async (req, res) => {
   }
 };
 
-// GET overdue tasks
+// GET overdue tasks - GLOBAL
 const getOverdueTasks = async (req, res) => {
   try {
-    const userId = req.user._id;
     const now = new Date();
     const tasks = await Task.find({
-      userId,
       dueDate: { $lt: now },
       completed: false,
     }).sort({ dueDate: 1 });
@@ -175,15 +163,13 @@ const getOverdueTasks = async (req, res) => {
   }
 };
 
-// GET upcoming tasks
+// GET upcoming tasks - GLOBAL
 const getUpcomingTasks = async (req, res) => {
   try {
-    const userId = req.user._id;
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     const tasks = await Task.find({
-      userId,
       dueDate: { $gte: now, $lte: sevenDaysFromNow },
       completed: false,
     }).sort({ dueDate: 1 });
@@ -195,34 +181,29 @@ const getUpcomingTasks = async (req, res) => {
   }
 };
 
-// GET task statistics
+// GET task statistics - GLOBAL
 const getTaskStats = async (req, res) => {
   try {
-    const userId = req.user._id;
-
-    const totalTasks = await Task.countDocuments({ userId });
+    const totalTasks = await Task.countDocuments({});
     const completedTasks = await Task.countDocuments({
-      userId,
       completed: true,
     });
     const pendingTasks = totalTasks - completedTasks;
 
     const highPriorityTasks = await Task.countDocuments({
-      userId,
       priority: "high",
       completed: false,
     });
 
     const now = new Date();
     const overdueTasks = await Task.countDocuments({
-      userId,
       dueDate: { $lt: now },
       completed: false,
     });
 
     // Get tasks by category
     const categoryCounts = await Task.aggregate([
-      { $match: { userId: userId } },
+      { $match: {} },
       { $group: { _id: "$category", count: { $sum: 1 } } },
     ]);
 
@@ -247,17 +228,16 @@ const getTaskStats = async (req, res) => {
   }
 };
 
-// ADD subtask
+// ADD subtask - GLOBAL (any user can add subtasks to any task)
 const addSubtask = async (req, res) => {
   try {
-    const userId = req.user._id;
     const { title } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: "Subtask title is required" });
     }
 
-    const task = await Task.findOne({ _id: req.params.id, userId });
+    const task = await Task.findOne({ _id: req.params.id });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -273,11 +253,10 @@ const addSubtask = async (req, res) => {
   }
 };
 
-// TOGGLE subtask completion
+// TOGGLE subtask completion - GLOBAL (any user can toggle subtasks)
 const toggleSubtask = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const task = await Task.findOne({ _id: req.params.id, userId });
+    const task = await Task.findOne({ _id: req.params.id });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
