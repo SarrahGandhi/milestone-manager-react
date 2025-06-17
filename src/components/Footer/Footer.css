@@ -75,10 +75,13 @@
   margin-bottom: 16px;
   cursor: pointer;
   transition: color 0.2s;
+  text-decoration: none;
+  display: block;
 }
 
 .footer-link:hover {
   color: #3498db;
+  text-decoration: none;
 }
 
 .footer-bottom {
