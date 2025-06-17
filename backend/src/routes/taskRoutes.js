@@ -17,28 +17,6 @@ const {
   toggleSubtask,
 } = require("../controllers/taskController");
 
-// TEMPORARY DEBUG ROUTE - Remove this after fixing auth (MUST BE BEFORE AUTH MIDDLEWARE)
-router.get("/debug/all", async (req, res) => {
-  try {
-    const Task = require("../models/Task");
-    const allTasks = await Task.find({}).populate("userId", "email name");
-    console.log("DEBUG: All tasks in database:", allTasks.length);
-    console.log(
-      "DEBUG: Task details:",
-      allTasks.map((t) => ({
-        id: t._id,
-        title: t.title,
-        userId: t.userId,
-        userEmail: t.userId?.email || "No user email",
-      }))
-    );
-    res.json(allTasks);
-  } catch (error) {
-    console.error("DEBUG route error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Apply authentication middleware to all routes
 router.use(authenticateToken);
 

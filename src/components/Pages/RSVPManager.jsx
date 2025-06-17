@@ -6,6 +6,7 @@ import EditGuestForm from "../Pages/Guests/EditGuestForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import * as XLSX from "xlsx";
+import { useAuth } from "../../context/AuthContext";
 
 // Use the centralized API configuration
 import { getApiUrl } from "../../config";
@@ -17,10 +18,12 @@ const RSVPManager = () => {
   const [selectedEvent, setSelectedEvent] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [showAddGuestForm, setShowAddGuestForm] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [guestToDelete, setGuestToDelete] = useState(null);
+  const { canEdit, canDelete } = useAuth();
 
   useEffect(() => {
     fetchRSVPData();
@@ -73,11 +76,14 @@ const RSVPManager = () => {
 
   const handleRSVPUpdate = async (guestId, eventId, rsvpData) => {
     try {
+      setError(""); // Clear any existing errors
       const token = AuthService.getToken();
       if (!token) {
         setError("No authentication token found");
         return;
       }
+
+      console.log("Sending RSVP update:", { guestId, eventId, rsvpData });
 
       const response = await fetch(getApiUrl("/guests/rsvp"), {
         method: "POST",
@@ -92,21 +98,43 @@ const RSVPManager = () => {
         }),
       });
 
-      const responseData = await response.json();
-      console.log("Server response:", responseData);
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
 
-      if (!response.ok) {
-        throw new Error(responseData.message || "Failed to update RSVP");
+      let responseData;
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        // If response is not JSON, get text
+        const responseText = await response.text();
+        console.log("Non-JSON response:", responseText);
+        throw new Error("Server returned invalid response format");
       }
 
-      // Refresh data
+      console.log("Server response data:", responseData);
+
+      if (!response.ok) {
+        throw new Error(
+          responseData.message || `Server error: ${response.status}`
+        );
+      }
+
+      // Refresh data only after successful update
       await fetchRSVPData();
+      setSuccessMessage("RSVP status updated successfully!");
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
+      console.log("RSVP update completed successfully");
     } catch (error) {
       console.error("Error updating RSVP:", error);
       setError(error.message || "Failed to update RSVP status");
 
-      // Still refresh the data to ensure we're in sync
-      await fetchRSVPData();
+      // Still refresh the data to ensure we're in sync, but after a short delay
+      setTimeout(async () => {
+        await fetchRSVPData();
+      }, 1000);
     }
   };
 
@@ -452,10 +480,6 @@ const RSVPManager = () => {
     return <div className="loading">Loading RSVP data...</div>;
   }
 
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
-
   return (
     <div className="rsvp-manager">
       <div className="rsvp-header">
@@ -465,14 +489,80 @@ const RSVPManager = () => {
             <FontAwesomeIcon icon={faDownload} />
             Export Excel
           </button>
-          <button
-            className="add-guest-btn"
-            onClick={() => setShowAddGuestForm(true)}
-          >
-            Add Guest
-          </button>
+          {canEdit() && (
+            <button
+              className="add-guest-btn"
+              onClick={() => setShowAddGuestForm(true)}
+            >
+              Add Guest
+            </button>
+          )}
         </div>
       </div>
+
+      {error && (
+        <div
+          className="error-message"
+          style={{
+            backgroundColor: "#ffebee",
+            color: "#d32f2f",
+            padding: "1rem",
+            marginBottom: "1rem",
+            borderRadius: "4px",
+            border: "1px solid #ffcdd2",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{error}</span>
+          <button
+            onClick={() => setError("")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#d32f2f",
+              cursor: "pointer",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {successMessage && (
+        <div
+          className="success-message"
+          style={{
+            backgroundColor: "#e8f5e8",
+            color: "#2e7d32",
+            padding: "1rem",
+            marginBottom: "1rem",
+            borderRadius: "4px",
+            border: "1px solid #c8e6c9",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{successMessage}</span>
+          <button
+            onClick={() => setSuccessMessage("")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#2e7d32",
+              cursor: "pointer",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="event-filter">
         <label>Filter by Event:</label>
@@ -566,41 +656,45 @@ const RSVPManager = () => {
                     </>
                   )}
                   <td className="actions">
-                    <button
-                      className="rsvp-delete-guest-btn"
-                      onClick={() => handleDeleteGuest(guest._id)}
-                      title="Delete this guest completely"
-                      style={{
-                        backgroundColor: "#ffebee",
-                        color: "#d32f2f",
-                        border: "1px solid #ffcdd2",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "6px",
-                        fontSize: "0.85rem",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        marginRight: "0.5rem",
-                        display: "inline-block !important",
-                        visibility: "visible !important",
-                        opacity: "1 !important",
-                        transition: "all 0.3s ease",
-                      }}
-                      onMouseOver={(e) => {
-                        e.target.style.backgroundColor = "#ffcdd2";
-                      }}
-                      onMouseOut={(e) => {
-                        e.target.style.backgroundColor = "#ffebee";
-                      }}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      className="edit-btn"
-                      onClick={() => setEditingGuest(guest)}
-                      title="Edit guest information"
-                    >
-                      Edit
-                    </button>
+                    {canDelete() && (
+                      <button
+                        className="rsvp-delete-guest-btn"
+                        onClick={() => handleDeleteGuest(guest._id)}
+                        title="Delete this guest completely"
+                        style={{
+                          backgroundColor: "#ffebee",
+                          color: "#d32f2f",
+                          border: "1px solid #ffcdd2",
+                          padding: "0.5rem 1rem",
+                          borderRadius: "6px",
+                          fontSize: "0.85rem",
+                          fontWeight: "500",
+                          cursor: "pointer",
+                          marginRight: "0.5rem",
+                          display: "inline-block !important",
+                          visibility: "visible !important",
+                          opacity: "1 !important",
+                          transition: "all 0.3s ease",
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.backgroundColor = "#ffcdd2";
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.backgroundColor = "#ffebee";
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                    {canEdit() && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => setEditingGuest(guest)}
+                        title="Edit guest information"
+                      >
+                        Edit
+                      </button>
+                    )}
                     {selectedEvent !== "all" && rsvp && (
                       <button
                         className="delete-rsvp-btn"

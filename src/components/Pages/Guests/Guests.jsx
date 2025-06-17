@@ -6,6 +6,7 @@ import EditGuestForm from "./EditGuestForm";
 import DeleteGuestModal from "./DeleteGuestModal";
 import AuthService from "../../../services/authService";
 import { getApiUrl } from "../../../config";
+import { useAuth } from "../../../context/AuthContext";
 import "./Guests.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -35,6 +36,7 @@ const Guests = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
+  const { canEdit, canDelete } = useAuth();
 
   // Fetch guests from the database
   const fetchGuests = async () => {
@@ -56,7 +58,6 @@ const Guests = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched guests:", data); // Debug log
         setGuests(data);
         setError("");
       } else if (response.status === 401) {
@@ -350,10 +351,12 @@ const Guests = () => {
         <div className="guests-header">
           <div className="guests-header-row">
             <div className="action-buttons">
-              <button className="add-guest-btn" onClick={handleAddGuest}>
-                <FontAwesomeIcon icon={faPlus} />
-                Add New Guest
-              </button>
+              {canEdit() && (
+                <button className="add-guest-btn" onClick={handleAddGuest}>
+                  <FontAwesomeIcon icon={faPlus} />
+                  Add New Guest
+                </button>
+              )}
               <button
                 className="export-csv-btn"
                 onClick={exportToCSV}
@@ -534,22 +537,26 @@ const Guests = () => {
                         )}
                       </td>
                       <td className="actions-cell">
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() => handleEditGuest(guest)}
-                          title="Edit Guest"
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() =>
-                            handleDeleteGuest(guest._id, guest.name)
-                          }
-                          title="Delete Guest"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
+                        {canEdit() && (
+                          <button
+                            className="action-btn edit-btn"
+                            onClick={() => handleEditGuest(guest)}
+                            title="Edit Guest"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                        )}
+                        {canDelete() && (
+                          <button
+                            className="action-btn delete-btn"
+                            onClick={() =>
+                              handleDeleteGuest(guest._id, guest.name)
+                            }
+                            title="Delete Guest"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

@@ -16,7 +16,6 @@ import EventDetails from "./components/Pages/Events/EventDetails";
 import TaskManager from "./components/Pages/TaskManager";
 import Guests from "./components/Pages/Guests";
 import RSVPManager from "./components/Pages/RSVPManager";
-import About from "./components/Pages/About/About";
 import AddEventForm from "./components/Pages/Events/AddEventForm";
 import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
@@ -129,15 +128,7 @@ function App() {
               </AdminRoute>
             }
           />
-          <Route
-            path="/about"
-            element={
-              <>
-                <About />
-                <Footer />
-              </>
-            }
-          />
+
           {/* Protected Routes */}
           <Route
             path="/events"

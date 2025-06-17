@@ -11,7 +11,6 @@ const {
   lookupGuest,
   updateEventRSVP,
   deleteEventRSVP,
-  debugGuests,
 } = require("../controllers/guestController");
 const { authenticateToken } = require("../middleware/auth");
 const { sendRSVPConfirmation } = require("../utils/emailService");
@@ -19,9 +18,6 @@ const { sendRSVPConfirmation } = require("../utils/emailService");
 // Wedding website routes (public) - these must come FIRST
 router.get("/lookup", lookupGuest);
 router.post("/:guestId/events/:eventId/rsvp", updateEventRSVP);
-
-// Debug route (public for testing)
-router.get("/debug", debugGuests);
 
 // RSVP management routes (protected)
 router.get("/rsvp/data", authenticateToken, getRSVPData);

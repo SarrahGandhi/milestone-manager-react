@@ -54,7 +54,6 @@ const Header = () => {
         <div className="logo">MILESTONE MANAGER</div>
         <nav className="nav">
           <Link to="/">WEDDING WEBSITE</Link>
-          <Link to="/about">ABOUT</Link>
           <Link to="/admin">ADMIN</Link>
           {isAuthenticated && isAdmin() && (
             <Link to="/admins">USER MANAGEMENT</Link>

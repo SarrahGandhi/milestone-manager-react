@@ -317,6 +317,13 @@ const upsertRSVP = async (req, res) => {
   try {
     const { guestId, eventId, rsvpStatus, invitationStatus } = req.body;
 
+    console.log("Updating RSVP:", {
+      guestId,
+      eventId,
+      rsvpStatus,
+      invitationStatus,
+    });
+
     const guest = await Guest.findOne({ _id: guestId });
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
@@ -343,23 +350,40 @@ const upsertRSVP = async (req, res) => {
     }
 
     await guestEvent.save();
+    console.log("GuestEvent saved:", guestEvent);
 
     // Update the guest's selectedEvents if not already included
-    if (!guest.selectedEvents.includes(eventId)) {
-      guest.selectedEvents.push(eventId);
+    // Convert eventId to ObjectId for proper comparison
+    const eventObjectId = new mongoose.Types.ObjectId(eventId);
+    const hasEvent = guest.selectedEvents.some(
+      (selectedEventId) => selectedEventId.toString() === eventId
+    );
+
+    if (!hasEvent) {
+      guest.selectedEvents.push(eventObjectId);
       await guest.save();
+      console.log("Added event to guest's selectedEvents");
     }
 
-    // Fetch the updated guest with populated fields
-    const updatedGuest = await Guest.findById(guestId)
-      .populate("selectedEvents", "title eventDate")
-      .populate({
-        path: "guestEvents",
-        match: { eventId },
-        populate: { path: "eventId", select: "title eventDate" },
-      });
+    // Fetch the updated guest with populated fields and GuestEvent data
+    const updatedGuest = await Guest.findById(guestId).populate(
+      "selectedEvents",
+      "title eventDate"
+    );
 
-    res.json(updatedGuest);
+    // Get all GuestEvent records for this guest
+    const guestEvents = await GuestEvent.find({ guestId }).populate(
+      "eventId",
+      "title eventDate"
+    );
+
+    const response = {
+      ...updatedGuest.toObject(),
+      guestEvents,
+    };
+
+    console.log("Sending response:", response);
+    res.json(response);
   } catch (error) {
     console.error("Error updating RSVP:", error);
     if (error.name === "ValidationError") {
@@ -585,26 +609,6 @@ const deleteEventRSVP = async (req, res) => {
   }
 };
 
-// Debug endpoint to check all guests
-const debugGuests = async (req, res) => {
-  try {
-    const guests = await Guest.find({})
-      .populate("selectedEvents", "title eventDate")
-      .sort({ name: 1 });
-
-    console.log(`🔍 DEBUG: Found ${guests.length} guests in database`);
-    console.log("🔍 DEBUG: Guests:", guests);
-
-    res.json({
-      count: guests.length,
-      guests: guests,
-    });
-  } catch (error) {
-    console.error("Error in debug guests:", error);
-    res.status(500).json({ message: "Debug error" });
-  }
-};
-
 module.exports = {
   getGuests,
   getGuestById,
@@ -616,5 +620,4 @@ module.exports = {
   lookupGuest,
   updateEventRSVP,
   deleteEventRSVP,
-  debugGuests,
 };

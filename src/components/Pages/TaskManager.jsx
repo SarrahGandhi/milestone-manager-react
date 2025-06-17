@@ -6,7 +6,19 @@ import EditTaskForm from "./EditTaskForm";
 import "./TaskManager.css";
 
 // Remove the hardcoded initialTasks array and just define the categories and months
-const months = ["June", "July", "August", "October", "November"];
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "October",
+  "November",
+  "December",
+];
 const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
 
 // Enhanced color scheme with better gradients and category icons
@@ -238,29 +250,6 @@ const TaskManager = () => {
     setTasks((prev) => [...prev, taskWithMonth]);
   };
 
-  // Add a test task for debugging
-  const createTestTask = async () => {
-    try {
-      console.log("Creating test task...");
-      const testTask = {
-        title: "Test Wedding Task",
-        description: "This is a test task to verify everything is working",
-        category: "Planning",
-        priority: "medium",
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        completed: false,
-      };
-
-      const newTask = await TaskService.createTask(testTask);
-      console.log("Test task created:", newTask);
-      handleTaskAdded(newTask);
-      alert("Test task created successfully!");
-    } catch (error) {
-      console.error("Error creating test task:", error);
-      alert(`Error creating test task: ${error.message}`);
-    }
-  };
-
   // Group tasks by category or month
   const groupKeys = sortMode === "category" ? categories : months;
   const groupBy = sortMode === "category" ? "category" : "month";
@@ -384,15 +373,6 @@ const TaskManager = () => {
         <button className="add-task-btn" onClick={handleOpenAddForm}>
           <span className="btn-icon">➕</span>
           Add New Task
-        </button>
-
-        <button
-          className="add-task-btn"
-          onClick={createTestTask}
-          style={{ backgroundColor: "#28a745", marginLeft: "10px" }}
-        >
-          <span className="btn-icon">🧪</span>
-          Create Test Task
         </button>
 
         <div className="sort-btns">

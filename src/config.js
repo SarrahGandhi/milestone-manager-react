@@ -9,8 +9,6 @@ export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
   ? "http://localhost:5001/api" // Local backend for development
   : "https://milestone-manager-react.onrender.com/api"; // Production backend
 
-// Debug logging (remove this later)
-console.log("🐛 DEBUG CONFIG:");
 console.log("  isDevelopment:", isDevelopment);
 console.log("  VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
 console.log("  API_BASE_URL:", API_BASE_URL);
