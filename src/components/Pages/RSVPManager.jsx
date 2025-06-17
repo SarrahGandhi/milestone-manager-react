@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
 // Use the centralized API configuration
-import { API_BASE_URL } from "../../config";
+import { getApiUrl } from "../../config";
 
 const RSVPManager = () => {
   const [guests, setGuests] = useState([]);
@@ -36,7 +36,7 @@ const RSVPManager = () => {
       }
 
       // Fetch guests with their event details
-      const guestsResponse = await fetch(`${API_BASE_URL}/guests`, {
+      const guestsResponse = await fetch(getApiUrl("/guests"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +50,7 @@ const RSVPManager = () => {
       setGuests(guestsData);
 
       // Fetch events
-      const eventsResponse = await fetch(`${API_BASE_URL}/events`, {
+      const eventsResponse = await fetch(getApiUrl("/events"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -78,7 +78,7 @@ const RSVPManager = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/guests/rsvp`, {
+      const response = await fetch(getApiUrl("/guests/rsvp"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ const RSVPManager = () => {
   const handleAddGuest = async (guestData) => {
     try {
       const token = AuthService.getToken();
-      const response = await fetch(`${API_BASE_URL}/guests`, {
+      const response = await fetch(getApiUrl("/guests"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,7 +136,7 @@ const RSVPManager = () => {
   const handleUpdateGuest = async (guestId, guestData) => {
     try {
       const token = AuthService.getToken();
-      const response = await fetch(`${API_BASE_URL}/guests/${guestId}`, {
+      const response = await fetch(getApiUrl(`/guests/${guestId}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -168,15 +168,12 @@ const RSVPManager = () => {
 
     try {
       const token = AuthService.getToken();
-      const response = await fetch(
-        `${API_BASE_URL}/guests/${guestToDelete._id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(getApiUrl(`/guests/${guestToDelete._id}`), {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to delete guest");
@@ -211,7 +208,7 @@ const RSVPManager = () => {
     try {
       const token = AuthService.getToken();
       const response = await fetch(
-        `${API_BASE_URL}/guests/${guestId}/events/${eventId}/rsvp`,
+        getApiUrl(`/guests/${guestId}/events/${eventId}/rsvp`),
         {
           method: "DELETE",
           headers: {

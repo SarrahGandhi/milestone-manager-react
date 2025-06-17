@@ -1,5 +1,5 @@
-// Use relative URL with proxy
-const API_BASE_URL = "/api";
+// Use centralized API configuration
+import { getApiUrl } from "../config";
 
 // Token management
 const TOKEN_KEY = "milestone_manager_token";
@@ -63,7 +63,7 @@ class AuthService {
   // Register new user
   static async register(userData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      const response = await fetch(getApiUrl("/auth/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,7 +91,7 @@ class AuthService {
   // Login user
   static async login(credentials) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(getApiUrl("/auth/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +122,7 @@ class AuthService {
       const token = this.getToken();
       if (token) {
         // Optional: Call backend logout endpoint
-        await fetch(`${API_BASE_URL}/auth/logout`, {
+        await fetch(getApiUrl("/auth/logout"), {
           method: "POST",
           headers: this.getAuthHeaders(),
         });
@@ -142,7 +142,7 @@ class AuthService {
         throw new Error("Not authenticated");
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      const response = await fetch(getApiUrl("/auth/me"), {
         method: "GET",
         headers: this.getAuthHeaders(),
       });
@@ -167,7 +167,7 @@ class AuthService {
   // Update user profile
   static async updateProfile(profileData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      const response = await fetch(getApiUrl("/auth/profile"), {
         method: "PUT",
         headers: this.getAuthHeaders(),
         body: JSON.stringify(profileData),
@@ -190,7 +190,7 @@ class AuthService {
   // Change password
   static async changePassword(passwordData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      const response = await fetch(getApiUrl("/auth/change-password"), {
         method: "PUT",
         headers: this.getAuthHeaders(),
         body: JSON.stringify(passwordData),

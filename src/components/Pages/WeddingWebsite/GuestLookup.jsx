@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./WeddingWebsite.css";
 
 // Use the centralized API configuration
-import { API_BASE_URL } from "../../../config";
+import { getApiUrl } from "../../../config";
 
 const GuestLookup = ({ onGuestFound }) => {
   const [name, setName] = useState("");
@@ -16,7 +16,7 @@ const GuestLookup = ({ onGuestFound }) => {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/guests/lookup?name=${encodeURIComponent(name)}`,
+        getApiUrl(`/guests/lookup?name=${encodeURIComponent(name)}`),
         {
           headers: {
             "Content-Type": "application/json",

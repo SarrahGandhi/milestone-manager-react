@@ -1,5 +1,5 @@
 import AuthService from "./authService";
-import { API_BASE_URL } from "../config";
+import { getApiUrl } from "../config";
 
 class BudgetService {
   // Get all budget items
@@ -10,7 +10,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget`, {
+      const response = await fetch(getApiUrl("/budget"), {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -36,7 +36,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget/event/${eventId}`, {
+      const response = await fetch(getApiUrl(`/budget/event/${eventId}`), {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -62,7 +62,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget`, {
+      const response = await fetch(getApiUrl("/budget"), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -91,7 +91,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget/${itemId}`, {
+      const response = await fetch(getApiUrl(`/budget/${itemId}`), {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -120,7 +120,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget/${itemId}`, {
+      const response = await fetch(getApiUrl(`/budget/${itemId}`), {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -148,7 +148,7 @@ class BudgetService {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/budget/summary`, {
+      const response = await fetch(getApiUrl("/budget/summary"), {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -175,8 +175,8 @@ class BudgetService {
       }
 
       const url = eventId
-        ? `${API_BASE_URL}/budget/categories/${eventId}`
-        : `${API_BASE_URL}/budget/categories`;
+        ? getApiUrl(`/budget/categories/${eventId}`)
+        : getApiUrl("/budget/categories");
 
       const response = await fetch(url, {
         headers: {

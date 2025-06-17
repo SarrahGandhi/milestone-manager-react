@@ -5,7 +5,7 @@ import { faTimes, faUserEdit } from "@fortawesome/free-solid-svg-icons";
 import AuthService from "../../../services/authService";
 
 // Use the centralized API configuration
-import { API_BASE_URL } from "../../../config";
+import { getApiUrl } from "../../../config";
 
 const EditGuestForm = ({ guest, onClose, events }) => {
   const [formData, setFormData] = useState({
@@ -138,7 +138,7 @@ const EditGuestForm = ({ guest, onClose, events }) => {
       }
 
       // Update the guest
-      const response = await fetch(`${API_BASE_URL}/guests/${guest._id}`, {
+      const response = await fetch(getApiUrl(`/guests/${guest._id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

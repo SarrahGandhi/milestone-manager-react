@@ -4,6 +4,7 @@ import Header from "../../Header/Header";
 import Footer from "../../Footer/Footer";
 import DeleteEventModal from "./DeleteEventModal";
 import AuthService from "../../../services/authService";
+import { getApiUrl } from "../../../config";
 import "./Events.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -34,7 +35,7 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/events", {
+      const response = await fetch(getApiUrl("/events"), {
         headers: AuthService.getAuthHeaders(),
       });
 
@@ -100,10 +101,13 @@ const Events = () => {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(`/api/events/${deleteModal.eventId}`, {
-        method: "DELETE",
-        headers: AuthService.getAuthHeaders(),
-      });
+      const response = await fetch(
+        getApiUrl(`/events/${deleteModal.eventId}`),
+        {
+          method: "DELETE",
+          headers: AuthService.getAuthHeaders(),
+        }
+      );
 
       if (response.ok) {
         // Refresh the events list after successful deletion

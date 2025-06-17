@@ -1,5 +1,5 @@
 import AuthService from "./authService";
-import { API_BASE_URL } from "../config";
+import { getApiUrl } from "../config";
 
 // Task API service
 class TaskService {
@@ -38,9 +38,9 @@ class TaskService {
       }
     });
 
-    const url = `${API_BASE_URL}/tasks${
-      queryParams.toString() ? `?${queryParams.toString()}` : ""
-    }`;
+    const url = getApiUrl(
+      `/tasks${queryParams.toString() ? `?${queryParams.toString()}` : ""}`
+    );
 
     console.log("TaskService: Making request to URL:", url);
     console.log("TaskService: Headers:", this.getHeaders());
@@ -66,7 +66,7 @@ class TaskService {
   // Get single task by ID
   static async getTaskById(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+      const response = await fetch(getApiUrl(`/tasks/${id}`), {
         headers: this.getHeaders(),
       });
       return await this.handleResponse(response);
@@ -79,7 +79,7 @@ class TaskService {
   // Create new task
   static async createTask(taskData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks`, {
+      const response = await fetch(getApiUrl("/tasks"), {
         method: "POST",
         headers: this.getHeaders(),
         body: JSON.stringify(taskData),
@@ -95,7 +95,7 @@ class TaskService {
   // Update task
   static async updateTask(id, taskData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+      const response = await fetch(getApiUrl(`/tasks/${id}`), {
         method: "PUT",
         headers: this.getHeaders(),
         body: JSON.stringify(taskData),
@@ -111,7 +111,7 @@ class TaskService {
   // Delete task
   static async deleteTask(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+      const response = await fetch(getApiUrl(`/tasks/${id}`), {
         method: "DELETE",
         headers: this.getHeaders(),
       });
@@ -126,7 +126,7 @@ class TaskService {
   // Toggle task completion
   static async toggleTaskCompletion(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/toggle`, {
+      const response = await fetch(getApiUrl(`/tasks/${id}/toggle`), {
         method: "PUT",
         headers: this.getHeaders(),
       });
@@ -141,12 +141,9 @@ class TaskService {
   // Get tasks by category
   static async getTasksByCategory(category) {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/tasks/category/${category}`,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await fetch(getApiUrl(`/tasks/category/${category}`), {
+        headers: this.getHeaders(),
+      });
       return await this.handleResponse(response);
     } catch (error) {
       console.error("Error fetching tasks by category:", error);
@@ -157,12 +154,9 @@ class TaskService {
   // Get tasks by priority
   static async getTasksByPriority(priority) {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/tasks/priority/${priority}`,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await fetch(getApiUrl(`/tasks/priority/${priority}`), {
+        headers: this.getHeaders(),
+      });
       return await this.handleResponse(response);
     } catch (error) {
       console.error("Error fetching tasks by priority:", error);
@@ -173,7 +167,7 @@ class TaskService {
   // Get overdue tasks
   static async getOverdueTasks() {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/overdue`, {
+      const response = await fetch(getApiUrl("/tasks/overdue"), {
         headers: this.getHeaders(),
       });
       return await this.handleResponse(response);
@@ -186,7 +180,7 @@ class TaskService {
   // Get upcoming tasks
   static async getUpcomingTasks() {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/upcoming`, {
+      const response = await fetch(getApiUrl("/tasks/upcoming"), {
         headers: this.getHeaders(),
       });
       return await this.handleResponse(response);
@@ -217,7 +211,7 @@ class TaskService {
   // Add subtask to task
   static async addSubtask(taskId, subtaskTitle) {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/subtasks`, {
+      const response = await fetch(getApiUrl(`/tasks/${taskId}/subtasks`), {
         method: "POST",
         headers: this.getHeaders(),
         body: JSON.stringify({ title: subtaskTitle }),
@@ -234,7 +228,7 @@ class TaskService {
   static async toggleSubtask(taskId, subtaskId) {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/tasks/${taskId}/subtasks/${subtaskId}/toggle`,
+        getApiUrl(`/tasks/${taskId}/subtasks/${subtaskId}/toggle`),
         {
           method: "PUT",
           headers: this.getHeaders(),

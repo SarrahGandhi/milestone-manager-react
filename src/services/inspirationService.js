@@ -1,9 +1,9 @@
-import { API_BASE_URL } from "../config";
+import { getApiUrl } from "../config";
 import AuthService from "./authService";
 
 export const uploadInspirationImage = async (formData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/inspiration/upload`, {
+    const response = await fetch(getApiUrl("/inspiration/upload"), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${AuthService.getToken()}`,
@@ -25,7 +25,7 @@ export const uploadInspirationImage = async (formData) => {
 
 export const getInspirationImages = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/inspiration`, {
+    const response = await fetch(getApiUrl("/inspiration"), {
       headers: {
         Authorization: `Bearer ${AuthService.getToken()}`,
       },
@@ -46,7 +46,7 @@ export const getInspirationImages = async () => {
 export const getInspirationImagesByCategory = async (category) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/inspiration/category/${category}`,
+      getApiUrl(`/inspiration/category/${category}`),
       {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -68,7 +68,7 @@ export const getInspirationImagesByCategory = async (category) => {
 
 export const deleteInspirationImage = async (imageId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/inspiration/${imageId}`, {
+    const response = await fetch(getApiUrl(`/inspiration/${imageId}`), {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${AuthService.getToken()}`,

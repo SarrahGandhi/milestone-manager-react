@@ -6,7 +6,7 @@ import AddGuestForm from "./AddGuestForm";
 import EditGuestForm from "./EditGuestForm";
 import DeleteGuestModal from "./DeleteGuestModal";
 import AuthService from "../../../services/authService";
-import { API_BASE_URL } from "../../../config";
+import { getApiUrl } from "../../../config";
 import "./Guests.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -48,7 +48,7 @@ const Guests = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/guests`, {
+      const response = await fetch(getApiUrl("/guests"), {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const Guests = () => {
   // Fetch events from the database
   const fetchEvents = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/events`);
+      const response = await fetch(getApiUrl("/events"));
 
       if (response.ok) {
         const data = await response.json();
@@ -112,7 +112,7 @@ const Guests = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/guests/rsvp`, {
+      const response = await fetch(getApiUrl("/guests/rsvp"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +203,7 @@ const Guests = () => {
     try {
       const token = AuthService.getToken();
       const response = await fetch(
-        `${API_BASE_URL}/guests/${deleteModal.guestId}`,
+        getApiUrl(`/guests/${deleteModal.guestId}`),
         {
           method: "DELETE",
           headers: {

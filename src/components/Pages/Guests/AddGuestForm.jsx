@@ -3,7 +3,7 @@ import "./AddGuestForm.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import AuthService from "../../../services/authService";
-import { API_BASE_URL } from "../../../config";
+import { getApiUrl } from "../../../config";
 
 const AddGuestForm = ({ onClose, events }) => {
   const [formData, setFormData] = useState({
@@ -129,7 +129,7 @@ const AddGuestForm = ({ onClose, events }) => {
       console.log("Event attendees:", formData.eventAttendees);
 
       // Create the guest
-      const response = await fetch(`${API_BASE_URL}/guests`, {
+      const response = await fetch(getApiUrl("/guests"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

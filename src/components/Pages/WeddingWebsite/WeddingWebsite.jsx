@@ -4,7 +4,7 @@ import EventRSVP from "./EventRSVP";
 import "./WeddingWebsite.css";
 
 // Use the centralized API configuration
-import { API_BASE_URL } from "../../../config";
+import { getApiUrl } from "../../../config";
 
 const WeddingWebsite = () => {
   const [guest, setGuest] = useState(null);
@@ -19,7 +19,7 @@ const WeddingWebsite = () => {
   const handleRSVPSubmit = async (eventId, rsvpData) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/guests/${guest._id}/events/${eventId}/rsvp`,
+        getApiUrl(`/guests/${guest._id}/events/${eventId}/rsvp`),
         {
           method: "POST",
           headers: {
@@ -66,7 +66,7 @@ const WeddingWebsite = () => {
   const handleRSVPDelete = async (eventId) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/guests/${guest._id}/events/${eventId}/rsvp`,
+        getApiUrl(`/guests/${guest._id}/events/${eventId}/rsvp`),
         {
           method: "DELETE",
           headers: {

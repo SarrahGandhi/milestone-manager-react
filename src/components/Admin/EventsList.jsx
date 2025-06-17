@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./EventsList.css";
-import { API_BASE_URL } from "../../config";
+import { getApiUrl } from "../../config";
 
 const EventsList = ({ events, onEventDeleted, onRefresh }) => {
   const [filter, setFilter] = useState("all");
@@ -11,7 +11,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+        const response = await fetch(getApiUrl(`/events/${eventId}`), {
           method: "DELETE",
         });
 
@@ -32,7 +32,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
   const handleStatusChange = async (eventId, newStatus) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/events/${eventId}/status`, {
+      const response = await fetch(getApiUrl(`/events/${eventId}/status`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

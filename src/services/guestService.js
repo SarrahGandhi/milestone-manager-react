@@ -1,5 +1,5 @@
 import AuthService from "./authService";
-import { API_BASE_URL } from "../config";
+import { getApiUrl } from "../config";
 
 class GuestService {
   // Helper method to get headers with auth
@@ -28,7 +28,7 @@ class GuestService {
   // Get all guests
   static async getAllGuests() {
     try {
-      const response = await fetch(`${API_BASE_URL}/guests`, {
+      const response = await fetch(getApiUrl("/guests"), {
         headers: this.getHeaders(),
       });
       return await this.handleResponse(response);
