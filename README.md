@@ -68,48 +68,12 @@ A comprehensive wedding planning and event management application built with Rea
    npm install
    ```
 
-4. **Environment Setup**
-   Create a `.env` file in the `backend` directory:
 
-   ```env
-   MONGODB_URI=mongodb://localhost:27017/milestone-manager
-   PORT=5000
-   NODE_ENV=development
-   JWT_SECRET=your-jwt-secret-key
-
-   # Email Configuration (for RSVP confirmations)
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   ```
 
 5. **Start MongoDB**
    Ensure MongoDB is running on your system
 
-6. **Seed the database** (optional)
 
-   ```bash
-   cd backend
-   npm run seed:tasks
-   ```
-
-7. **Start the development servers**
-
-   Backend (from backend directory):
-
-   ```bash
-   npm run dev
-   ```
-
-   Frontend (from root directory):
-
-   ```bash
-   npm run dev
-   ```
-
-The application will be available at:
-
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000`
 
 ## 📁 Project Structure
 
@@ -179,38 +143,14 @@ MilestoneManager/
 - **Budget Tracker**: Monitor expenses across different categories
 - **Admin Panel**: Administrative controls for managing the entire system
 
-## 📧 Email Configuration
 
-For RSVP email confirmations:
 
-1. Enable 2-factor authentication on your Gmail account
-2. Generate an App Password: Google Account Settings > Security > App passwords
-3. Use your Gmail address as `EMAIL_USER` and the app password as `EMAIL_PASS`
 
 ## 🚀 Deployment
 
-### Frontend (Vite)
 
-```bash
-npm run build
-npm run preview
-```
 
-### Backend
 
-Configure environment variables for production and deploy to your preferred hosting service.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 💡 Future Enhancements
 
