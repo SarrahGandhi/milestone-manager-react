@@ -1,6 +1,6 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const { testConnection } = require("./src/config/database");
 require("dotenv").config();
 
 const app = express();
@@ -34,43 +34,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB Atlas Connection
-const MONGODB_URI =
-  process.env.NODE_ENV === "production"
-    ? "mongodb+srv://admin:admin@cluster0.6brfp.mongodb.net/WeddingData"
-    : "mongodb://localhost:27017/WeddingData"; // Use local MongoDB for development
-
-// MongoDB connection options
-const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000, // 30 seconds
-  socketTimeoutMS: 45000, // 45 seconds
-  bufferMaxEntries: 0,
-  maxPoolSize: 10,
-  minPoolSize: 5,
-  maxIdleTimeMS: 30000,
-  retryWrites: true,
-  w: "majority",
+// Supabase Database Connection
+const initializeDatabase = async () => {
+  try {
+    const connected = await testConnection();
+    if (connected) {
+      console.log("✅ Connected to Supabase successfully");
+    } else {
+      console.error("❌ Failed to connect to Supabase");
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error("❌ Database initialization error:", error);
+    process.exit(1);
+  }
 };
 
-mongoose
-  .connect(MONGODB_URI, mongooseOptions)
-  .then(() => console.log("✅ Connected to MongoDB Atlas"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// Handle MongoDB connection events
-mongoose.connection.on("connected", () => {
-  console.log("✅ Mongoose connected to MongoDB");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error("❌ Mongoose connection error:", err);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log("⚠️ Mongoose disconnected");
-});
+// Initialize database connection
+initializeDatabase();
 
 // Import routes
 const authRoutes = require("./src/routes/authRoutes");
@@ -92,21 +73,31 @@ app.get("/", (req, res) => {
 });
 
 // Health check route
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    mongodb:
-      mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
-  });
+app.get("/api/health", async (req, res) => {
+  try {
+    const dbConnected = await testConnection();
+    res.json({
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: dbConnected ? "Connected" : "Disconnected",
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: "Error",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: "Error",
+      error: error.message,
+    });
+  }
 });
 
 // Global error handler
 app.use((error, req, res, next) => {
   console.error("Global error handler:", error);
 
-  if (error.name === "MongooseError" || error.name === "MongoError") {
+  if (error.code && error.code.startsWith("PG")) {
     return res.status(503).json({
       success: false,
       message: "Database connection error. Please try again later.",
