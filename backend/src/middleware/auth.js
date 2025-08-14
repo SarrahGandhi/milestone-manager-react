@@ -19,7 +19,7 @@ const authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Get user from the token
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId);
 
     if (!user) {
       return res.status(401).json({
@@ -28,7 +28,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    if (!user.isActive) {
+    if (user.isActive === false) {
       return res.status(401).json({
         success: false,
         message: "Account is deactivated.",
@@ -74,9 +74,9 @@ const optionalAuth = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select("-password");
+      const user = await User.findById(decoded.userId);
 
-      if (user && user.isActive) {
+      if (user && user.isActive !== false) {
         req.user = user;
       } else {
         req.user = null;

@@ -93,21 +93,17 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user and check password
+    // Find user and check password (also updates last login internally)
     const user = await User.findByCredentials(identifier, password);
 
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Generate token using Supabase user's id
+    const token = generateToken(user.id);
 
     res.json({
       success: true,
       message: "Login successful",
       token,
-      user: user.toJSON(),
+      user,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -131,11 +127,10 @@ const login = async (req, res) => {
 // @access Private
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-
+    // User already loaded by auth middleware
     res.json({
       success: true,
-      user: user.toJSON(),
+      user: req.user,
     });
   } catch (error) {
     console.error("Get me error:", error);
