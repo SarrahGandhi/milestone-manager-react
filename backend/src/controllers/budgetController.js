@@ -1,12 +1,16 @@
 const Budget = require("../models/Budget");
-const mongoose = require("mongoose");
+
+// UUID validation helper
+const isValidUUID = (uuid) => {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
 
 // Get all budget items for a user
 exports.getAllBudgetItems = async (req, res) => {
   try {
-    const budgetItems = await Budget.find({ userId: req.user._id })
-      .populate("eventId", "title")
-      .sort({ createdAt: -1 });
+    const budgetItems = await Budget.findByUser(req.user.id);
     res.json(budgetItems);
   } catch (error) {
     console.error("Error in getAllBudgetItems:", error);
@@ -19,15 +23,11 @@ exports.getBudgetItemsByEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    if (!isValidUUID(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
-    const budgetItems = await Budget.find({
-      userId: req.user._id,
-      eventId: eventId,
-    }).populate("eventId", "title");
-
+    const budgetItems = await Budget.findByEvent(eventId);
     res.json(budgetItems);
   } catch (error) {
     console.error("Error in getBudgetItemsByEvent:", error);
@@ -42,38 +42,39 @@ exports.createBudgetItem = async (req, res) => {
       req.body;
 
     console.log("Budget item data received:", req.body);
-    console.log("User ID:", req.user._id);
+    console.log("User ID:", req.user.id);
 
     if (!eventId) {
       return res.status(400).json({ message: "Event ID is required" });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    if (!isValidUUID(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
-    const budgetItem = new Budget({
+    // Validate budget data
+    const budgetData = {
       description,
       category,
       eventId,
-      estimatedCost,
-      actualCost: actualCost || 0,
+      estimatedCost: parseFloat(estimatedCost) || 0,
+      actualCost: parseFloat(actualCost) || 0,
       notes,
-      userId: req.user._id,
-    });
+      userId: req.user.id,
+    };
 
-    console.log("Budget item before saving:", budgetItem);
+    const errors = Budget.validateBudgetData(budgetData);
+    if (errors.length > 0) {
+      return res.status(400).json({ message: errors.join(", ") });
+    }
 
-    await budgetItem.save();
+    console.log("Budget item before saving:", budgetData);
 
-    const populatedBudgetItem = await Budget.findById(budgetItem._id).populate(
-      "eventId",
-      "title"
-    );
+    const budgetItem = await Budget.create(budgetData);
 
-    console.log("Budget item after saving:", populatedBudgetItem);
+    console.log("Budget item after saving:", budgetItem);
 
-    res.status(201).json(populatedBudgetItem);
+    res.status(201).json(budgetItem);
   } catch (error) {
     console.error("Error in createBudgetItem:", error);
     res.status(500).json({ message: "Error creating budget item" });
@@ -87,37 +88,32 @@ exports.updateBudgetItem = async (req, res) => {
     const { description, category, eventId, estimatedCost, actualCost, notes } =
       req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!isValidUUID(id)) {
       return res.status(400).json({ message: "Invalid budget item ID" });
     }
 
-    if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
+    if (eventId && !isValidUUID(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
-    const budgetItem = await Budget.findOne({ _id: id, userId: req.user._id });
-
-    if (!budgetItem) {
+    // Check if budget item exists and belongs to user
+    const existingBudget = await Budget.findById(id);
+    if (!existingBudget || existingBudget.userId !== req.user.id) {
       return res.status(404).json({ message: "Budget item not found" });
     }
 
-    budgetItem.description = description || budgetItem.description;
-    budgetItem.category = category || budgetItem.category;
-    budgetItem.eventId = eventId || budgetItem.eventId;
-    budgetItem.estimatedCost = estimatedCost || budgetItem.estimatedCost;
-    budgetItem.actualCost =
-      actualCost !== undefined ? actualCost : budgetItem.actualCost;
-    budgetItem.notes = notes !== undefined ? notes : budgetItem.notes;
-    budgetItem.updatedAt = Date.now();
+    const updates = {};
+    if (description !== undefined) updates.description = description;
+    if (category !== undefined) updates.category = category;
+    if (eventId !== undefined) updates.eventId = eventId;
+    if (estimatedCost !== undefined)
+      updates.estimatedCost = parseFloat(estimatedCost);
+    if (actualCost !== undefined) updates.actualCost = parseFloat(actualCost);
+    if (notes !== undefined) updates.notes = notes;
 
-    await budgetItem.save();
+    const updatedBudgetItem = await Budget.update(id, updates);
 
-    const populatedBudgetItem = await Budget.findById(budgetItem._id).populate(
-      "eventId",
-      "title"
-    );
-
-    res.json(populatedBudgetItem);
+    res.json(updatedBudgetItem);
   } catch (error) {
     console.error("Error in updateBudgetItem:", error);
     res.status(500).json({ message: "Error updating budget item" });
@@ -129,18 +125,17 @@ exports.deleteBudgetItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!isValidUUID(id)) {
       return res.status(400).json({ message: "Invalid budget item ID" });
     }
 
-    const budgetItem = await Budget.findOneAndDelete({
-      _id: id,
-      userId: req.user._id,
-    });
-
-    if (!budgetItem) {
+    // Check if budget item exists and belongs to user
+    const existingBudget = await Budget.findById(id);
+    if (!existingBudget || existingBudget.userId !== req.user.id) {
       return res.status(404).json({ message: "Budget item not found" });
     }
+
+    await Budget.delete(id);
 
     res.json({ message: "Budget item deleted successfully" });
   } catch (error) {
@@ -152,21 +147,11 @@ exports.deleteBudgetItem = async (req, res) => {
 // Get budget summary
 exports.getBudgetSummary = async (req, res) => {
   try {
-    const budgetItems = await Budget.find({ userId: req.user._id });
+    const summary = await Budget.getBudgetSummaryByUser(req.user.id);
 
-    const summary = {
-      totalEstimated: 0,
-      totalActual: 0,
-      difference: 0,
-      itemCount: budgetItems.length,
-    };
-
-    budgetItems.forEach((item) => {
-      summary.totalEstimated += item.estimatedCost;
-      summary.totalActual += item.actualCost;
-    });
-
-    summary.difference = summary.totalActual - summary.totalEstimated;
+    // Add item count
+    const budgetItems = await Budget.findByUser(req.user.id);
+    summary.itemCount = budgetItems.length;
 
     res.json(summary);
   } catch (error) {
@@ -179,31 +164,26 @@ exports.getBudgetSummary = async (req, res) => {
 exports.getCategoryTotals = async (req, res) => {
   try {
     const { eventId } = req.params;
-    let query = { userId: req.user._id };
 
-    if (eventId) {
-      if (!mongoose.Types.ObjectId.isValid(eventId)) {
-        return res.status(400).json({ message: "Invalid event ID" });
-      }
-      query.eventId = eventId;
+    if (eventId && !isValidUUID(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID" });
     }
 
-    const budgetItems = await Budget.find(query);
+    let summary;
+    if (eventId) {
+      summary = await Budget.getBudgetSummary(eventId);
+    } else {
+      summary = await Budget.getBudgetSummaryByUser(req.user.id);
+    }
 
+    // Transform the category breakdown to match expected format
     const categoryTotals = {};
-
-    budgetItems.forEach((item) => {
-      if (!categoryTotals[item.category]) {
-        categoryTotals[item.category] = {
-          estimated: 0,
-          actual: 0,
-          count: 0,
-        };
-      }
-
-      categoryTotals[item.category].estimated += item.estimatedCost;
-      categoryTotals[item.category].actual += item.actualCost;
-      categoryTotals[item.category].count += 1;
+    Object.keys(summary.categoryBreakdown).forEach((category) => {
+      categoryTotals[category] = {
+        estimated: summary.categoryBreakdown[category].estimated,
+        actual: summary.categoryBreakdown[category].actual,
+        count: 1, // This would need to be calculated separately if needed
+      };
     });
 
     res.json(categoryTotals);

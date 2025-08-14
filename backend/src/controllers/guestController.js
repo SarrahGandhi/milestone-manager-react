@@ -1,4 +1,9 @@
-const mongoose = require("mongoose");
+// UUID validation helper
+const isValidUUID = (uuid) => {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
 const Guest = require("../models/Guest");
 const GuestEvent = require("../models/GuestEvent");
 const Event = require("../models/Event");
@@ -353,15 +358,11 @@ const upsertRSVP = async (req, res) => {
     console.log("GuestEvent saved:", guestEvent);
 
     // Update the guest's selectedEvents if not already included
-    // Convert eventId to ObjectId for proper comparison
-    const eventObjectId = new mongoose.Types.ObjectId(eventId);
-    const hasEvent = guest.selectedEvents.some(
-      (selectedEventId) => selectedEventId.toString() === eventId
-    );
+    const hasEvent =
+      guest.selectedEvents && guest.selectedEvents.includes(eventId);
 
     if (!hasEvent) {
-      guest.selectedEvents.push(eventObjectId);
-      await guest.save();
+      await Guest.addSelectedEvent(guestId, eventId);
       console.log("Added event to guest's selectedEvents");
     }
 

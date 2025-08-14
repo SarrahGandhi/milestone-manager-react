@@ -6,6 +6,39 @@ const TOKEN_KEY = "milestone_manager_token";
 const USER_KEY = "milestone_manager_user";
 
 class AuthService {
+  // Safely parse JSON (handles empty or non-JSON bodies)
+  static async parseJsonSafe(response) {
+    try {
+      const text = await response.text();
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return { raw: text };
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Unified fetch handler with safe JSON parsing and clearer errors
+  static async request(path, options = {}) {
+    const response = await fetch(getApiUrl(path), options);
+    const data = await this.parseJsonSafe(response);
+
+    if (!response.ok) {
+      const message =
+        (data && data.message) ||
+        (typeof data?.raw === "string" && data.raw) ||
+        `Request failed with status ${response.status}`;
+      const error = new Error(message);
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+
+    return data;
+  }
   // Get token from localStorage
   static getToken() {
     return localStorage.getItem(TOKEN_KEY);
@@ -63,19 +96,13 @@ class AuthService {
   // Register new user
   static async register(userData) {
     try {
-      const response = await fetch(getApiUrl("/auth/register"), {
+      const data = await this.request("/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
 
       // Store token and user data
       this.setToken(data.token);
@@ -91,19 +118,13 @@ class AuthService {
   // Login user
   static async login(credentials) {
     try {
-      const response = await fetch(getApiUrl("/auth/login"), {
+      const data = await this.request("/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(credentials),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
 
       // Store token and user data
       this.setToken(data.token);
@@ -122,7 +143,7 @@ class AuthService {
       const token = this.getToken();
       if (token) {
         // Optional: Call backend logout endpoint
-        await fetch(getApiUrl("/auth/logout"), {
+        await this.request("/auth/logout", {
           method: "POST",
           headers: this.getAuthHeaders(),
         });
@@ -142,20 +163,10 @@ class AuthService {
         throw new Error("Not authenticated");
       }
 
-      const response = await fetch(getApiUrl("/auth/me"), {
+      const data = await this.request("/auth/me", {
         method: "GET",
         headers: this.getAuthHeaders(),
       });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.removeToken();
-          throw new Error("Authentication expired");
-        }
-        throw new Error("Failed to get user info");
-      }
-
-      const data = await response.json();
       this.setUser(data.user);
       return data.user;
     } catch (error) {
@@ -167,17 +178,11 @@ class AuthService {
   // Update user profile
   static async updateProfile(profileData) {
     try {
-      const response = await fetch(getApiUrl("/auth/profile"), {
+      const data = await this.request("/auth/profile", {
         method: "PUT",
         headers: this.getAuthHeaders(),
         body: JSON.stringify(profileData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Profile update failed");
-      }
 
       this.setUser(data.user);
       return data;
@@ -190,17 +195,11 @@ class AuthService {
   // Change password
   static async changePassword(passwordData) {
     try {
-      const response = await fetch(getApiUrl("/auth/change-password"), {
+      const data = await this.request("/auth/change-password", {
         method: "PUT",
         headers: this.getAuthHeaders(),
         body: JSON.stringify(passwordData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Password change failed");
-      }
 
       return data;
     } catch (error) {

@@ -33,7 +33,7 @@ A comprehensive wedding planning and event management application built with Rea
 **Backend:**
 
 - Node.js with Express.js
-- MongoDB with Mongoose ODM
+- Supabase PostgreSQL with Supabase Client
 - JWT-based authentication
 - Email service integration
 - RESTful API architecture
@@ -43,7 +43,7 @@ A comprehensive wedding planning and event management application built with Rea
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- MongoDB (local installation or MongoDB Atlas)
+- Supabase account and project
 - Git
 
 ### Installation
@@ -68,12 +68,10 @@ A comprehensive wedding planning and event management application built with Rea
    npm install
    ```
 
-
-
-5. **Start MongoDB**
-   Ensure MongoDB is running on your system
-
-
+4. **Set up Supabase**
+   - Create a Supabase project at https://supabase.com
+   - Get your project URL and anon key from the dashboard
+   - Run the setup script to create tables and seed data
 
 ## 📁 Project Structure
 
@@ -143,14 +141,7 @@ MilestoneManager/
 - **Budget Tracker**: Monitor expenses across different categories
 - **Admin Panel**: Administrative controls for managing the entire system
 
-
-
-
 ## 🚀 Deployment
-
-
-
-
 
 ## 💡 Future Enhancements
 

@@ -12,7 +12,8 @@
    Create a `.env` file in the backend directory with the following variables:
 
    ```
-   MONGODB_URI=mongodb://localhost:27017/milestone-manager
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
    PORT=5000
    NODE_ENV=development
 
@@ -28,8 +29,12 @@
    - Generate a new app password and use it as EMAIL_PASS
    - Use your Gmail address as EMAIL_USER
 
-3. **Start MongoDB**
-   Make sure MongoDB is running on your local machine or update the MONGODB_URI to point to your MongoDB instance.
+3. **Set up Supabase Database**
+   Run the setup script to create tables and seed sample data:
+
+   ```bash
+   node src/scripts/setupSupabase.js
+   ```
 
 4. **Seed the Database**
    Run the following command to populate the database with sample tasks:
