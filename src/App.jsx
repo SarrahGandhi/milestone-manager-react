@@ -105,7 +105,7 @@ function App() {
             path="/"
             element={
               <>
-                {/* <WeddingWebsite /> */}
+                <WeddingWebsite />
                 <Footer />
               </>
             }
