@@ -3,10 +3,7 @@ const Task = require("../models/Task");
 // GET all tasks - GLOBAL (all users can see all tasks)
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({})
-      .populate("assignedTo", "firstName lastName username email")
-      .populate("createdBy", "firstName lastName username email")
-      .sort({ dueDate: 1 });
+    const tasks = await Task.findAll();
     res.json(tasks);
   } catch (error) {
     console.error("Get all tasks error:", error);
@@ -17,9 +14,7 @@ const getAllTasks = async (req, res) => {
 // GET task by ID - GLOBAL (all users can see any task)
 const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id })
-      .populate("assignedTo", "firstName lastName username email")
-      .populate("createdBy", "firstName lastName username email");
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -35,33 +30,26 @@ const getTaskById = async (req, res) => {
 // CREATE new task - Still tracks creator
 const createTask = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const taskData = {
       ...req.body,
       userId,
       createdBy: userId,
     };
 
-    const task = new Task(taskData);
-    await task.save();
-
-    // Populate the user information before returning
-    const populatedTask = await Task.findById(task._id)
-      .populate("assignedTo", "firstName lastName username email")
-      .populate("createdBy", "firstName lastName username email");
-
-    res.status(201).json(populatedTask);
-  } catch (error) {
-    console.error("Create task error:", error);
-
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    // Validate task data
+    const validationErrors = Task.validateTaskData(taskData);
+    if (validationErrors.length > 0) {
       return res.status(400).json({
         message: "Validation error",
-        errors,
+        errors: validationErrors,
       });
     }
 
+    const task = await Task.create(taskData);
+    res.status(201).json(task);
+  } catch (error) {
+    console.error("Create task error:", error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -69,12 +57,16 @@ const createTask = async (req, res) => {
 // UPDATE task - GLOBAL (any user can update any task)
 const updateTask = async (req, res) => {
   try {
-    const task = await Task.findOneAndUpdate({ _id: req.params.id }, req.body, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("assignedTo", "firstName lastName username email")
-      .populate("createdBy", "firstName lastName username email");
+    // Validate task data
+    const validationErrors = Task.validateTaskData(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        message: "Validation error",
+        errors: validationErrors,
+      });
+    }
+
+    const task = await Task.update(req.params.id, req.body);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -83,15 +75,6 @@ const updateTask = async (req, res) => {
     res.json(task);
   } catch (error) {
     console.error("Update task error:", error);
-
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        message: "Validation error",
-        errors,
-      });
-    }
-
     res.status(400).json({ message: error.message });
   }
 };
@@ -99,9 +82,9 @@ const updateTask = async (req, res) => {
 // DELETE task - GLOBAL (any user can delete any task)
 const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findOneAndDelete({ _id: req.params.id });
+    const success = await Task.delete(req.params.id);
 
-    if (!task) {
+    if (!success) {
       return res.status(404).json({ message: "Task not found" });
     }
 
@@ -115,18 +98,16 @@ const deleteTask = async (req, res) => {
 // TOGGLE task completion - GLOBAL (any user can toggle any task)
 const toggleTaskCompletion = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id })
-      .populate("assignedTo", "firstName lastName username email")
-      .populate("createdBy", "firstName lastName username email");
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    task.completed = !task.completed;
-    await task.save();
-
-    res.json(task);
+    const updatedTask = await Task.update(req.params.id, {
+      completed: !task.completed,
+    });
+    res.json(updatedTask);
   } catch (error) {
     console.error("Toggle task completion error:", error);
     res.status(500).json({ message: error.message });
@@ -136,10 +117,7 @@ const toggleTaskCompletion = async (req, res) => {
 // GET tasks by category - GLOBAL
 const getTasksByCategory = async (req, res) => {
   try {
-    const tasks = await Task.find({
-      category: req.params.category,
-    }).sort({ dueDate: 1 });
-
+    const tasks = await Task.findAll({ category: req.params.category });
     res.json(tasks);
   } catch (error) {
     console.error("Get tasks by category error:", error);
@@ -150,10 +128,7 @@ const getTasksByCategory = async (req, res) => {
 // GET tasks by priority - GLOBAL
 const getTasksByPriority = async (req, res) => {
   try {
-    const tasks = await Task.find({
-      priority: req.params.priority,
-    }).sort({ dueDate: 1 });
-
+    const tasks = await Task.findAll({ priority: req.params.priority });
     res.json(tasks);
   } catch (error) {
     console.error("Get tasks by priority error:", error);
@@ -164,13 +139,9 @@ const getTasksByPriority = async (req, res) => {
 // GET overdue tasks - GLOBAL
 const getOverdueTasks = async (req, res) => {
   try {
-    const now = new Date();
-    const tasks = await Task.find({
-      dueDate: { $lt: now },
-      completed: false,
-    }).sort({ dueDate: 1 });
-
-    res.json(tasks);
+    const tasks = await Task.findAll({ completed: false });
+    const overdueTasks = tasks.filter((task) => task.isOverdue);
+    res.json(overdueTasks);
   } catch (error) {
     console.error("Get overdue tasks error:", error);
     res.status(500).json({ message: error.message });
@@ -183,12 +154,13 @@ const getUpcomingTasks = async (req, res) => {
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const tasks = await Task.find({
-      dueDate: { $gte: now, $lte: sevenDaysFromNow },
-      completed: false,
-    }).sort({ dueDate: 1 });
+    const tasks = await Task.findAll({ completed: false });
+    const upcomingTasks = tasks.filter((task) => {
+      const dueDate = new Date(task.dueDate);
+      return dueDate >= now && dueDate <= sevenDaysFromNow;
+    });
 
-    res.json(tasks);
+    res.json(upcomingTasks);
   } catch (error) {
     console.error("Get upcoming tasks error:", error);
     res.status(500).json({ message: error.message });
@@ -198,28 +170,21 @@ const getUpcomingTasks = async (req, res) => {
 // GET task statistics - GLOBAL
 const getTaskStats = async (req, res) => {
   try {
-    const totalTasks = await Task.countDocuments({});
-    const completedTasks = await Task.countDocuments({
-      completed: true,
-    });
+    const allTasks = await Task.findAll({});
+
+    const totalTasks = allTasks.length;
+    const completedTasks = allTasks.filter((task) => task.completed).length;
     const pendingTasks = totalTasks - completedTasks;
-
-    const highPriorityTasks = await Task.countDocuments({
-      priority: "high",
-      completed: false,
-    });
-
-    const now = new Date();
-    const overdueTasks = await Task.countDocuments({
-      dueDate: { $lt: now },
-      completed: false,
-    });
+    const highPriorityTasks = allTasks.filter(
+      (task) => task.priority === "high" && !task.completed
+    ).length;
+    const overdueTasks = allTasks.filter((task) => task.isOverdue).length;
 
     // Get tasks by category
-    const categoryCounts = await Task.aggregate([
-      { $match: {} },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-    ]);
+    const categoryCounts = allTasks.reduce((acc, task) => {
+      acc[task.category] = (acc[task.category] || 0) + 1;
+      return acc;
+    }, {});
 
     const stats = {
       total: totalTasks,
@@ -229,10 +194,7 @@ const getTaskStats = async (req, res) => {
       overdue: overdueTasks,
       completionRate:
         totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0,
-      categories: categoryCounts.reduce((acc, item) => {
-        acc[item._id] = item.count;
-        return acc;
-      }, {}),
+      categories: categoryCounts,
     };
 
     res.json(stats);
@@ -251,16 +213,17 @@ const addSubtask = async (req, res) => {
       return res.status(400).json({ message: "Subtask title is required" });
     }
 
-    const task = await Task.findOne({ _id: req.params.id });
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    task.subtasks.push({ title, completed: false });
-    await task.save();
-
-    res.json(task);
+    const subtask = await Task.addSubtask(req.params.id, {
+      title,
+      completed: false,
+    });
+    res.json(subtask);
   } catch (error) {
     console.error("Add subtask error:", error);
     res.status(500).json({ message: error.message });
@@ -270,21 +233,21 @@ const addSubtask = async (req, res) => {
 // TOGGLE subtask completion - GLOBAL (any user can toggle subtasks)
 const toggleSubtask = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id });
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    const subtask = task.subtasks.id(req.params.subtaskId);
+    const subtask = task.subtasks?.find((st) => st.id === req.params.subtaskId);
     if (!subtask) {
       return res.status(404).json({ message: "Subtask not found" });
     }
 
-    subtask.completed = !subtask.completed;
-    await task.save();
-
-    res.json(task);
+    const updatedSubtask = await Task.updateSubtask(req.params.subtaskId, {
+      completed: !subtask.completed,
+    });
+    res.json(updatedSubtask);
   } catch (error) {
     console.error("Toggle subtask error:", error);
     res.status(500).json({ message: error.message });

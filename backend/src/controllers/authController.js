@@ -24,19 +24,28 @@ const register = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username: username }],
-    });
+    const existingUserByEmail = await User.findByEmail(email);
+    const existingUserByUsername = await User.findByUsername(username);
 
-    if (existingUser) {
+    if (existingUserByEmail || existingUserByUsername) {
       return res.status(400).json({
         success: false,
         message: "User with this email or username already exists",
       });
     }
 
+    // Validate user data
+    const validationErrors = User.validateUserData(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: validationErrors,
+      });
+    }
+
     // Create user
-    const user = new User({
+    const user = await User.create({
       username,
       email: email.toLowerCase(),
       password,
@@ -44,20 +53,14 @@ const register = async (req, res) => {
       lastName,
     });
 
-    await user.save();
-
     // Generate token
-    const token = generateToken(user._id);
-
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    const token = generateToken(user.id);
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
       token,
-      user: user.toJSON(),
+      user,
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -147,16 +150,13 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, username } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Check if username is taken by another user
     if (username && username !== req.user.username) {
-      const existingUser = await User.findOne({
-        username: username,
-        _id: { $ne: userId },
-      });
+      const existingUser = await User.findByUsername(username);
 
-      if (existingUser) {
+      if (existingUser && existingUser.id !== userId) {
         return res.status(400).json({
           success: false,
           message: "Username is already taken",
@@ -165,20 +165,16 @@ const updateProfile = async (req, res) => {
     }
 
     // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
-        ...(username && { username }),
-      },
-      { new: true, runValidators: true }
-    );
+    const updatedUser = await User.update(userId, {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(username && { username }),
+    });
 
     res.json({
       success: true,
       message: "Profile updated successfully",
-      user: updatedUser.toJSON(),
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Update profile error:", error);
@@ -416,19 +412,28 @@ const createUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username: username }],
-    });
+    const existingUserByEmail = await User.findByEmail(email);
+    const existingUserByUsername = await User.findByUsername(username);
 
-    if (existingUser) {
+    if (existingUserByEmail || existingUserByUsername) {
       return res.status(400).json({
         success: false,
         message: "User with this email or username already exists",
       });
     }
 
+    // Validate user data
+    const validationErrors = User.validateUserData(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: validationErrors,
+      });
+    }
+
     // Create user
-    const user = new User({
+    const user = await User.create({
       username,
       email: email.toLowerCase(),
       password,
@@ -437,12 +442,10 @@ const createUser = async (req, res) => {
       role,
     });
 
-    await user.save();
-
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      user: user.toJSON(),
+      user,
     });
   } catch (error) {
     console.error("Create user error:", error);

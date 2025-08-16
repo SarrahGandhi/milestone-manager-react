@@ -4,18 +4,15 @@ const Event = require("../models/Event");
 const getAllEvents = async (req, res) => {
   try {
     const { status, category, startDate, endDate } = req.query;
-    let filter = {};
+    let filters = {};
 
     // Add filters if provided
-    if (status) filter.status = status;
-    if (category) filter.category = category;
-    if (startDate || endDate) {
-      filter.eventDate = {};
-      if (startDate) filter.eventDate.$gte = new Date(startDate);
-      if (endDate) filter.eventDate.$lte = new Date(endDate);
-    }
+    if (status) filters.status = status;
+    if (category) filters.category = category;
+    if (startDate) filters.startDate = startDate;
+    if (endDate) filters.endDate = endDate;
 
-    const events = await Event.find(filter).sort({ eventDate: 1 });
+    const events = await Event.findAll(filters);
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -38,14 +35,17 @@ const getEventById = async (req, res) => {
 // Create new event
 const createEvent = async (req, res) => {
   try {
-    const event = new Event(req.body);
-    const savedEvent = await event.save();
+    // Validate event data
+    const validationErrors = Event.validateEventData(req.body);
+    if (validationErrors.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Validation Error", errors: validationErrors });
+    }
+
+    const savedEvent = await Event.create(req.body);
     res.status(201).json(savedEvent);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ message: "Validation Error", errors });
-    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -53,19 +53,20 @@ const createEvent = async (req, res) => {
 // Update event
 const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    // Validate event data
+    const validationErrors = Event.validateEventData(req.body);
+    if (validationErrors.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Validation Error", errors: validationErrors });
+    }
+
+    const event = await Event.update(req.params.id, req.body);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
     res.json(event);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ message: "Validation Error", errors });
-    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -73,8 +74,8 @@ const updateEvent = async (req, res) => {
 // Delete event
 const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) {
+    const success = await Event.delete(req.params.id);
+    if (!success) {
       return res.status(404).json({ message: "Event not found" });
     }
     res.json({ message: "Event deleted successfully" });
@@ -87,7 +88,7 @@ const deleteEvent = async (req, res) => {
 const getEventsByStatus = async (req, res) => {
   try {
     const { status } = req.params;
-    const events = await Event.find({ status }).sort({ eventDate: 1 });
+    const events = await Event.findAll({ status });
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -97,22 +98,17 @@ const getEventsByStatus = async (req, res) => {
 // Get upcoming events
 const getUpcomingEvents = async (req, res) => {
   try {
-    const today = new Date();
-    const events = await Event.find({
-      eventDate: { $gte: today },
-      status: "published", // Only return published events for public access
-    })
-      .sort({ eventDate: 1 })
-      .select(
-        "title eventDate location description dressCode menu additionalDetails startTime endTime"
-      )
-      .lean();
+    const events = await Event.findUpcoming();
+
+    // Filter only published events for public access
+    const publishedEvents = events.filter(
+      (event) => event.status === "published"
+    );
 
     // Format dates and times for frontend
-    const formattedEvents = events.map((event) => ({
+    const formattedEvents = publishedEvents.map((event) => ({
       ...event,
-      eventDate: event.eventDate.toISOString(),
-      formattedDate: event.eventDate.toLocaleDateString("en-US", {
+      formattedDate: new Date(event.eventDate).toLocaleDateString("en-US", {
         weekday: "long",
         year: "numeric",
         month: "long",
@@ -134,11 +130,7 @@ const getUpcomingEvents = async (req, res) => {
 const updateEventStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    );
+    const event = await Event.update(req.params.id, { status });
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
