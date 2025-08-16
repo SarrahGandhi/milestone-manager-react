@@ -19,6 +19,7 @@ class User {
             first_name: userData.firstName,
             last_name: userData.lastName,
             role: userData.role || "user",
+            side: userData.side || "bride_side",
             is_active:
               userData.isActive !== undefined ? userData.isActive : true,
           },
@@ -278,6 +279,13 @@ class User {
 
     if (userData.role && !["user", "admin"].includes(userData.role)) {
       errors.push('Role must be either "user" or "admin"');
+    }
+
+    if (
+      userData.side &&
+      !["bride_side", "groom_side"].includes(userData.side)
+    ) {
+      errors.push('Side must be either "bride_side" or "groom_side"');
     }
 
     return errors;

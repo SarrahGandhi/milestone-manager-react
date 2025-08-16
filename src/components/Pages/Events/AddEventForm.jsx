@@ -13,6 +13,7 @@ const AddEventForm = () => {
     location: "",
     dressCode: "",
     additionalDetails: "",
+    side: "both",
   });
 
   const [menuOptions, setMenuOptions] = useState(["", ""]);
@@ -69,6 +70,7 @@ const AddEventForm = () => {
         additionalDetails: formData.additionalDetails,
         organizer: "Current User", // You might want to get this from user context
         description: formData.additionalDetails || "Event created via form",
+        side: formData.side,
       };
 
       const response = await fetch(getApiUrl("/events"), {

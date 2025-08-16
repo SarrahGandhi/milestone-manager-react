@@ -11,6 +11,7 @@ const Register = ({ onRegister }) => {
     email: "",
     password: "",
     confirmPassword: "",
+    side: "bride_side",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -187,6 +188,24 @@ const Register = ({ onRegister }) => {
               placeholder="Confirm your password"
               disabled={loading}
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="side" className="form-label">
+              Side
+            </label>
+            <select
+              id="side"
+              name="side"
+              value={formData.side}
+              onChange={handleChange}
+              required
+              className="form-input"
+              disabled={loading}
+            >
+              <option value="bride_side">Bride Side</option>
+              <option value="groom_side">Groom Side</option>
+            </select>
           </div>
 
           <button

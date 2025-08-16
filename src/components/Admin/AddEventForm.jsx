@@ -14,6 +14,7 @@ const AddEventForm = ({ onEventAdded }) => {
     priority: "medium",
     organizer: "",
     status: "draft",
+    side: "both",
     maxAttendees: "",
     registrationRequired: false,
     tags: "",
@@ -89,6 +90,7 @@ const AddEventForm = ({ onEventAdded }) => {
           priority: "medium",
           organizer: "",
           status: "draft",
+          side: "both",
           maxAttendees: "",
           registrationRequired: false,
           tags: "",
@@ -248,6 +250,20 @@ const AddEventForm = ({ onEventAdded }) => {
                 <option value="published">Published</option>
               </select>
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="side">Side</label>
+            <select
+              id="side"
+              name="side"
+              value={formData.side}
+              onChange={handleInputChange}
+            >
+              <option value="both">Both Sides</option>
+              <option value="bride_side">Bride Side</option>
+              <option value="groom_side">Groom Side</option>
+            </select>
           </div>
 
           <div className="form-group">

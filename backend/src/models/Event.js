@@ -21,6 +21,7 @@ class Event {
             priority: eventData.priority || "medium",
             organizer: eventData.organizer,
             status: eventData.status || "draft",
+            side: eventData.side || "both",
             max_attendees: eventData.maxAttendees,
             registration_required: eventData.registrationRequired || false,
             tags: eventData.tags || [],
@@ -396,6 +397,13 @@ class Event {
 
     if (eventData.maxAttendees && eventData.maxAttendees < 0) {
       errors.push("Max attendees cannot be negative");
+    }
+
+    if (
+      eventData.side &&
+      !["bride_side", "groom_side", "both"].includes(eventData.side)
+    ) {
+      errors.push("Invalid side - must be bride_side, groom_side, or both");
     }
 
     return errors;

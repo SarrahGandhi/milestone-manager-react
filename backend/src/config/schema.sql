@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    side VARCHAR(20) DEFAULT 'bride_side' CHECK (side IN ('bride_side', 'groom_side')),
     is_active BOOLEAN DEFAULT true,
     last_login TIMESTAMP,
     reset_password_token VARCHAR(255),
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS events (
     priority VARCHAR(20) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     organizer VARCHAR(255) NOT NULL,
     status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'cancelled', 'completed')),
+    side VARCHAR(20) DEFAULT 'both' CHECK (side IN ('bride_side', 'groom_side', 'both')),
     max_attendees INTEGER,
     registration_required BOOLEAN DEFAULT false,
     tags TEXT[], -- Array of strings for tags
@@ -192,6 +194,9 @@ CREATE INDEX IF NOT EXISTS idx_guests_user_id ON guests(user_id);
 CREATE INDEX IF NOT EXISTS idx_guests_name ON guests(name);
 CREATE INDEX IF NOT EXISTS idx_guests_category ON guests(category);
 CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email);
+
+CREATE INDEX IF NOT EXISTS idx_users_side ON users(side);
+CREATE INDEX IF NOT EXISTS idx_events_side ON events(side);
 
 CREATE INDEX IF NOT EXISTS idx_guest_events_user_id ON guest_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_guest_events_event_id ON guest_events(event_id);

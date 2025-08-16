@@ -16,6 +16,9 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:5174",
+      "http://localhost:4173",
+      "http://localhost:4174",
+      "http://localhost:4175",
       "http://localhost:3000",
       "https://milestone-manager-react.vercel.app",
     ],

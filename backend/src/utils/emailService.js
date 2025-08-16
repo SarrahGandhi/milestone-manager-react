@@ -105,13 +105,12 @@ const sendRSVPConfirmation = async (
           
           <p style="margin-top: 30px;">
             With love,<br>
-            <strong>Rachel & John</strong>
+            <strong>Sarrah & Murtaza</strong>
           </p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
           <p style="font-size: 12px; color: #666; text-align: center;">
             If you need to update your RSVP, please visit our wedding website or contact us directly.
-          </p>
         </div>
       `;
     } else if (rsvpData.rsvpStatus === "declined") {
