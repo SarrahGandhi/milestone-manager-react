@@ -401,9 +401,9 @@ class Event {
 
     if (
       eventData.side &&
-      !["bride_side", "groom_side", "both"].includes(eventData.side)
+      !["bride", "groom", "both"].includes(eventData.side)
     ) {
-      errors.push("Invalid side - must be bride_side, groom_side, or both");
+      errors.push("Invalid side - must be bride, groom, or both");
     }
 
     return errors;

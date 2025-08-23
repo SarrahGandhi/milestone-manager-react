@@ -176,7 +176,7 @@ const EventDetails = () => {
           <div className="event-details-actions">
             <button
               className="edit-event-btn"
-              onClick={() => navigate(`/events/edit/${event._id}`)}
+              onClick={() => navigate(`/events/edit/${event.id}`)}
             >
               <FontAwesomeIcon icon={faEdit} /> Edit Event
             </button>

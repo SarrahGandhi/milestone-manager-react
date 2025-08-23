@@ -228,7 +228,7 @@ const Events = () => {
                     {canEdit() && (
                       <button
                         className="event-edit-btn"
-                        onClick={() => navigate(`/events/edit/${event._id}`)}
+                        onClick={() => navigate(`/events/edit/${event.id}`)}
                       >
                         <FontAwesomeIcon icon={faEdit} /> Edit
                       </button>

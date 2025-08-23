@@ -11,7 +11,7 @@ const Register = ({ onRegister }) => {
     email: "",
     password: "",
     confirmPassword: "",
-    side: "bride_side",
+    side: "bride",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -203,8 +203,8 @@ const Register = ({ onRegister }) => {
               className="form-input"
               disabled={loading}
             >
-              <option value="bride_side">Bride Side</option>
-              <option value="groom_side">Groom Side</option>
+              <option value="bride">Bride</option>
+              <option value="groom">Groom</option>
             </select>
           </div>
 

@@ -9,21 +9,24 @@ class User {
       const salt = await bcrypt.genSalt(12);
       const hashedPassword = await bcrypt.hash(userData.password, salt);
 
+      const insertData = {
+        username: userData.username,
+        email: userData.email.toLowerCase(),
+        password: hashedPassword,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        role: userData.role || "user",
+        user_side: userData.side
+          ? userData.side.charAt(0).toUpperCase() + userData.side.slice(1)
+          : "Bride",
+        is_active: userData.isActive !== undefined ? userData.isActive : true,
+      };
+
+      console.log("Attempting to insert user with data:", insertData);
+
       const { data, error } = await supabase
         .from("users")
-        .insert([
-          {
-            username: userData.username,
-            email: userData.email.toLowerCase(),
-            password: hashedPassword,
-            first_name: userData.firstName,
-            last_name: userData.lastName,
-            role: userData.role || "user",
-            side: userData.side || "bride_side",
-            is_active:
-              userData.isActive !== undefined ? userData.isActive : true,
-          },
-        ])
+        .insert([insertData])
         .select()
         .single();
 
@@ -239,6 +242,10 @@ class User {
       sanitized.updatedAt = sanitized.updated_at;
       delete sanitized.updated_at;
     }
+    if (sanitized.user_side) {
+      sanitized.side = sanitized.user_side.toLowerCase();
+      delete sanitized.user_side;
+    }
 
     return sanitized;
   }
@@ -283,9 +290,9 @@ class User {
 
     if (
       userData.side &&
-      !["bride_side", "groom_side"].includes(userData.side)
+      !["bride", "groom"].includes(userData.side.toLowerCase())
     ) {
-      errors.push('Side must be either "bride_side" or "groom_side"');
+      errors.push('Side must be either "bride" or "groom"');
     }
 
     return errors;

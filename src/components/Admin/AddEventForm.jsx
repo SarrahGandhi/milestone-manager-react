@@ -261,8 +261,8 @@ const AddEventForm = ({ onEventAdded }) => {
               onChange={handleInputChange}
             >
               <option value="both">Both Sides</option>
-              <option value="bride_side">Bride Side</option>
-              <option value="groom_side">Groom Side</option>
+              <option value="bride">Bride Side</option>
+              <option value="groom">Groom Side</option>
             </select>
           </div>
 

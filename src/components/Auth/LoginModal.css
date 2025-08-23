@@ -171,6 +171,7 @@ div.login-modal .close-button.auth-close-button,
 }
 
 .auth-modal-container .form-group input,
+.form-group select,
 .auth-modal-container .form-row input,
 .login-modal .form-group input,
 .login-modal .form-row input {
@@ -187,14 +188,18 @@ div.login-modal .close-button.auth-close-button,
 }
 
 .form-group input::placeholder,
-.form-row input::placeholder {
+.form-row input::placeholder,
+.form-select::placeholder,
+.form-select::placeholder {
   color: #a69885;
   font-weight: 400;
   font-size: 14px;
 }
 
 .form-group input:focus,
-.form-row input:focus {
+.form-row input:focus,
+.form-select:focus,
+.form-select:focus {
   outline: none;
   border-color: #b8a082;
   background: #ffffff;
@@ -202,7 +207,9 @@ div.login-modal .close-button.auth-close-button,
 }
 
 .form-group input:disabled,
-.form-row input:disabled {
+.form-row input:disabled,
+.form-select:disabled,
+.form-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

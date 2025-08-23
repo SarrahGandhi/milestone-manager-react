@@ -17,6 +17,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
     email: "",
     password: "",
     confirmPassword: "",
+    side: "",
   });
 
   const handleChange = (e) => {
@@ -159,6 +160,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       email: "",
       password: "",
       confirmPassword: "",
+      side: "",
     });
     setError("");
     setShowRegister(false);
@@ -311,6 +313,24 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                   required
                   disabled={loading}
                 />
+              </div>
+
+              <div className="form-group">
+                <select
+                  name="side"
+                  value={registerData.side}
+                  onChange={handleRegisterChange}
+                  required
+                  disabled={loading}
+                  placeholder="Select Side"
+                  className="form-select"
+                >
+                  <option disabled value="">
+                    Select Side
+                  </option>
+                  <option value="bride">Bride</option>
+                  <option value="groom">Groom</option>
+                </select>
               </div>
 
               <button

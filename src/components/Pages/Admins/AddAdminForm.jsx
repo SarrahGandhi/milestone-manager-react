@@ -15,7 +15,7 @@ const AddAdminForm = ({ onUserAdded, onCancel }) => {
     firstName: "",
     lastName: "",
     role: "user",
-    side: "bride_side",
+    side: "bride",
   });
 
   const handleSubmit = async (e) => {
@@ -38,7 +38,7 @@ const AddAdminForm = ({ onUserAdded, onCancel }) => {
         firstName: "",
         lastName: "",
         role: "user",
-        side: "bride_side",
+        side: "bride",
       });
 
       // Notify parent component
@@ -69,7 +69,7 @@ const AddAdminForm = ({ onUserAdded, onCancel }) => {
       firstName: "",
       lastName: "",
       role: "user",
-      side: "bride_side",
+      side: "bride",
     });
     setError("");
     setSuccess("");
@@ -201,8 +201,8 @@ const AddAdminForm = ({ onUserAdded, onCancel }) => {
             onChange={(e) => setNewUser({ ...newUser, side: e.target.value })}
             disabled={loading}
           >
-            <option value="bride_side">Bride Side</option>
-            <option value="groom_side">Groom Side</option>
+            <option value="bride">Bride Side</option>
+            <option value="groom">Groom Side</option>
           </select>
         </div>
 
