@@ -19,6 +19,8 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { getApiUrl } from "../../../config";
+import { getDailyMenusByEvent } from "../../../services/dailyMenuService";
+import { useAuth } from "../../../context/AuthContext";
 
 const EventDetails = () => {
   const { eventId } = useParams();
@@ -32,6 +34,8 @@ const EventDetails = () => {
     eventName: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [dailyMenus, setDailyMenus] = useState([]);
+  const { canEdit, canDelete } = useAuth();
 
   // Fetch event details from the database
   const fetchEvent = async () => {
@@ -65,9 +69,23 @@ const EventDetails = () => {
     }
   }, [eventId]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!eventId) return;
+        const menus = await getDailyMenusByEvent(eventId);
+        setDailyMenus(menus || []);
+      } catch (e) {
+        // ignore menu errors silently
+      }
+    })();
+  }, [eventId]);
+
   // Helper function to format date
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // Parse date string without timezone conversion
+    const [year, month, day] = dateString.split("-");
+    const date = new Date(year, month - 1, day); // month is 0-indexed
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
@@ -77,7 +95,9 @@ const EventDetails = () => {
 
   // Helper function to get day of week
   const getDayOfWeek = (dateString) => {
-    const date = new Date(dateString);
+    // Parse date string without timezone conversion
+    const [year, month, day] = dateString.split("-");
+    const date = new Date(year, month - 1, day); // month is 0-indexed
     return date.toLocaleDateString("en-US", { weekday: "long" });
   };
 
@@ -102,7 +122,7 @@ const EventDetails = () => {
   const handleDeleteEvent = () => {
     setDeleteModal({
       isOpen: true,
-      eventId: event._id,
+      eventId: event.id,
       eventName: event.title,
     });
   };
@@ -173,17 +193,26 @@ const EventDetails = () => {
           <button onClick={() => navigate("/events")} className="back-btn">
             <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
           </button>
-          <div className="event-details-actions">
-            <button
-              className="edit-event-btn"
-              onClick={() => navigate(`/events/edit/${event.id}`)}
-            >
-              <FontAwesomeIcon icon={faEdit} /> Edit Event
-            </button>
-            <button className="delete-event-btn" onClick={handleDeleteEvent}>
-              <FontAwesomeIcon icon={faTrash} /> Delete Event
-            </button>
-          </div>
+          {(canEdit() || canDelete()) && (
+            <div className="event-details-actions">
+              {canEdit() && (
+                <button
+                  className="edit-event-btn"
+                  onClick={() => navigate(`/events/edit/${event.id}`)}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit Event
+                </button>
+              )}
+              {canDelete() && (
+                <button
+                  className="delete-event-btn"
+                  onClick={handleDeleteEvent}
+                >
+                  <FontAwesomeIcon icon={faTrash} /> Delete Event
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="event-details-container">
@@ -257,18 +286,6 @@ const EventDetails = () => {
               </div>
             )}
 
-            {event.organizer && (
-              <div className="event-detail-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faUsers} />
-                  <h3>Organizer</h3>
-                </div>
-                <div className="detail-content">
-                  <p>{event.organizer}</p>
-                </div>
-              </div>
-            )}
-
             {event.menu && event.menu.length > 0 && (
               <div className="event-detail-card menu-card">
                 <div className="detail-header">
@@ -279,6 +296,30 @@ const EventDetails = () => {
                   <ul className="menu-list">
                     {event.menu.map((item, index) => (
                       <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {dailyMenus && dailyMenus.length > 0 && (
+              <div className="event-detail-card menu-card">
+                <div className="detail-header">
+                  <FontAwesomeIcon icon={faUtensils} />
+                  <h3>Daily Menus</h3>
+                </div>
+                <div className="detail-content">
+                  <ul className="menu-list">
+                    {dailyMenus.map((m) => (
+                      <li key={m.id} style={{ marginBottom: 8 }}>
+                        <div style={{ fontWeight: 600 }}>{m.menuDate}</div>
+                        <div style={{ display: "grid", gap: 6, marginTop: 4 }}>
+                          {renderMeal("Breakfast", m.breakfast)}
+                          {renderMeal("Lunch", m.lunch)}
+                          {renderMeal("Snack", m.snack)}
+                          {renderMeal("Dinner", m.dinner)}
+                        </div>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -310,18 +351,6 @@ const EventDetails = () => {
                 </div>
               </div>
             )}
-
-            {event.status && (
-              <div className="event-detail-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faClock} />
-                  <h3>Status</h3>
-                </div>
-                <div className="detail-content">
-                  <p style={{ textTransform: "capitalize" }}>{event.status}</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -338,3 +367,32 @@ const EventDetails = () => {
 };
 
 export default EventDetails;
+
+function renderMeal(title, mealVal) {
+  if (!mealVal) return null;
+  if (typeof mealVal === "string") {
+    return (
+      <div>
+        <b>{title}:</b> {mealVal}
+      </div>
+    );
+  }
+  const items = Array.isArray(mealVal.items)
+    ? mealVal.items.filter((s) => s && s.trim() !== "")
+    : [];
+  const full = (mealVal.full || "").trim();
+  if (items.length === 0 && !full) return null;
+  return (
+    <div>
+      <b>{title}:</b>
+      {items.length > 0 && (
+        <ul style={{ margin: "6px 0 0 18px" }}>
+          {items.map((it, idx) => (
+            <li key={idx}>{it}</li>
+          ))}
+        </ul>
+      )}
+      {full && <div style={{ marginTop: items.length ? 6 : 0 }}>{full}</div>}
+    </div>
+  );
+}

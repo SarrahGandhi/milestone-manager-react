@@ -37,7 +37,7 @@ class Guest {
         .select(
           `
           *,
-          guest_selected_events!inner(event:events(*)),
+          guest_selected_events(event:events(*)),
           guest_event_attendees(*),
           guest_events(*)
         `
@@ -60,7 +60,7 @@ class Guest {
         .select(
           `
           *,
-          guest_selected_events!inner(event:events(*)),
+          guest_selected_events(event:events(*)),
           guest_event_attendees(*),
           guest_events(*)
         `

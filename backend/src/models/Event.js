@@ -51,9 +51,9 @@ class Event {
         `
         )
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") throw error;
       return data ? this.formatEvent(data) : null;
     } catch (error) {
       throw error;

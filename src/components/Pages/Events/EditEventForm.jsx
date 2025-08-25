@@ -34,9 +34,8 @@ const EditEventForm = () => {
           const eventData = await response.json();
 
           // Format date for input (YYYY-MM-DD format)
-          const formattedDate = eventData.eventDate
-            ? new Date(eventData.eventDate).toISOString().split("T")[0]
-            : "";
+          // Keep the date string as-is if it's already in YYYY-MM-DD format
+          const formattedDate = eventData.eventDate || "";
 
           // Format time for input (HH:MM format)
           let formattedTime = "";
@@ -134,7 +133,6 @@ const EditEventForm = () => {
         dressCode: formData.dressCode,
         menu: menuOptions.filter((option) => option.trim() !== ""),
         additionalDetails: formData.additionalDetails,
-        organizer: "Current User", // You might want to get this from user context
         description: formData.additionalDetails || "Event updated via form",
       };
 

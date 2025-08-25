@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import AuthService from "../../../services/authService";
 import { getApiUrl } from "../../../config";
+import { emit } from "../../../utils/eventBus";
 
 const AddGuestForm = ({ onClose, events }) => {
   const [formData, setFormData] = useState({
@@ -143,7 +144,8 @@ const AddGuestForm = ({ onClose, events }) => {
         throw new Error(errorData.message || "Failed to add guest");
       }
 
-      onClose(); // This will refresh the guest list
+      emit("guest:created");
+      onClose(); // Close modal; listeners will auto-refresh
     } catch (error) {
       console.error("Error adding guest:", error);
       setError(error.message || "Failed to add guest");
@@ -270,12 +272,12 @@ const AddGuestForm = ({ onClose, events }) => {
               ) : (
                 <div className="events-grid">
                   {events.map((event) => (
-                    <div key={event._id} className="event-item">
+                    <div key={event.id} className="event-item">
                       <label className="event-checkbox">
                         <input
                           type="checkbox"
-                          checked={formData.selectedEvents.includes(event._id)}
-                          onChange={() => handleEventToggle(event._id)}
+                          checked={formData.selectedEvents.includes(event.id)}
+                          onChange={() => handleEventToggle(event.id)}
                           disabled={loading}
                         />
                         <span className="event-name">{event.title}</span>
@@ -284,19 +286,19 @@ const AddGuestForm = ({ onClose, events }) => {
                         </span>
                       </label>
 
-                      {formData.selectedEvents.includes(event._id) && (
+                      {formData.selectedEvents.includes(event.id) && (
                         <div className="event-details">
                           <div className="status-controls">
                             <div className="form-group">
                               <label>Invitation Status</label>
                               <select
                                 value={
-                                  formData.eventStatuses[event._id]
+                                  formData.eventStatuses[event.id]
                                     ?.invitationStatus || "not_sent"
                                 }
                                 onChange={(e) =>
                                   handleStatusChange(
-                                    event._id,
+                                    event.id,
                                     "invitationStatus",
                                     e.target.value
                                   )
@@ -313,12 +315,12 @@ const AddGuestForm = ({ onClose, events }) => {
                               <label>RSVP Status</label>
                               <select
                                 value={
-                                  formData.eventStatuses[event._id]
+                                  formData.eventStatuses[event.id]
                                     ?.rsvpStatus || "pending"
                                 }
                                 onChange={(e) =>
                                   handleStatusChange(
-                                    event._id,
+                                    event.id,
                                     "rsvpStatus",
                                     e.target.value
                                   )
@@ -339,11 +341,11 @@ const AddGuestForm = ({ onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.men || 0
+                                  formData.eventAttendees[event.id]?.men || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "men",
                                     e.target.value
                                   )
@@ -357,11 +359,11 @@ const AddGuestForm = ({ onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.women || 0
+                                  formData.eventAttendees[event.id]?.women || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "women",
                                     e.target.value
                                   )
@@ -375,11 +377,11 @@ const AddGuestForm = ({ onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.kids || 0
+                                  formData.eventAttendees[event.id]?.kids || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "kids",
                                     e.target.value
                                   )

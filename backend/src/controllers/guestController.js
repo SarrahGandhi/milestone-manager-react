@@ -12,25 +12,20 @@ const { sendRSVPConfirmation } = require("../utils/emailService");
 // Get all guests (globally visible to all users)
 const getGuests = async (req, res) => {
   try {
-    const guests = await Guest.find({})
-      .populate("selectedEvents", "title eventDate")
-      .sort({ name: 1 });
+    const guests = await Guest.findAll();
 
-    // Get GuestEvent data for each guest
-    const guestsWithEventDetails = await Promise.all(
+    // Get guest events for each guest
+    const guestsWithEvents = await Promise.all(
       guests.map(async (guest) => {
-        const guestEvents = await GuestEvent.find({
-          guestId: guest._id,
-        }).populate("eventId", "title eventDate");
-
+        const guestEvents = await GuestEvent.findByGuest(guest.id);
         return {
-          ...guest.toObject(),
+          ...guest,
           guestEvents,
         };
       })
     );
 
-    res.json(guestsWithEventDetails);
+    res.json(guestsWithEvents);
   } catch (error) {
     console.error("Error fetching guests:", error);
     res.status(500).json({ message: "Server error" });
@@ -40,9 +35,7 @@ const getGuests = async (req, res) => {
 // Get guest by ID
 const getGuestById = async (req, res) => {
   try {
-    const guest = await Guest.findOne({
-      _id: req.params.id,
-    }).populate("selectedEvents", "title eventDate");
+    const guest = await Guest.findById(req.params.id);
 
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
@@ -58,88 +51,69 @@ const getGuestById = async (req, res) => {
 // Create new guest
 const createGuest = async (req, res) => {
   try {
-    const { selectedEvents, eventAttendees, ...guestData } = req.body;
+    const {
+      selectedEvents = [],
+      eventAttendees = {},
+      eventStatuses = {},
+      ...guestData
+    } = req.body || {};
+
     console.log("🔍 Creating guest with data:", {
-      selectedEvents,
-      eventAttendees,
-      ...guestData,
-    });
-
-    // First create the guest
-    const guest = new Guest({
       ...guestData,
       selectedEvents,
       eventAttendees,
+      eventStatuses,
     });
 
-    await guest.save();
-    console.log("✅ Guest saved:", guest);
+    // Create the guest using Supabase model
+    const guest = await Guest.create({ ...guestData, userId: req.user?.id });
+    console.log("✅ Guest created:", guest);
 
-    // Then create GuestEvent records
-    if (selectedEvents && selectedEvents.length > 0) {
-      console.log("📝 Creating GuestEvent records for events:", selectedEvents);
+    // If events were selected, persist relationships and counts/statuses
+    if (Array.isArray(selectedEvents) && selectedEvents.length > 0) {
+      for (const eventId of selectedEvents) {
+        try {
+          // Link selected event
+          await Guest.addSelectedEvent(guest.id, eventId);
 
-      const guestEvents = selectedEvents.map((eventId) => {
-        const attendeeCount = eventAttendees[eventId]
-          ? eventAttendees[eventId].men +
-            eventAttendees[eventId].women +
-            eventAttendees[eventId].kids
-          : 1;
+          // Store attendee counts per event (men/women/kids)
+          const counts = eventAttendees?.[eventId] || {
+            men: 0,
+            women: 0,
+            kids: 0,
+          };
+          await Guest.updateEventAttendees(guest.id, eventId, counts);
 
-        console.log(
-          `📊 Creating GuestEvent for event ${eventId} with attendee count:`,
-          attendeeCount
-        );
+          // Create initial GuestEvent with invitation/RSVP status and attendeeCount
+          const status = eventStatuses?.[eventId] || {
+            invitationStatus: "not_sent",
+            rsvpStatus: "pending",
+          };
+          const attendeeCount =
+            (counts.men || 0) + (counts.women || 0) + (counts.kids || 0);
 
-        return new GuestEvent({
-          guestId: guest._id,
-          eventId,
-          attendeeCount,
-          rsvpStatus: "pending",
-          invitationStatus: "not_sent",
-        });
-      });
-
-      try {
-        // Save each GuestEvent individually to better handle errors
-        for (const guestEvent of guestEvents) {
-          console.log("💾 Saving GuestEvent:", guestEvent);
-          await guestEvent.save();
-          console.log("✅ GuestEvent saved successfully");
+          await GuestEvent.create({
+            guestId: guest.id,
+            eventId,
+            attendeeCount: attendeeCount || 1,
+            invitationStatus: status.invitationStatus,
+            rsvpStatus: status.rsvpStatus,
+            userId: req.user?.id || guest.userId,
+          });
+        } catch (relError) {
+          console.error("Error creating guest-event relations:", relError);
+          // continue to next event; we'll still return created guest
         }
-      } catch (error) {
-        console.error("❌ Error creating GuestEvent records:", error);
-        // If GuestEvent creation fails, delete the guest to maintain consistency
-        await Guest.findByIdAndDelete(guest._id);
-        throw error;
       }
-    } else {
-      console.log("⚠️ No events selected for this guest");
     }
 
-    // Fetch the complete guest data with populated fields
-    const populatedGuest = await Guest.findById(guest._id).populate(
-      "selectedEvents",
-      "title eventDate"
-    );
+    // Return guest with attached guestEvents for frontend filtering
+    const guestWithDetails = await Guest.findById(guest.id);
+    const guestEvents = await GuestEvent.findByGuest(guest.id);
 
-    const guestEvents = await GuestEvent.find({ guestId: guest._id }).populate(
-      "eventId",
-      "title eventDate"
-    );
-
-    const response = {
-      ...populatedGuest.toObject(),
-      guestEvents,
-    };
-
-    console.log("📤 Sending response:", response);
-    res.status(201).json(response);
+    res.status(201).json({ ...guestWithDetails, guestEvents });
   } catch (error) {
     console.error("❌ Error creating guest:", error);
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
-    }
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -180,89 +154,86 @@ const updateGuest = async (req, res) => {
       }
     }
 
-    // First update the guest
-    const guest = await Guest.findOneAndUpdate(
-      { _id: req.params.id },
-      {
-        ...newGuestData,
-        selectedEvents: newSelectedEvents,
-        eventAttendees: newEventAttendees,
-      },
-      { new: true, runValidators: true }
-    ).populate("selectedEvents", "title eventDate");
+    // First update the guest using Supabase method
+    // Only pass actual guest table columns; relationship data is handled separately
+    const guest = await Guest.update(req.params.id, {
+      ...newGuestData,
+    });
 
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
     }
 
     // Get existing GuestEvent records for this guest
-    const existingGuestEvents = await GuestEvent.find({ guestId: guest._id });
-    const existingEventIds = existingGuestEvents.map((ge) =>
-      ge.eventId.toString()
-    );
+    const existingGuestEvents = await GuestEvent.findByGuest(guest.id);
+    const existingEventIds = existingGuestEvents
+      .map((ge) => (ge.eventId ? ge.eventId.toString() : null))
+      .filter(Boolean);
 
     // Create or update GuestEvent records for selected events
-    if (newSelectedEvents && newSelectedEvents.length > 0) {
+    if (Array.isArray(newSelectedEvents) && newSelectedEvents.length > 0) {
       for (const eventId of newSelectedEvents) {
-        const attendeeCount = newEventAttendees[eventId]
-          ? newEventAttendees[eventId].men +
-            newEventAttendees[eventId].women +
-            newEventAttendees[eventId].kids
+        const attendeeCount = newEventAttendees?.[eventId]
+          ? (newEventAttendees[eventId].men || 0) +
+            (newEventAttendees[eventId].women || 0) +
+            (newEventAttendees[eventId].kids || 0)
           : 1;
 
-        const eventStatus = newEventStatuses[eventId] || {
+        const eventStatus = (newEventStatuses && newEventStatuses[eventId]) || {
           invitationStatus: "not_sent",
           rsvpStatus: "pending",
         };
 
         if (!existingEventIds.includes(eventId)) {
           // Create new GuestEvent record
-          const newGuestEvent = new GuestEvent({
-            guestId: guest._id,
+          const guestEventData = {
+            guestId: guest.id,
             eventId,
             attendeeCount,
             invitationStatus: eventStatus.invitationStatus,
             rsvpStatus: eventStatus.rsvpStatus,
-          });
+          };
 
-          await newGuestEvent.save();
+          await GuestEvent.create(guestEventData);
         } else {
           // Update existing GuestEvent record
-          await GuestEvent.findOneAndUpdate(
-            { guestId: guest._id, eventId },
-            {
+          const existingGuestEvent = existingGuestEvents.find(
+            (ge) => ge.eventId && ge.eventId.toString() === eventId
+          );
+          if (existingGuestEvent) {
+            await GuestEvent.update(existingGuestEvent.id, {
               attendeeCount,
               invitationStatus: eventStatus.invitationStatus,
               rsvpStatus: eventStatus.rsvpStatus,
-            }
-          );
+            });
+          }
         }
       }
     }
 
     // Remove GuestEvent records for unselected events
-    const eventsToRemove = existingEventIds.filter(
-      (eventId) => !newSelectedEvents.includes(eventId)
-    );
+    const eventsToRemove = Array.isArray(newSelectedEvents)
+      ? existingEventIds.filter(
+          (eventId) => !newSelectedEvents.includes(eventId)
+        )
+      : [];
     if (eventsToRemove.length > 0) {
-      await GuestEvent.deleteMany({
-        guestId: guest._id,
-        eventId: { $in: eventsToRemove },
-      });
+      for (const eventIdToRemove of eventsToRemove) {
+        const guestEventToDelete = existingGuestEvents.find(
+          (ge) => ge.eventId && ge.eventId.toString() === eventIdToRemove
+        );
+        if (guestEventToDelete) {
+          await GuestEvent.delete(guestEventToDelete.id);
+        }
+      }
     }
 
-    // Fetch updated guest data with populated fields and GuestEvent records
-    const populatedGuest = await Guest.findById(guest._id).populate(
-      "selectedEvents",
-      "title eventDate"
-    );
-
-    const updatedGuestEvents = await GuestEvent.find({
-      guestId: guest._id,
-    }).populate("eventId", "title eventDate");
+    // Fetch updated guest data with GuestEvent records
+    const updatedGuest = await Guest.findById(guest.id);
+    const updatedGuestEvents = await GuestEvent.findByGuest(guest.id);
 
     const response = {
-      ...populatedGuest.toObject(),
+      ...updatedGuest,
       guestEvents: updatedGuestEvents,
     };
 
@@ -279,41 +250,60 @@ const updateGuest = async (req, res) => {
 // Delete guest
 const deleteGuest = async (req, res) => {
   try {
-    const guest = await Guest.findOneAndDelete({
-      _id: req.params.id,
-    });
-
+    // Check if guest exists first
+    const guest = await Guest.findById(req.params.id);
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
     }
 
+    // Delete the guest using Supabase method
+    await Guest.delete(req.params.id);
+
     // Also delete any associated GuestEvent records
-    await GuestEvent.deleteMany({ guestId: req.params.id });
+    // Note: This should be handled by database constraints, but let's be explicit
+    const guestEvents = await GuestEvent.findByGuest(req.params.id);
+    if (guestEvents && guestEvents.length > 0) {
+      for (const guestEvent of guestEvents) {
+        await GuestEvent.delete(guestEvent.id);
+      }
+    }
 
     res.json({ message: "Guest deleted successfully" });
   } catch (error) {
     console.error("Error deleting guest:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 // Get RSVP data for all guests and events
 const getRSVPData = async (req, res) => {
   try {
-    const guests = await Guest.find({})
-      .populate("selectedEvents", "title eventDate")
-      .sort({ name: 1 });
+    // Get all guests with their events using Supabase method
+    const guests = await Guest.findAll();
 
-    const events = await Event.find().sort({ eventDate: 1 });
+    // Get guest events for each guest
+    const guestsWithEvents = await Promise.all(
+      guests.map(async (guest) => {
+        const guestEvents = await GuestEvent.findByGuest(guest.id);
+        return {
+          ...guest,
+          guestEvents,
+        };
+      })
+    );
+
+    // Get all events using Supabase method
+    const Event = require("../models/Event");
+    const events = await Event.findAll();
 
     res.json({
-      guests,
+      guests: guestsWithEvents,
       events,
       rsvpData: [], // We don't need this anymore since we store event data directly on guest
     });
   } catch (error) {
     console.error("Error fetching RSVP data:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -322,6 +312,19 @@ const upsertRSVP = async (req, res) => {
   try {
     const { guestId, eventId, rsvpStatus, invitationStatus } = req.body;
 
+    // Validate input early to avoid DB errors
+    if (!guestId || !eventId) {
+      return res
+        .status(400)
+        .json({ message: "guestId and eventId are required" });
+    }
+    if (!isValidUUID(guestId)) {
+      return res.status(400).json({ message: "Invalid guestId format" });
+    }
+    if (!isValidUUID(eventId)) {
+      return res.status(400).json({ message: "Invalid eventId format" });
+    }
+
     console.log("Updating RSVP:", {
       guestId,
       eventId,
@@ -329,33 +332,51 @@ const upsertRSVP = async (req, res) => {
       invitationStatus,
     });
 
-    const guest = await Guest.findOne({ _id: guestId });
+    // Check if guest exists using Supabase method
+    const guest = await Guest.findById(guestId);
     if (!guest) {
       return res.status(404).json({ message: "Guest not found" });
     }
 
-    // Find or create GuestEvent record
-    let guestEvent = await GuestEvent.findOne({ guestId, eventId });
-
-    if (!guestEvent) {
-      // Create new GuestEvent record if it doesn't exist
-      guestEvent = new GuestEvent({
-        guestId,
-        eventId,
-        attendeeCount: 1,
-      });
+    // Optionally verify the event exists to provide clearer errors
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
     }
 
-    // Update the status fields if provided
+    // Use upsert approach to avoid PGRST116 errors
+    console.log(
+      "Upserting GuestEvent with guestId:",
+      guestId,
+      "eventId:",
+      eventId
+    );
+
+    const guestEventData = {
+      guestId,
+      eventId,
+      attendeeCount: 1,
+      invitationStatus: invitationStatus || "not_sent",
+      rsvpStatus: rsvpStatus || "pending",
+      userId: req.user?.id || guest.userId,
+    };
+
+    // Only update the fields that were provided
     if (rsvpStatus) {
-      guestEvent.rsvpStatus = rsvpStatus;
+      guestEventData.rsvpStatus = rsvpStatus;
     }
     if (invitationStatus) {
-      guestEvent.invitationStatus = invitationStatus;
+      guestEventData.invitationStatus = invitationStatus;
     }
 
-    await guestEvent.save();
-    console.log("GuestEvent saved:", guestEvent);
+    // Use updateRSVP method which has upsert functionality
+    console.log("About to call GuestEvent.updateRSVP...");
+    const guestEvent = await GuestEvent.updateRSVP(
+      guestId,
+      eventId,
+      guestEventData
+    );
+    console.log("Upserted GuestEvent:", guestEvent);
 
     // Update the guest's selectedEvents if not already included
     const hasEvent =
@@ -366,20 +387,14 @@ const upsertRSVP = async (req, res) => {
       console.log("Added event to guest's selectedEvents");
     }
 
-    // Fetch the updated guest with populated fields and GuestEvent data
-    const updatedGuest = await Guest.findById(guestId).populate(
-      "selectedEvents",
-      "title eventDate"
-    );
+    // Fetch the updated guest data
+    const updatedGuest = await Guest.findById(guestId);
 
     // Get all GuestEvent records for this guest
-    const guestEvents = await GuestEvent.find({ guestId }).populate(
-      "eventId",
-      "title eventDate"
-    );
+    const guestEvents = await GuestEvent.findByGuest(guestId);
 
     const response = {
-      ...updatedGuest.toObject(),
+      ...updatedGuest,
       guestEvents,
     };
 
@@ -387,10 +402,13 @@ const upsertRSVP = async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error("Error updating RSVP:", error);
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: "Server error" });
+    // Surface supabase/postgrest error details when available for easier debugging
+    const status = error.status || 500;
+    return res.status(status).json({
+      message: status >= 500 ? "Server error" : "Request failed",
+      error: error.message,
+      details: error.details || error.hint || error.code || undefined,
+    });
   }
 };
 

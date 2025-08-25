@@ -221,3 +221,50 @@ CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON tasks FOR EACH ROW EXECU
 CREATE TRIGGER update_guests_updated_at BEFORE UPDATE ON guests FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_guest_events_updated_at BEFORE UPDATE ON guest_events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_budgets_updated_at BEFORE UPDATE ON budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Vendors table
+CREATE TABLE IF NOT EXISTS vendors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    contact_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    website VARCHAR(255),
+    address TEXT,
+    notes TEXT,
+    status VARCHAR(50) DEFAULT 'prospect' CHECK (status IN ('prospect','contacted','booked','declined')),
+    cost_estimate DECIMAL(10,2),
+    event_id UUID REFERENCES events(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_vendor_email CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+
+CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name);
+CREATE INDEX IF NOT EXISTS idx_vendors_category ON vendors(category);
+CREATE INDEX IF NOT EXISTS idx_vendors_status ON vendors(status);
+CREATE INDEX IF NOT EXISTS idx_vendors_event_id ON vendors(event_id);
+CREATE INDEX IF NOT EXISTS idx_vendors_user_id ON vendors(user_id);
+
+CREATE TRIGGER update_vendors_updated_at BEFORE UPDATE ON vendors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Daily menus table
+CREATE TABLE IF NOT EXISTS daily_menus (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    menu_date DATE NOT NULL UNIQUE,
+    breakfast TEXT,
+    lunch TEXT,
+    snack TEXT,
+    dinner TEXT,
+    event_id UUID REFERENCES events(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_menus_date ON daily_menus(menu_date);
+CREATE INDEX IF NOT EXISTS idx_daily_menus_event_id ON daily_menus(event_id);
+
+CREATE TRIGGER update_daily_menus_updated_at BEFORE UPDATE ON daily_menus FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

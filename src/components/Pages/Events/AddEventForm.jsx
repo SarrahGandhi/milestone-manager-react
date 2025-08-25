@@ -68,7 +68,6 @@ const AddEventForm = () => {
         dressCode: formData.dressCode,
         menu: menuOptions.filter((option) => option.trim() !== ""),
         additionalDetails: formData.additionalDetails,
-        organizer: "Current User", // You might want to get this from user context
         description: formData.additionalDetails || "Event created via form",
         side: formData.side,
       };

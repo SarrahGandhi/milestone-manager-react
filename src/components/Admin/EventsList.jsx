@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./EventsList.css";
 import { getApiUrl } from "../../config";
+import AuthService from "../../services/authService";
 
 const EventsList = ({ events, onEventDeleted, onRefresh }) => {
   const [filter, setFilter] = useState("all");
@@ -13,6 +14,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
       try {
         const response = await fetch(getApiUrl(`/events/${eventId}`), {
           method: "DELETE",
+          headers: AuthService.getAuthHeaders(),
         });
 
         if (response.ok) {
@@ -36,6 +38,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...AuthService.getAuthHeaders(),
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -152,7 +155,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
           <div className="no-events">No events found</div>
         ) : (
           sortedEvents.map((event) => (
-            <div key={event._id} className="event-card">
+            <div key={event.id} className="event-card">
               <div className="event-header">
                 <h3>{event.title}</h3>
                 <div className="event-badges">
@@ -207,7 +210,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
                   <select
                     value={event.status}
                     onChange={(e) =>
-                      handleStatusChange(event._id, e.target.value)
+                      handleStatusChange(event.id, e.target.value)
                     }
                     disabled={loading}
                   >
@@ -220,7 +223,7 @@ const EventsList = ({ events, onEventDeleted, onRefresh }) => {
 
                 <div className="action-buttons">
                   <button
-                    onClick={() => handleDelete(event._id)}
+                    onClick={() => handleDelete(event.id)}
                     className="delete-btn"
                     disabled={loading}
                   >

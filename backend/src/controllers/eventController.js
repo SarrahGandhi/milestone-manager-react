@@ -1,6 +1,6 @@
 const Event = require("../models/Event");
 
-// Get all events with side-based filtering
+// Get all events - all authenticated users can see all events
 const getAllEvents = async (req, res) => {
   try {
     const { status, category, startDate, endDate } = req.query;
@@ -14,24 +14,15 @@ const getAllEvents = async (req, res) => {
 
     let events = await Event.findAll(filters);
 
-    // Apply side-based filtering based on user role and side
-    if (req.user) {
-      if (req.user.role === "user") {
-        // Users can only see events for their side or 'both'
-        events = events.filter(
-          (event) => event.side === "both" || event.side === req.user.side
-        );
-      }
-      // Admins can see all events regardless of side
-    }
-
+    // All authenticated users can see all events
+    // Role-based permissions for edit/delete are handled in frontend
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get single event by ID with side-based access control
+// Get single event by ID - all authenticated users can view any event
 const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -39,17 +30,8 @@ const getEventById = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Apply side-based access control
-    if (req.user && req.user.role === "user") {
-      if (event.side !== "both" && event.side !== req.user.side) {
-        return res
-          .status(403)
-          .json({
-            message: "Access denied: You can only view events for your side",
-          });
-      }
-    }
-
+    // All authenticated users can view any event
+    // Role-based permissions for edit/delete are handled in frontend
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -119,7 +101,7 @@ const getEventsByStatus = async (req, res) => {
   }
 };
 
-// Get upcoming events with side-based filtering
+// Get upcoming events - all users can see all published events
 const getUpcomingEvents = async (req, res) => {
   try {
     let events = await Event.findUpcoming();
@@ -129,12 +111,8 @@ const getUpcomingEvents = async (req, res) => {
       (event) => event.status === "published"
     );
 
-    // Apply side-based filtering based on user role and side
-    if (req.user && req.user.role === "user") {
-      publishedEvents = publishedEvents.filter(
-        (event) => event.side === "both" || event.side === req.user.side
-      );
-    }
+    // All users can see all published events
+    // Role-based permissions for edit/delete are handled in frontend
 
     // Format dates and times for frontend
     const formattedEvents = publishedEvents.map((event) => ({

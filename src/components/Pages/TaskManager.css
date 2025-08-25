@@ -936,3 +936,29 @@
     font-size: 0.8rem;
   }
 }
+
+/* Permission message styling */
+.no-permission-message {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.no-permission-message .icon {
+  font-size: 1.2rem;
+}
+
+/* Disabled checkbox styling for unauthorized access */
+.task-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

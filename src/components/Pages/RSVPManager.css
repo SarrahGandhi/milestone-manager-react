@@ -13,6 +13,30 @@
   margin-bottom: 2rem;
   border-bottom: 2px solid #e9ecef;
   padding-bottom: 1rem;
+  position: relative;
+}
+
+.back-to-events-btn {
+  position: absolute;
+  left: 0;
+  background: #f8f9fa;
+  border: 1px solid #eb9895;
+  color: #eb9895;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-to-events-btn:hover {
+  background: #eb9895;
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .header-actions {
@@ -26,6 +50,14 @@
   margin: 0;
   font-size: 2.5rem;
   font-weight: 300;
+  flex: 1;
+  text-align: center;
+}
+
+.rsvp-header h1 .event-title {
+  font-size: 1.5rem;
+  color: #eb9895;
+  font-weight: 400;
 }
 
 .add-guest-btn {

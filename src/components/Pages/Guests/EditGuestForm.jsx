@@ -28,7 +28,7 @@ const EditGuestForm = ({ guest, onClose, events }) => {
       const eventStatuses = {};
       // Initialize event statuses from guest events
       guest.guestEvents?.forEach((ge) => {
-        eventStatuses[ge.eventId._id] = {
+        eventStatuses[ge.eventId] = {
           invitationStatus: ge.invitationStatus || "not_sent",
           rsvpStatus: ge.rsvpStatus || "pending",
         };
@@ -36,8 +36,7 @@ const EditGuestForm = ({ guest, onClose, events }) => {
 
       // Ensure eventAttendees has the correct structure for all selected events
       const normalizedEventAttendees = {};
-      const selectedEventIds =
-        guest.selectedEvents?.map((event) => event._id) || [];
+      const selectedEventIds = guest.selectedEvents || [];
 
       selectedEventIds.forEach((eventId) => {
         // Check if attendee data exists for this event
@@ -194,7 +193,7 @@ const EditGuestForm = ({ guest, onClose, events }) => {
       }
 
       // Update the guest
-      const response = await fetch(getApiUrl(`/guests/${guest._id}`), {
+      const response = await fetch(getApiUrl(`/guests/${guest.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -328,12 +327,12 @@ const EditGuestForm = ({ guest, onClose, events }) => {
               ) : (
                 <div className="events-grid">
                   {events.map((event) => (
-                    <div key={event._id} className="event-item">
+                    <div key={event.id} className="event-item">
                       <label className="event-checkbox">
                         <input
                           type="checkbox"
-                          checked={formData.selectedEvents.includes(event._id)}
-                          onChange={() => handleEventToggle(event._id)}
+                          checked={formData.selectedEvents.includes(event.id)}
+                          onChange={() => handleEventToggle(event.id)}
                           disabled={loading}
                         />
                         <span className="event-name">{event.title}</span>
@@ -342,19 +341,19 @@ const EditGuestForm = ({ guest, onClose, events }) => {
                         </span>
                       </label>
 
-                      {formData.selectedEvents.includes(event._id) && (
+                      {formData.selectedEvents.includes(event.id) && (
                         <div className="event-details">
                           <div className="status-controls">
                             <div className="form-group">
                               <label>Invitation Status</label>
                               <select
                                 value={
-                                  formData.eventStatuses[event._id]
+                                  formData.eventStatuses[event.id]
                                     ?.invitationStatus || "not_sent"
                                 }
                                 onChange={(e) =>
                                   handleStatusChange(
-                                    event._id,
+                                    event.id,
                                     "invitationStatus",
                                     e.target.value
                                   )
@@ -371,12 +370,12 @@ const EditGuestForm = ({ guest, onClose, events }) => {
                               <label>RSVP Status</label>
                               <select
                                 value={
-                                  formData.eventStatuses[event._id]
+                                  formData.eventStatuses[event.id]
                                     ?.rsvpStatus || "pending"
                                 }
                                 onChange={(e) =>
                                   handleStatusChange(
-                                    event._id,
+                                    event.id,
                                     "rsvpStatus",
                                     e.target.value
                                   )
@@ -397,11 +396,11 @@ const EditGuestForm = ({ guest, onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.men || 0
+                                  formData.eventAttendees[event.id]?.men || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "men",
                                     e.target.value
                                   )
@@ -415,11 +414,11 @@ const EditGuestForm = ({ guest, onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.women || 0
+                                  formData.eventAttendees[event.id]?.women || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "women",
                                     e.target.value
                                   )
@@ -433,11 +432,11 @@ const EditGuestForm = ({ guest, onClose, events }) => {
                                 type="number"
                                 min="0"
                                 value={
-                                  formData.eventAttendees[event._id]?.kids || 0
+                                  formData.eventAttendees[event.id]?.kids || 0
                                 }
                                 onChange={(e) =>
                                   handleAttendeeCountChange(
-                                    event._id,
+                                    event.id,
                                     "kids",
                                     e.target.value
                                   )

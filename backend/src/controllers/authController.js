@@ -275,9 +275,7 @@ const logout = async (req, res) => {
 // @access Private (All authenticated users can see team members for task assignment)
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({})
-      .select("firstName lastName username email role")
-      .sort({ firstName: 1, lastName: 1 });
+    const users = await User.findAll();
 
     res.json({
       success: true,

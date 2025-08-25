@@ -149,6 +149,13 @@
   flex-wrap: wrap;
 }
 
+.event-btn-row {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
 .event-view-btn {
   background: none;
   border: none;
@@ -159,12 +166,31 @@
   transition: color 0.2s;
   text-decoration: underline;
   padding: 0;
-  margin: 16px 0;
   display: inline-block;
 }
 
 .event-view-btn:hover {
   color: #d88a87;
+}
+
+.event-rsvp-btn {
+  background: #f8f9fa;
+  border: 1px solid #eb9895;
+  color: #eb9895;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.event-rsvp-btn:hover {
+  background: #eb9895;
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .event-edit-btn {

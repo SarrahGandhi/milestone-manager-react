@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import AddEventForm from "./AddEventForm";
 import EventsList from "./EventsList";
 import { getApiUrl } from "../../config";
+import AuthService from "../../services/authService";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -19,7 +20,9 @@ const AdminDashboard = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch(getApiUrl("/events"));
+      const response = await fetch(getApiUrl("/events"), {
+        headers: AuthService.getAuthHeaders(),
+      });
       const data = await response.json();
       setEvents(data);
 

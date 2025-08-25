@@ -400,7 +400,7 @@ class Task {
   }
 
   // Validate task data
-  static validateTaskData(taskData) {
+  static validateTaskData(taskData, requireUserFields = true) {
     const errors = [];
 
     if (!taskData.title || taskData.title.trim().length === 0) {
@@ -411,12 +411,15 @@ class Task {
       errors.push("Due date is required");
     }
 
-    if (!taskData.userId) {
-      errors.push("User ID is required");
-    }
+    // Only require user fields for new tasks, not updates
+    if (requireUserFields) {
+      if (!taskData.userId) {
+        errors.push("User ID is required");
+      }
 
-    if (!taskData.createdBy) {
-      errors.push("Created by is required");
+      if (!taskData.createdBy) {
+        errors.push("Created by is required");
+      }
     }
 
     if (

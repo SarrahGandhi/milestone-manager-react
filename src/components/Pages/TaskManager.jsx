@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TaskService from "../../services/taskService";
 import AuthService from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import AddTaskForm from "./AddTaskForm";
 import EditTaskForm from "./EditTaskForm";
 import "./TaskManager.css";
@@ -121,6 +122,7 @@ const priorityConfig = {
 };
 
 const TaskManager = () => {
+  const { user, isAdmin } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -133,6 +135,18 @@ const TaskManager = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  // Helper function to check if current user can modify a task
+  const canModifyTask = (task) => {
+    if (!user || !task) return false;
+    // Admin can modify all tasks
+    if (isAdmin()) return true;
+    // Users can only modify tasks assigned to them or created by them
+    return (
+      (task.assignedTo && task.assignedTo === user.id) ||
+      (task.createdBy && task.createdBy === user.id)
+    );
+  };
 
   // Load tasks from database on component mount
   useEffect(() => {
@@ -183,6 +197,14 @@ const TaskManager = () => {
 
   const handleDelete = async (id) => {
     try {
+      const taskToDelete = tasks.find((t) => t._id === id);
+      if (!canModifyTask(taskToDelete)) {
+        setError(
+          "Access denied. You can only delete tasks assigned to you or created by you."
+        );
+        return;
+      }
+
       await TaskService.deleteTask(id);
       setTasks(tasks.filter((t) => t._id !== id));
       if (selectedTask && selectedTask._id === id) {
@@ -190,12 +212,24 @@ const TaskManager = () => {
       }
     } catch (error) {
       console.error("Error deleting task:", error);
-      setError("Failed to delete task. Please try again.");
+      if (error.message && error.message.includes("Access denied")) {
+        setError(error.message);
+      } else {
+        setError("Failed to delete task. Please try again.");
+      }
     }
   };
 
   const handleCheck = async (id) => {
     try {
+      const taskToToggle = tasks.find((t) => t._id === id);
+      if (!canModifyTask(taskToToggle)) {
+        setError(
+          "Access denied. You can only toggle completion for tasks assigned to you or created by you."
+        );
+        return;
+      }
+
       const updatedTask = await TaskService.toggleTaskCompletion(id);
       const taskWithMonth = {
         ...updatedTask,
@@ -216,7 +250,11 @@ const TaskManager = () => {
       }
     } catch (error) {
       console.error("Error toggling task completion:", error);
-      setError("Failed to update task. Please try again.");
+      if (error.message && error.message.includes("Access denied")) {
+        setError(error.message);
+      } else {
+        setError("Failed to update task. Please try again.");
+      }
     }
   };
 
@@ -239,6 +277,12 @@ const TaskManager = () => {
   };
 
   const handleOpenEditForm = (task) => {
+    if (!canModifyTask(task)) {
+      setError(
+        "Access denied. You can only edit tasks assigned to you or created by you."
+      );
+      return;
+    }
     setEditingTask(task);
     setShowEditForm(true);
     handleClosePanel(); // Close the details panel when opening edit form
@@ -515,6 +559,12 @@ const TaskManager = () => {
                             checked={task.completed}
                             onChange={() => handleCheck(task._id)}
                             className="task-checkbox"
+                            disabled={!canModifyTask(task)}
+                            title={
+                              !canModifyTask(task)
+                                ? "You can only modify your own tasks"
+                                : ""
+                            }
                           />
                         </div>
 
@@ -562,13 +612,15 @@ const TaskManager = () => {
                             <span className="btn-icon">👁️</span>
                             Details
                           </button>
-                          <button
-                            className="task-delete-btn"
-                            onClick={() => handleDelete(task._id)}
-                          >
-                            <span className="btn-icon">🗑️</span>
-                            Delete
-                          </button>
+                          {canModifyTask(task) && (
+                            <button
+                              className="task-delete-btn"
+                              onClick={() => handleDelete(task._id)}
+                            >
+                              <span className="btn-icon">🗑️</span>
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))
@@ -671,43 +723,54 @@ const TaskManager = () => {
                 </div>
 
                 <div className="panel-actions">
-                  <button
-                    className="edit-task-btn"
-                    onClick={() => handleOpenEditForm(selectedTask)}
-                  >
-                    <span className="btn-icon">✏️</span>
-                    Edit Task
-                  </button>
+                  {canModifyTask(selectedTask) && (
+                    <>
+                      <button
+                        className="edit-task-btn"
+                        onClick={() => handleOpenEditForm(selectedTask)}
+                      >
+                        <span className="btn-icon">✏️</span>
+                        Edit Task
+                      </button>
 
-                  <button
-                    className="toggle-complete-btn"
-                    onClick={() => {
-                      handleCheck(selectedTask._id);
-                      // Update the selected task state to reflect the change
-                      setSelectedTask({
-                        ...selectedTask,
-                        completed: !selectedTask.completed,
-                      });
-                    }}
-                  >
-                    <span className="btn-icon">
-                      {selectedTask.completed ? "↩️" : "✅"}
-                    </span>
-                    {selectedTask.completed
-                      ? "Mark Incomplete"
-                      : "Mark Complete"}
-                  </button>
+                      <button
+                        className="toggle-complete-btn"
+                        onClick={() => {
+                          handleCheck(selectedTask._id);
+                          // Update the selected task state to reflect the change
+                          setSelectedTask({
+                            ...selectedTask,
+                            completed: !selectedTask.completed,
+                          });
+                        }}
+                      >
+                        <span className="btn-icon">
+                          {selectedTask.completed ? "↩️" : "✅"}
+                        </span>
+                        {selectedTask.completed
+                          ? "Mark Incomplete"
+                          : "Mark Complete"}
+                      </button>
 
-                  <button
-                    className="delete-task-btn"
-                    onClick={() => {
-                      handleDelete(selectedTask._id);
-                      handleClosePanel();
-                    }}
-                  >
-                    <span className="btn-icon">🗑️</span>
-                    Delete Task
-                  </button>
+                      <button
+                        className="delete-task-btn"
+                        onClick={() => {
+                          handleDelete(selectedTask._id);
+                          handleClosePanel();
+                        }}
+                      >
+                        <span className="btn-icon">🗑️</span>
+                        Delete Task
+                      </button>
+                    </>
+                  )}
+                  {!canModifyTask(selectedTask) && (
+                    <div className="no-permission-message">
+                      <span className="icon">🔒</span>
+                      You can only modify tasks assigned to you or created by
+                      you.
+                    </div>
+                  )}
                 </div>
               </div>
             )}

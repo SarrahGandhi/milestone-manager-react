@@ -20,6 +20,10 @@ import AddEventForm from "./components/Pages/Events/AddEventForm";
 import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
 import Admins from "./components/Pages/Admins/Admins";
+import DailyMenu from "./components/Pages/DailyMenu/DailyMenu";
+import DailyMenuDates from "./components/Pages/DailyMenu/DailyMenuDates";
+import DailyMenuDetails from "./components/Pages/DailyMenu/DailyMenuDetails";
+import Vendors from "./components/Pages/Vendors/Vendors";
 
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -178,6 +182,42 @@ function App() {
             element={
               <ProtectedRoute>
                 <Budget />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/daily-menu"
+            element={
+              <ProtectedRoute>
+                <DailyMenuDates />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/daily-menu/dates"
+            element={
+              <ProtectedRoute>
+                <DailyMenuDates />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/daily-menu/date/:isoDate"
+            element={
+              <ProtectedRoute>
+                <DailyMenuDetails />
+                <Footer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute>
+                <Vendors />
                 <Footer />
               </ProtectedRoute>
             }

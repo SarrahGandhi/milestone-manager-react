@@ -30,7 +30,7 @@ const EventRSVP = ({
       }
     }
 
-    onRSVPSubmit(event._id, rsvpData);
+    onRSVPSubmit(event.id, rsvpData);
   };
 
   const handleDelete = () => {
@@ -39,7 +39,7 @@ const EventRSVP = ({
         `Are you sure you want to cancel your RSVP for "${event.title}"? This action cannot be undone.`
       )
     ) {
-      onRSVPDelete(event._id);
+      onRSVPDelete(event.id);
     }
   };
 

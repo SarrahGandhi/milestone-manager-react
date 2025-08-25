@@ -4,31 +4,45 @@ class GuestEvent {
   // Create a new guest event relationship
   static async create(guestEventData) {
     try {
+      console.log("Creating GuestEvent with data:", guestEventData);
+
+      const insertData = {
+        guest_id: guestEventData.guestId,
+        event_id: guestEventData.eventId,
+        invitation_status: guestEventData.invitationStatus || "not_sent",
+        rsvp_status: guestEventData.rsvpStatus || "pending",
+        rsvp_date: guestEventData.rsvpDate,
+        attendee_count: guestEventData.attendeeCount || 1,
+        meal_choice: guestEventData.mealChoice,
+        special_requests: guestEventData.specialRequests,
+        plus_one_name: guestEventData.plusOne?.name,
+        plus_one_dietary_restrictions:
+          guestEventData.plusOne?.dietaryRestrictions,
+        notes: guestEventData.notes,
+      };
+
+      // Only add user_id if it's provided
+      if (guestEventData.userId) {
+        insertData.user_id = guestEventData.userId;
+      }
+
+      console.log("Inserting data:", insertData);
+
       const { data, error } = await supabase
         .from("guest_events")
-        .insert([
-          {
-            guest_id: guestEventData.guestId,
-            event_id: guestEventData.eventId,
-            invitation_status: guestEventData.invitationStatus || "not_sent",
-            rsvp_status: guestEventData.rsvpStatus || "pending",
-            rsvp_date: guestEventData.rsvpDate,
-            attendee_count: guestEventData.attendeeCount || 1,
-            meal_choice: guestEventData.mealChoice,
-            special_requests: guestEventData.specialRequests,
-            plus_one_name: guestEventData.plusOne?.name,
-            plus_one_dietary_restrictions:
-              guestEventData.plusOne?.dietaryRestrictions,
-            notes: guestEventData.notes,
-            user_id: guestEventData.userId,
-          },
-        ])
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error:", error);
+        throw error;
+      }
+
+      console.log("GuestEvent created successfully:", data);
       return this.formatGuestEvent(data);
     } catch (error) {
+      console.error("Error in GuestEvent.create:", error);
       throw error;
     }
   }
@@ -184,35 +198,120 @@ class GuestEvent {
   // Update RSVP
   static async updateRSVP(guestId, eventId, rsvpData) {
     try {
-      const dbUpdates = {
-        rsvp_status: rsvpData.rsvpStatus,
-        rsvp_date: new Date(),
-        attendee_count: rsvpData.attendeeCount || 1,
-        meal_choice: rsvpData.mealChoice,
-        special_requests: rsvpData.specialRequests,
-      };
+      console.log("GuestEvent.updateRSVP called with:", {
+        guestId,
+        eventId,
+        rsvpData,
+      });
 
-      if (rsvpData.plusOne) {
-        dbUpdates.plus_one_name = rsvpData.plusOne.name;
-        dbUpdates.plus_one_dietary_restrictions =
-          rsvpData.plusOne.dietaryRestrictions;
+      // First, try to find existing record
+      const { data: existingRows, error: findError } = await supabase
+        .from("guest_events")
+        .select("*")
+        .eq("guest_id", guestId)
+        .eq("event_id", eventId)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      const existingData = Array.isArray(existingRows)
+        ? existingRows[0]
+        : existingRows;
+
+      if (findError) {
+        console.error("Error finding existing record:", findError);
+        throw findError;
       }
 
-      const { data, error } = await supabase
-        .from("guest_events")
-        .upsert([
-          {
-            guest_id: guestId,
-            event_id: eventId,
-            ...dbUpdates,
-          },
-        ])
-        .select()
-        .single();
+      console.log("Existing record:", existingData);
 
-      if (error) throw error;
-      return this.formatGuestEvent(data);
+      let result;
+      if (existingData) {
+        // Update existing record
+        const updates = {
+          rsvp_date: new Date(),
+        };
+
+        // Only update fields that were provided
+        if (rsvpData.rsvpStatus) {
+          updates.rsvp_status = rsvpData.rsvpStatus;
+        }
+        if (rsvpData.invitationStatus) {
+          updates.invitation_status = rsvpData.invitationStatus;
+        }
+        if (rsvpData.attendeeCount !== undefined) {
+          updates.attendee_count = rsvpData.attendeeCount;
+        }
+        if (rsvpData.mealChoice) {
+          updates.meal_choice = rsvpData.mealChoice;
+        }
+        if (rsvpData.specialRequests) {
+          updates.special_requests = rsvpData.specialRequests;
+        }
+        if (rsvpData.plusOne) {
+          updates.plus_one_name = rsvpData.plusOne.name;
+          updates.plus_one_dietary_restrictions =
+            rsvpData.plusOne.dietaryRestrictions;
+        }
+
+        console.log("Updating existing record with:", updates);
+
+        const { data, error } = await supabase
+          .from("guest_events")
+          .update(updates)
+          .eq("id", existingData.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error updating existing record:", error);
+          throw error;
+        }
+
+        result = data;
+      } else {
+        // Create new record
+        const insertData = {
+          guest_id: guestId,
+          event_id: eventId,
+          invitation_status: rsvpData.invitationStatus || "not_sent",
+          rsvp_status: rsvpData.rsvpStatus || "pending",
+          rsvp_date: new Date(),
+          attendee_count: rsvpData.attendeeCount || 1,
+          meal_choice: rsvpData.mealChoice,
+          special_requests: rsvpData.specialRequests,
+        };
+
+        // Only add user_id if provided
+        if (rsvpData.userId) {
+          insertData.user_id = rsvpData.userId;
+        }
+
+        if (rsvpData.plusOne) {
+          insertData.plus_one_name = rsvpData.plusOne.name;
+          insertData.plus_one_dietary_restrictions =
+            rsvpData.plusOne.dietaryRestrictions;
+        }
+
+        console.log("Creating new record with:", insertData);
+
+        const { data, error } = await supabase
+          .from("guest_events")
+          .insert([insertData])
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error creating new record:", error);
+          throw error;
+        }
+
+        result = data;
+      }
+
+      console.log("Successfully processed GuestEvent:", result);
+      return this.formatGuestEvent(result);
     } catch (error) {
+      console.error("Error in GuestEvent.updateRSVP:", error);
       throw error;
     }
   }

@@ -6,11 +6,11 @@ import Walkthrough from "../Walkthrough/Walkthrough";
 import { useAuth } from "../../context/AuthContext";
 
 const features = [
-  { label: "Event Organizer", icon: "calendar" },
+  { label: "Event Manager", icon: "calendar" },
   { label: "Task Manager", icon: "check" },
   { label: "RSVP Manager", icon: "mail" },
-  { label: "Photo Upload", icon: "image" },
-  { label: "Pinterest Board", icon: "pin" },
+  { label: "Daily Menu", icon: "image" },
+  { label: "Vendor Manager", icon: "pin" },
 ];
 
 const icons = {
@@ -121,7 +121,7 @@ const Home = () => {
       </div>
       <div className="home-features">
         {features.map((f) =>
-          f.label === "Event Organizer" ? (
+          f.label === "Event Manager" ? (
             <Link to="/events" style={{ textDecoration: "none" }} key={f.label}>
               <div className="feature-card">
                 <div className="feature-icon">{icons[f.icon]}</div>
@@ -150,11 +150,28 @@ const Home = () => {
                 <div className="feature-label">{f.label}</div>
               </div>
             </Link>
-          ) : f.label === "Pinterest Board" ? (
-            <div className="feature-card" key={f.label}>
-              <div className="feature-icon">{icons[f.icon]}</div>
-              <div className="feature-label">{f.label}</div>
-            </div>
+          ) : f.label === "Daily Menu" ? (
+            <Link
+              to="/daily-menu"
+              style={{ textDecoration: "none" }}
+              key={f.label}
+            >
+              <div className="feature-card" key={f.label}>
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
+          ) : f.label === "Vendor Manager" ? (
+            <Link
+              to="/vendors"
+              style={{ textDecoration: "none" }}
+              key={f.label}
+            >
+              <div className="feature-card" key={f.label}>
+                <div className="feature-icon">{icons[f.icon]}</div>
+                <div className="feature-label">{f.label}</div>
+              </div>
+            </Link>
           ) : (
             <div className="feature-card" key={f.label}>
               <div className="feature-icon">{icons[f.icon]}</div>
@@ -167,9 +184,7 @@ const Home = () => {
         <div style={{ textAlign: "center", padding: "2rem" }}>Loading...</div>
       ) : isAuthenticated ? (
         <Dashboard />
-      ) : (
-        <Walkthrough />
-      )}
+      ) : null}
     </>
   );
 };

@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./RSVPManager.css";
 import AuthService from "../../services/authService";
 import AddGuestForm from "../Pages/Guests/AddGuestForm";
 import EditGuestForm from "../Pages/Guests/EditGuestForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import * as XLSX from "xlsx";
 import { useAuth } from "../../context/AuthContext";
+import { on } from "../../utils/eventBus";
 
 // Use the centralized API configuration
 import { getApiUrl } from "../../config";
 
 const RSVPManager = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [guests, setGuests] = useState([]);
   const [events, setEvents] = useState([]);
   const [rsvpData, setRsvpData] = useState([]);
@@ -27,7 +31,24 @@ const RSVPManager = () => {
 
   useEffect(() => {
     fetchRSVPData();
+    const offCreated = on("guest:created", () => fetchRSVPData());
+    return () => {
+      offCreated();
+    };
   }, []);
+
+  // Handle URL parameters to pre-select an event
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const eventId = urlParams.get("event");
+    if (eventId && events.length > 0) {
+      // Check if the event exists in our events list
+      const eventExists = events.some((event) => event.id === eventId);
+      if (eventExists) {
+        setSelectedEvent(eventId);
+      }
+    }
+  }, [location.search, events]);
 
   const fetchRSVPData = async () => {
     try {
@@ -116,8 +137,15 @@ const RSVPManager = () => {
       console.log("Server response data:", responseData);
 
       if (!response.ok) {
+        console.error("RSVP Update failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          responseData,
+        });
         throw new Error(
-          responseData.message || `Server error: ${response.status}`
+          responseData.message ||
+            responseData.error ||
+            `Server error: ${response.status}`
         );
       }
 
@@ -187,7 +215,7 @@ const RSVPManager = () => {
   };
 
   const handleDeleteGuest = (guestId) => {
-    const guest = guests.find((g) => g._id === guestId);
+    const guest = guests.find((g) => g.id === guestId);
     setGuestToDelete(guest);
     setShowDeleteModal(true);
   };
@@ -197,7 +225,7 @@ const RSVPManager = () => {
 
     try {
       const token = AuthService.getToken();
-      const response = await fetch(getApiUrl(`/guests/${guestToDelete._id}`), {
+      const response = await fetch(getApiUrl(`/guests/${guestToDelete.id}`), {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -223,8 +251,8 @@ const RSVPManager = () => {
   };
 
   const handleDeleteRSVP = async (guestId, eventId) => {
-    const event = events.find((e) => e._id === eventId);
-    const guest = guests.find((g) => g._id === guestId);
+    const event = events.find((e) => e.id === eventId);
+    const guest = guests.find((g) => g.id === guestId);
 
     if (
       !window.confirm(
@@ -258,7 +286,11 @@ const RSVPManager = () => {
   };
 
   const getGuestRSVPForEvent = (guest, eventId) => {
-    return guest.guestEvents?.find((event) => event.eventId._id === eventId);
+    // Handle different data structures from backend
+    return guest.guestEvents?.find((event) => {
+      const eventIdField = event.eventId?.id || event.eventId || event.event_id;
+      return eventIdField === eventId;
+    });
   };
 
   const getFilteredGuests = () => {
@@ -269,13 +301,15 @@ const RSVPManager = () => {
     // Show guests who have the selected event in their guestEvents OR selectedEvents
     return guests.filter((guest) => {
       // Check if guest has this event in guestEvents
-      const hasGuestEvent = guest.guestEvents?.some(
-        (event) => event.eventId && event.eventId._id === selectedEvent
-      );
+      const hasGuestEvent = guest.guestEvents?.some((event) => {
+        const eventIdField =
+          event.eventId?.id || event.eventId || event.event_id;
+        return eventIdField === selectedEvent;
+      });
 
       // Check if guest has this event in selectedEvents (for backwards compatibility)
       const hasSelectedEvent = guest.selectedEvents?.some(
-        (event) => event._id === selectedEvent
+        (event) => event.id === selectedEvent || event === selectedEvent
       );
 
       return hasGuestEvent || hasSelectedEvent;
@@ -319,11 +353,13 @@ const RSVPManager = () => {
     const createSheetDataForEvent = (eventId, eventTitle) => {
       // Get guests for this specific event
       const eventGuests = guests.filter((guest) => {
-        const hasGuestEvent = guest.guestEvents?.some(
-          (event) => event.eventId && event.eventId._id === eventId
-        );
+        const hasGuestEvent = guest.guestEvents?.some((event) => {
+          const eventIdField =
+            event.eventId?.id || event.eventId || event.event_id;
+          return eventIdField === eventId;
+        });
         const hasSelectedEvent = guest.selectedEvents?.some(
-          (event) => event._id === eventId
+          (event) => event.id === eventId || event === eventId
         );
         return hasGuestEvent || hasSelectedEvent;
       });
@@ -368,7 +404,7 @@ const RSVPManager = () => {
 
     // Create a sheet for each event
     events.forEach((event) => {
-      const sheetData = createSheetDataForEvent(event._id, event.title);
+      const sheetData = createSheetDataForEvent(event.id, event.title);
 
       // Only create sheet if there are guests for this event
       if (sheetData.length > 0) {
@@ -483,7 +519,24 @@ const RSVPManager = () => {
   return (
     <div className="rsvp-manager">
       <div className="rsvp-header">
-        <h1>RSVP Manager</h1>
+        {selectedEvent !== "all" && (
+          <button
+            className="back-to-events-btn"
+            onClick={() => navigate("/events")}
+            title="Back to Events"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
+          </button>
+        )}
+        <h1>
+          RSVP Manager
+          {selectedEvent !== "all" && events.length > 0 && (
+            <span className="event-title">
+              {" - " +
+                (events.find((e) => e.id === selectedEvent)?.title || "Event")}
+            </span>
+          )}
+        </h1>
         <div className="header-actions">
           <button className="export-excel-btn" onClick={exportToExcel}>
             <FontAwesomeIcon icon={faDownload} />
@@ -572,7 +625,7 @@ const RSVPManager = () => {
         >
           <option value="all">All Events</option>
           {events.map((event) => (
-            <option key={event._id} value={event._id}>
+            <option key={event.id} value={event.id}>
               {event.title}
             </option>
           ))}
@@ -606,7 +659,7 @@ const RSVPManager = () => {
                   : null;
 
               return (
-                <tr key={guest._id}>
+                <tr key={guest.id}>
                   <td>{guest.name}</td>
                   <td>{guest.phone || "N/A"}</td>
                   <td>{formatAddress(guest.address)}</td>
@@ -616,7 +669,7 @@ const RSVPManager = () => {
                         <select
                           value={rsvp?.rsvpStatus || "pending"}
                           onChange={(e) =>
-                            handleRSVPUpdate(guest._id, selectedEvent, {
+                            handleRSVPUpdate(guest.id, selectedEvent, {
                               rsvpStatus: e.target.value,
                             })
                           }
@@ -634,7 +687,7 @@ const RSVPManager = () => {
                         <select
                           value={rsvp?.invitationStatus || "not_sent"}
                           onChange={(e) =>
-                            handleRSVPUpdate(guest._id, selectedEvent, {
+                            handleRSVPUpdate(guest.id, selectedEvent, {
                               invitationStatus: e.target.value,
                             })
                           }
@@ -659,7 +712,7 @@ const RSVPManager = () => {
                     {canDelete() && (
                       <button
                         className="rsvp-delete-guest-btn"
-                        onClick={() => handleDeleteGuest(guest._id)}
+                        onClick={() => handleDeleteGuest(guest.id)}
                         title="Delete this guest completely"
                         style={{
                           backgroundColor: "#ffebee",
@@ -699,7 +752,7 @@ const RSVPManager = () => {
                       <button
                         className="delete-rsvp-btn"
                         onClick={() =>
-                          handleDeleteRSVP(guest._id, selectedEvent)
+                          handleDeleteRSVP(guest.id, selectedEvent)
                         }
                         title="Delete RSVP for this event"
                       >

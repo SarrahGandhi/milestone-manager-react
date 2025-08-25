@@ -62,6 +62,8 @@ const eventRoutes = require("./src/routes/eventRoutes");
 const taskRoutes = require("./src/routes/taskRoutes");
 const guestRoutes = require("./src/routes/guestRoutes");
 const budgetRoutes = require("./src/routes/budgetRoutes");
+const dailyMenuRoutes = require("./src/routes/dailyMenuRoutes");
+const vendorRoutes = require("./src/routes/vendorRoutes");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -69,6 +71,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/budget", budgetRoutes);
+app.use("/api/daily-menus", dailyMenuRoutes);
+app.use("/api/vendors", vendorRoutes);
 
 // Basic route
 app.get("/", (req, res) => {

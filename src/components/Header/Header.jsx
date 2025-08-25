@@ -69,7 +69,9 @@ const Header = () => {
                 <Link to="/events">Event Manager</Link>
                 <Link to="/rsvp-manager">RSVP Manager</Link>
                 <Link to="/budget">Budget</Link>
+                <Link to="/daily-menu">Daily Menu</Link>
                 <Link to="/taskmanager">Task Manager</Link>
+                <Link to="/vendors">Vendor Manager</Link>
               </div>
             </div>
           )}
@@ -92,8 +94,7 @@ const Header = () => {
             </button>
           )}
         </nav>
-      </header>
-
+      </header>{" "}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={closeLoginModal}

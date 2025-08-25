@@ -30,7 +30,7 @@ const Events = () => {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
-  const { canEdit, canDelete } = useAuth();
+  const { canEdit, canDelete, canAdd } = useAuth();
 
   // Fetch events from the database
   const fetchEvents = async () => {
@@ -63,7 +63,9 @@ const Events = () => {
 
   // Helper function to format date
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // Parse date string without timezone conversion
+    const [year, month, day] = dateString.split("-");
+    const date = new Date(year, month - 1, day); // month is 0-indexed
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
@@ -172,13 +174,15 @@ const Events = () => {
     <>
       <div className="events-root">
         <div className="events-header-row">
-          <button
-            className="add-task-btn"
-            onClick={() => navigate("/events/add")}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            Add New Event
-          </button>
+          {canAdd() && (
+            <button
+              className="add-task-btn"
+              onClick={() => navigate("/events/add")}
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              Add New Event
+            </button>
+          )}
           <input
             type="text"
             placeholder="Search events..."
@@ -197,7 +201,7 @@ const Events = () => {
         ) : (
           <div className="events-card-row">
             {filteredEvents.map((event) => (
-              <div key={event._id} className="event-card">
+              <div key={event.id} className="event-card">
                 <h2 className="event-title">{event.title}</h2>
                 <div className="event-info">
                   <FontAwesomeIcon icon={faCalendarAlt} />
@@ -217,12 +221,21 @@ const Events = () => {
                     {event.dressCode}
                   </div>
                 )}
-                <button
-                  className="event-view-btn"
-                  onClick={() => navigate(`/events/${event._id}`)}
-                >
-                  View Details
-                </button>
+                <div className="event-btn-row">
+                  <button
+                    className="event-view-btn"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                  >
+                    View Details
+                  </button>
+                  <button
+                    className="event-rsvp-btn"
+                    onClick={() => navigate(`/rsvp-manager?event=${event.id}`)}
+                    title="Manage RSVPs for this event"
+                  >
+                    View RSVPs
+                  </button>
+                </div>
                 {(canEdit() || canDelete()) && (
                   <div className="event-card-btn-row">
                     {canEdit() && (
@@ -236,9 +249,7 @@ const Events = () => {
                     {canDelete() && (
                       <button
                         className="event-delete-btn"
-                        onClick={() =>
-                          handleDeleteEvent(event._id, event.title)
-                        }
+                        onClick={() => handleDeleteEvent(event.id, event.title)}
                       >
                         <FontAwesomeIcon icon={faTrash} /> Delete
                       </button>

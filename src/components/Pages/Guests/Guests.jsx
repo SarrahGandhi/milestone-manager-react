@@ -8,6 +8,7 @@ import AuthService from "../../../services/authService";
 import { getApiUrl } from "../../../config";
 import { useAuth } from "../../../context/AuthContext";
 import "./Guests.css";
+import { on } from "../../../utils/eventBus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -94,6 +95,14 @@ const Guests = () => {
   useEffect(() => {
     fetchGuests();
     fetchEvents();
+    const offCreated = on("guest:created", () => fetchGuests());
+    const offUpdated = on("guest:updated", () => fetchGuests());
+    const offDeleted = on("guest:deleted", () => fetchGuests());
+    return () => {
+      offCreated();
+      offUpdated();
+      offDeleted();
+    };
   }, []);
 
   const handleStatusUpdate = async (guestId, eventId, type, value) => {
@@ -236,7 +245,7 @@ const Guests = () => {
 
   // Get GuestEvent for the selected event
   const getGuestEvent = (guest, eventId) => {
-    return guest.guestEvents?.find((ge) => ge.eventId._id === eventId);
+    return guest.guestEvents?.find((ge) => ge.eventId === eventId);
   };
 
   // CSV Export functionality
@@ -270,7 +279,10 @@ const Guests = () => {
             ) || 0;
 
       const selectedEvents =
-        guest.selectedEvents?.map((event) => event.title).join("; ") || "None";
+        guest.selectedEvents
+          ?.map((eventId) => events.find((e) => e.id === eventId)?.title)
+          .filter(Boolean)
+          .join("; ") || "None";
 
       const invitationStatus = guestEvent?.invitationStatus || "not_sent";
       const rsvpStatus = guestEvent?.rsvpStatus || "pending";
@@ -399,7 +411,7 @@ const Guests = () => {
               >
                 <option value="all">All Events</option>
                 {events.map((event) => (
-                  <option key={event._id} value={event._id}>
+                  <option key={event.id} value={event.id}>
                     {event.title}
                   </option>
                 ))}
@@ -458,7 +470,7 @@ const Guests = () => {
                       : null;
 
                   return (
-                    <tr key={guest._id}>
+                    <tr key={guest.id}>
                       <td className="guest-name">{guest.name}</td>
                       <td>{guest.phone || "-"}</td>
                       <td>
@@ -481,7 +493,7 @@ const Guests = () => {
                           value={guestEvent?.invitationStatus || "not_sent"}
                           onChange={(e) =>
                             handleStatusUpdate(
-                              guest._id,
+                              guest.id,
                               selectedEvent,
                               "invitationStatus",
                               e.target.value
@@ -503,7 +515,7 @@ const Guests = () => {
                           value={guestEvent?.rsvpStatus || "pending"}
                           onChange={(e) =>
                             handleStatusUpdate(
-                              guest._id,
+                              guest.id,
                               selectedEvent,
                               "rsvpStatus",
                               e.target.value
@@ -550,7 +562,7 @@ const Guests = () => {
                           <button
                             className="action-btn delete-btn"
                             onClick={() =>
-                              handleDeleteGuest(guest._id, guest.name)
+                              handleDeleteGuest(guest.id, guest.name)
                             }
                             title="Delete Guest"
                           >

@@ -19,7 +19,7 @@ const WeddingWebsite = () => {
   const handleRSVPSubmit = async (eventId, rsvpData) => {
     try {
       const response = await fetch(
-        getApiUrl(`/guests/${guest._id}/events/${eventId}/rsvp`),
+        getApiUrl(`/guests/${guest.id}/events/${eventId}/rsvp`),
         {
           method: "POST",
           headers: {
@@ -46,7 +46,7 @@ const WeddingWebsite = () => {
         ...prevGuest,
         email: rsvpData.email,
         guestEvents: prevGuest.guestEvents.map((ge) =>
-          ge.eventId && ge.eventId._id === eventId ? { ...ge, ...data } : ge
+          ge.eventId && ge.eventId.id === eventId ? { ...ge, ...data } : ge
         ),
       }));
 

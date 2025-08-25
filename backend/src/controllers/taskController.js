@@ -54,11 +54,58 @@ const createTask = async (req, res) => {
   }
 };
 
-// UPDATE task - GLOBAL (any user can update any task)
+// UPDATE task - Role-based: Admin can update any task, users can only update their own tasks
 const updateTask = async (req, res) => {
   try {
-    // Validate task data
-    const validationErrors = Task.validateTaskData(req.body);
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    console.log("UPDATE TASK DEBUG:", {
+      userId,
+      userRole,
+      taskId: req.params.id,
+      requestBody: req.body,
+    });
+
+    // First, get the existing task to check ownership
+    const existingTask = await Task.findById(req.params.id);
+    if (!existingTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    console.log("EXISTING TASK DEBUG:", {
+      taskId: existingTask.id,
+      assignedTo: existingTask.assignedTo,
+      createdBy: existingTask.createdBy,
+      assignedToType: typeof existingTask.assignedTo,
+      createdByType: typeof existingTask.createdBy,
+      userIdType: typeof userId,
+    });
+
+    // Check permissions: Admin can edit any task, users can only edit their own tasks
+    const canEdit =
+      userRole === "admin" ||
+      (existingTask.assignedTo && existingTask.assignedTo === userId) ||
+      (existingTask.createdBy && existingTask.createdBy === userId);
+
+    console.log("PERMISSION CHECK DEBUG:", {
+      canEdit,
+      isAdmin: userRole === "admin",
+      assignedToMatch:
+        existingTask.assignedTo && existingTask.assignedTo === userId,
+      createdByMatch:
+        existingTask.createdBy && existingTask.createdBy === userId,
+    });
+
+    if (!canEdit) {
+      return res.status(403).json({
+        message:
+          "Access denied. You can only edit tasks assigned to you or created by you.",
+      });
+    }
+
+    // Validate task data (skip userId and createdBy validation for updates)
+    const validationErrors = Task.validateTaskData(req.body, false); // false = skip required field validation
     if (validationErrors.length > 0) {
       return res.status(400).json({
         message: "Validation error",
@@ -79,9 +126,31 @@ const updateTask = async (req, res) => {
   }
 };
 
-// DELETE task - GLOBAL (any user can delete any task)
+// DELETE task - Role-based: Admin can delete any task, users can only delete their own tasks
 const deleteTask = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // First, get the existing task to check ownership
+    const existingTask = await Task.findById(req.params.id);
+    if (!existingTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Check permissions: Admin can delete any task, users can only delete their own tasks
+    const canDelete =
+      userRole === "admin" ||
+      (existingTask.assignedTo && existingTask.assignedTo === userId) ||
+      (existingTask.createdBy && existingTask.createdBy === userId);
+
+    if (!canDelete) {
+      return res.status(403).json({
+        message:
+          "Access denied. You can only delete tasks assigned to you or created by you.",
+      });
+    }
+
     const success = await Task.delete(req.params.id);
 
     if (!success) {
@@ -95,13 +164,29 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// TOGGLE task completion - GLOBAL (any user can toggle any task)
+// TOGGLE task completion - Role-based: Admin can toggle any task, users can only toggle their own tasks
 const toggleTaskCompletion = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
     const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Check permissions: Admin can toggle any task, users can only toggle their own tasks
+    const canToggle =
+      userRole === "admin" ||
+      (task.assignedTo && task.assignedTo === userId) ||
+      (task.createdBy && task.createdBy === userId);
+
+    if (!canToggle) {
+      return res.status(403).json({
+        message:
+          "Access denied. You can only toggle completion for tasks assigned to you or created by you.",
+      });
     }
 
     const updatedTask = await Task.update(req.params.id, {
@@ -204,9 +289,11 @@ const getTaskStats = async (req, res) => {
   }
 };
 
-// ADD subtask - GLOBAL (any user can add subtasks to any task)
+// ADD subtask - Role-based: Admin can add subtasks to any task, users can only add to their own tasks
 const addSubtask = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
     const { title } = req.body;
 
     if (!title) {
@@ -217,6 +304,19 @@ const addSubtask = async (req, res) => {
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Check permissions: Admin can add subtasks to any task, users can only add to their own tasks
+    const canAddSubtask =
+      userRole === "admin" ||
+      (task.assignedTo && task.assignedTo === userId) ||
+      (task.createdBy && task.createdBy === userId);
+
+    if (!canAddSubtask) {
+      return res.status(403).json({
+        message:
+          "Access denied. You can only add subtasks to tasks assigned to you or created by you.",
+      });
     }
 
     const subtask = await Task.addSubtask(req.params.id, {
@@ -230,13 +330,29 @@ const addSubtask = async (req, res) => {
   }
 };
 
-// TOGGLE subtask completion - GLOBAL (any user can toggle subtasks)
+// TOGGLE subtask completion - Role-based: Admin can toggle any subtask, users can only toggle their own
 const toggleSubtask = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
     const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Check permissions: Admin can toggle any subtask, users can only toggle their own
+    const canToggleSubtask =
+      userRole === "admin" ||
+      (task.assignedTo && task.assignedTo === userId) ||
+      (task.createdBy && task.createdBy === userId);
+
+    if (!canToggleSubtask) {
+      return res.status(403).json({
+        message:
+          "Access denied. You can only toggle subtasks for tasks assigned to you or created by you.",
+      });
     }
 
     const subtask = task.subtasks?.find((st) => st.id === req.params.subtaskId);
