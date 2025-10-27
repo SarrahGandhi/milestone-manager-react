@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     notes TEXT,
     tags TEXT[], -- Array of strings for tags
     completed_at TIMESTAMP,
-    related_event UUID REFERENCES events(id),
+    related_event UUID REFERENCES events(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id),
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

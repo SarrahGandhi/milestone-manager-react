@@ -45,7 +45,7 @@ const Dashboard = () => {
 
   // Calculate time until the wedding
   const calculateTimeLeft = () => {
-    const weddingDate = new Date("2026-10-07T00:00:00"); // October 7th, 2026
+    const weddingDate = new Date("2026-10-22T00:00:00"); // October 7th, 2026
     const now = new Date();
     const difference = weddingDate - now;
 

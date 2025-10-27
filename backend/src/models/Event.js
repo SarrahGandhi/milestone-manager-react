@@ -150,6 +150,14 @@ class Event {
   // Delete event
   static async delete(id) {
     try {
+      // Delete related tasks first to avoid FK constraint errors on existing databases
+      const { error: tasksError } = await supabase
+        .from("tasks")
+        .delete()
+        .eq("related_event", id);
+
+      if (tasksError && tasksError.code !== "PGRST116") throw tasksError;
+
       const { error } = await supabase.from("events").delete().eq("id", id);
 
       if (error) throw error;

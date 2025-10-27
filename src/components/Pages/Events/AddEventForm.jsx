@@ -14,6 +14,7 @@ const AddEventForm = () => {
     dressCode: "",
     additionalDetails: "",
     side: "both",
+    organizer: "",
   });
 
   const [menuOptions, setMenuOptions] = useState(["", ""]);
@@ -26,6 +27,14 @@ const AddEventForm = () => {
     if (!AuthService.isAuthenticated()) {
       setMessage("Please log in to create events.");
       navigate("/login");
+    }
+    // Prefill organizer from logged-in user if available
+    const user = AuthService.getUser();
+    if (user && (user.firstName || user.lastName || user.username)) {
+      const fullName =
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.username;
+      setFormData((prev) => ({ ...prev, organizer: fullName }));
     }
   }, [navigate]);
 
@@ -70,6 +79,7 @@ const AddEventForm = () => {
         additionalDetails: formData.additionalDetails,
         description: formData.additionalDetails || "Event created via form",
         side: formData.side,
+        organizer: formData.organizer,
       };
 
       const response = await fetch(getApiUrl("/events"), {
@@ -90,7 +100,10 @@ const AddEventForm = () => {
           AuthService.removeToken();
           navigate("/login");
         } else {
-          setMessage(`Error: ${errorData.message}`);
+          const details = Array.isArray(errorData.errors)
+            ? `: ${errorData.errors.join(", ")}`
+            : "";
+          setMessage(`Error: ${errorData.message}${details}`);
         }
       }
     } catch (error) {
@@ -162,6 +175,18 @@ const AddEventForm = () => {
                     required
                   />
                 </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="organizer">Organizer</label>
+                <input
+                  type="text"
+                  id="organizer"
+                  name="organizer"
+                  value={formData.organizer}
+                  onChange={handleInputChange}
+                  placeholder="Who is organizing this event?"
+                  required
+                />
               </div>
             </div>
 

@@ -130,8 +130,8 @@ const WeddingWebsite = () => {
               })
             ) : (
               <p className="no-events">
-                No events found for your invitation. Please contact the hosts if
-                you believe this is an error.
+                No active invitations found for this guest. Please contact the
+                hosts if you believe this is an error.
               </p>
             )}
           </div>

@@ -13,6 +13,7 @@ const EditEventForm = () => {
     location: "",
     dressCode: "",
     additionalDetails: "",
+    organizer: "",
   });
 
   const [menuOptions, setMenuOptions] = useState(["", ""]);
@@ -71,6 +72,7 @@ const EditEventForm = () => {
             dressCode: eventData.dressCode || "",
             additionalDetails:
               eventData.additionalDetails || eventData.description || "",
+            organizer: eventData.organizer || "",
           });
 
           // Set menu options, ensuring at least two empty fields
@@ -134,6 +136,7 @@ const EditEventForm = () => {
         menu: menuOptions.filter((option) => option.trim() !== ""),
         additionalDetails: formData.additionalDetails,
         description: formData.additionalDetails || "Event updated via form",
+        organizer: formData.organizer,
       };
 
       const response = await fetch(getApiUrl(`/events/${eventId}`), {
@@ -149,7 +152,10 @@ const EditEventForm = () => {
         }, 2000);
       } else {
         const errorData = await response.json();
-        setMessage(`Error: ${errorData.message}`);
+        const details = Array.isArray(errorData.errors)
+          ? `: ${errorData.errors.join(", ")}`
+          : "";
+        setMessage(`Error: ${errorData.message}${details}`);
       }
     } catch (error) {
       setMessage("Error updating event. Please try again.");

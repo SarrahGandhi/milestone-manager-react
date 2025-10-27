@@ -422,41 +422,33 @@ const lookupGuest = async (req, res) => {
     }
 
     // Trim and prepare search term
-    const searchTerm = name.trim();
+    const searchTerm = name.trim().toLowerCase();
 
-    // Create search patterns for different matching strategies
-    const exactMatch = new RegExp(`^${searchTerm}$`, "i");
-    const firstNameMatch = new RegExp(`^${searchTerm}\\s+`, "i"); // First name + space
-    const containsMatch = new RegExp(searchTerm, "i"); // Contains anywhere
+    // Get all guests using Supabase method
+    const allGuests = await Guest.findAll();
 
     // Try different search strategies in order of preference
     let guests = [];
-    let allMatchingGuests = []; // Keep track of all matches for duplicate detection
 
-    // 1. Try exact match first - check all guests first
-    allMatchingGuests = await Guest.find({
-      name: exactMatch,
-    }).populate("selectedEvents", "title eventDate location");
+    // 1. Try exact match first
+    guests = allGuests.filter(
+      (guest) => guest.name.toLowerCase() === searchTerm
+    );
 
-    // If we have exact matches, use them
-    if (allMatchingGuests.length > 0) {
-      guests = allMatchingGuests;
-    } else {
-      // 2. If no exact match, try first name match
-      allMatchingGuests = await Guest.find({
-        name: firstNameMatch,
-      }).populate("selectedEvents", "title eventDate location");
+    // 2. If no exact match, try first name match
+    if (guests.length === 0) {
+      guests = allGuests.filter(
+        (guest) =>
+          guest.name.toLowerCase().startsWith(searchTerm + " ") ||
+          guest.name.toLowerCase().split(" ")[0] === searchTerm
+      );
+    }
 
-      if (allMatchingGuests.length > 0) {
-        guests = allMatchingGuests;
-      } else {
-        // 3. If still no match, try partial match anywhere in name
-        allMatchingGuests = await Guest.find({
-          name: containsMatch,
-        }).populate("selectedEvents", "title eventDate location");
-
-        guests = allMatchingGuests;
-      }
+    // 3. If still no match, try partial match anywhere in name
+    if (guests.length === 0) {
+      guests = allGuests.filter((guest) =>
+        guest.name.toLowerCase().includes(searchTerm)
+      );
     }
 
     if (guests.length === 0) {
@@ -465,46 +457,67 @@ const lookupGuest = async (req, res) => {
         .json({ message: "No guests found matching your search" });
     }
 
-    // Filter guests: if multiple guests with similar names, show all (including those without events)
-    // If only one guest, they must have events to proceed
-    let finalGuests;
-    if (guests.length > 1) {
-      // Multiple guests - show all so user can choose, but mark which ones have events
-      finalGuests = guests;
-    } else {
-      // Single guest - they must have events
-      const guestWithEvents = guests.filter(
-        (guest) => guest.selectedEvents && guest.selectedEvents.length > 0
-      );
-
-      if (guestWithEvents.length === 0) {
-        return res.status(404).json({
-          message:
-            "No active invitations found for this guest. Please contact the hosts if you believe this is an error.",
-        });
-      }
-
-      finalGuests = guestWithEvents;
-    }
+    // For name collisions, show all matches; we will compute invitations below
+    const finalGuests = guests;
 
     // Get guest events for all matching guests
     const guestsWithGuestEvents = await Promise.all(
       finalGuests.map(async (guest) => {
-        const guestEvents = await GuestEvent.find({
-          guestId: guest._id,
-        }).populate("eventId", "title eventDate location");
+        const guestEvents = await GuestEvent.findByGuest(guest.id);
+
+        // Get event details for each guest event
+        const guestEventsWithDetails = await Promise.all(
+          guestEvents.map(async (guestEvent) => {
+            const event = await Event.findById(guestEvent.eventId);
+            return {
+              ...guestEvent,
+              eventId: event,
+            };
+          })
+        );
+
+        // Fallback: if no guest_events exist but selectedEvents does, synthesize minimal entries
+        let effectiveGuestEvents = guestEventsWithDetails;
+        if (
+          effectiveGuestEvents.length === 0 &&
+          Array.isArray(guest.selectedEvents) &&
+          guest.selectedEvents.length > 0
+        ) {
+          effectiveGuestEvents = await Promise.all(
+            guest.selectedEvents.map(async (eventId) => {
+              const event = await Event.findById(eventId);
+              return event
+                ? {
+                    guestId: guest.id,
+                    eventId: event,
+                    invitationStatus: "sent",
+                    rsvpStatus: "pending",
+                    attendeeCount: 1,
+                  }
+                : null;
+            })
+          );
+          effectiveGuestEvents = effectiveGuestEvents.filter(Boolean);
+        }
 
         return {
-          ...guest.toObject(),
-          guestEvents,
-          hasEvents: guest.selectedEvents && guest.selectedEvents.length > 0,
+          ...guest,
+          guestEvents: effectiveGuestEvents,
+          hasEvents: effectiveGuestEvents.length > 0,
         };
       })
     );
 
     // If only one guest found, return it directly (backward compatibility)
     if (guestsWithGuestEvents.length === 1) {
-      res.json({ guest: guestsWithGuestEvents[0] });
+      const onlyGuest = guestsWithGuestEvents[0];
+      if (!onlyGuest.hasEvents) {
+        return res.status(404).json({
+          message:
+            "No active invitations found for this guest. Please contact the hosts if you believe this is an error.",
+        });
+      }
+      res.json({ guest: onlyGuest });
     } else {
       // Multiple guests found, return them for selection
       res.json({ guests: guestsWithGuestEvents });
@@ -531,43 +544,39 @@ const updateEventRSVP = async (req, res) => {
     // Set default attendee count to 1 if not provided (for wedding website RSVPs)
     const finalAttendeeCount = attendeeCount || 1;
 
-    const guestEvent = await GuestEvent.findOneAndUpdate(
-      { guestId, eventId },
-      {
-        rsvpStatus,
-        attendeeCount: finalAttendeeCount,
-        dietaryRestrictions,
-        specialRequests,
-        rsvpDate: new Date(),
-      },
-      { new: true }
-    ).populate("eventId", "title eventDate location");
+    // Use the updateRSVP method which handles upsert functionality
+    const guestEvent = await GuestEvent.updateRSVP(guestId, eventId, {
+      rsvpStatus,
+      attendeeCount: finalAttendeeCount,
+      specialRequests,
+      rsvpDate: new Date(),
+    });
 
     if (!guestEvent) {
       return res.status(404).json({ message: "Guest event not found" });
     }
 
-    // Update the guest's eventAttendees count and email if provided
-    const updateFields = {
-      [`eventAttendees.${eventId}`]: finalAttendeeCount,
-    };
-
+    // Update the guest's email if provided
     if (email) {
-      updateFields.email = email;
+      await Guest.update(guestId, { email });
     }
 
-    await Guest.findByIdAndUpdate(guestId, {
-      $set: updateFields,
+    // Update the guest's event attendee counts
+    await Guest.updateEventAttendees(guestId, eventId, {
+      men: 0,
+      women: finalAttendeeCount,
+      kids: 0,
     });
 
     // Send email confirmation if requested and email is available
     if (wantsEmailConfirmation && email && rsvpStatus !== "pending") {
       try {
         const guest = await Guest.findById(guestId);
-        if (guest) {
+        const event = await Event.findById(eventId);
+        if (guest && event) {
           const emailResult = await sendRSVPConfirmation(
             guest,
-            guestEvent.eventId,
+            event,
             {
               rsvpStatus,
               dietaryRestrictions,
@@ -578,7 +587,7 @@ const updateEventRSVP = async (req, res) => {
 
           if (emailResult.success) {
             console.log(
-              `Email confirmation sent to ${email} for ${guestEvent.eventId.title}`
+              `Email confirmation sent to ${email} for ${event.title}`
             );
           } else {
             console.error(
@@ -605,21 +614,18 @@ const deleteEventRSVP = async (req, res) => {
   try {
     const { guestId, eventId } = req.params;
 
-    // Find and delete the GuestEvent record
-    const guestEvent = await GuestEvent.findOneAndDelete({
-      guestId,
-      eventId,
-    });
+    // Find the GuestEvent record
+    const guestEvent = await GuestEvent.findByGuestAndEvent(guestId, eventId);
 
     if (!guestEvent) {
       return res.status(404).json({ message: "RSVP not found for this event" });
     }
 
-    // Remove the event from the guest's selectedEvents array
-    await Guest.findByIdAndUpdate(guestId, {
-      $pull: { selectedEvents: eventId },
-      $unset: { [`eventAttendees.${eventId}`]: "" },
-    });
+    // Delete the GuestEvent record
+    await GuestEvent.delete(guestEvent.id);
+
+    // Remove the event from the guest's selectedEvents
+    await Guest.removeSelectedEvent(guestId, eventId);
 
     res.json({ message: "RSVP deleted successfully" });
   } catch (error) {

@@ -46,7 +46,13 @@ class Vendor {
     if (filters.category) query = query.eq("category", filters.category);
     if (filters.status) query = query.eq("status", filters.status);
     if (filters.eventId) query = query.eq("event_id", filters.eventId);
-    if (filters.search) query = query.ilike("name", `%${filters.search}%`);
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      // Search across multiple fields for a better UX
+      query = query.or(
+        `name.ilike.${term},contact_name.ilike.${term},email.ilike.${term},phone.ilike.${term}`
+      );
+    }
     const { data, error } = await query;
     if (error) throw error;
     return data.map(this.format);

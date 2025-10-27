@@ -89,7 +89,7 @@ const GuestLookup = ({ onGuestFound }) => {
         <div className="search-results">
           {searchResults.map((guest) => (
             <div
-              key={guest._id}
+              key={guest.id}
               className={`guest-result-card ${
                 !guest.hasEvents ? "no-events" : ""
               }`}
@@ -99,13 +99,17 @@ const GuestLookup = ({ onGuestFound }) => {
               {guest.hasEvents ? (
                 <p className="guest-events">
                   Invited to:{" "}
-                  {guest.selectedEvents
-                    ?.map((event) => event.title)
-                    .join(", ") || "Loading events..."}
+                  {guest.guestEvents && guest.guestEvents.length > 0
+                    ? guest.guestEvents
+                        .map((ge) => ge.eventId?.title)
+                        .filter(Boolean)
+                        .join(", ") || "Loading events..."
+                    : "Loading events..."}
                 </p>
               ) : (
                 <p className="guest-events no-events-text">
-                  No active invitations found
+                  No active invitations found for this guest. Please contact the
+                  hosts if you believe this is an error.
                 </p>
               )}
               {guest.address && (
@@ -115,8 +119,8 @@ const GuestLookup = ({ onGuestFound }) => {
               )}
               {!guest.hasEvents && (
                 <p className="guest-warning">
-                  This guest has no active invitations. Contact the hosts if
-                  this is your entry.
+                  No active invitations found for this guest. Please contact the
+                  hosts if you believe this is an error.
                 </p>
               )}
             </div>

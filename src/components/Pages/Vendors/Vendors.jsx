@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../../Footer/Footer";
 import vendorService from "../../../services/vendorService";
-import AuthService from "../../../services/authService";
+import "./Vendors.css";
 
 const CATEGORIES = [
   "Venue",
@@ -52,9 +52,7 @@ const Vendors = () => {
   const load = async () => {
     try {
       setLoading(true);
-      const data = await vendorService.list({
-        search: searchQuery || undefined,
-      });
+      const data = await vendorService.list();
       setVendors(data);
       setError("");
     } catch (e) {
@@ -68,11 +66,17 @@ const Vendors = () => {
     load();
   }, []); // initial
 
-  const filtered = vendors.filter((v) =>
-    [v.name, v.category, v.contactName, v.email, v.phone]
-      .filter(Boolean)
-      .some((field) => field.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Client-side filtering
+  const normalizedQuery = (searchQuery || "").trim().toLowerCase();
+  const filtered = normalizedQuery
+    ? vendors.filter((v) =>
+        [v.name, v.category, v.contactName, v.email, v.phone]
+          .filter((f) => f !== undefined && f !== null)
+          .some((field) =>
+            String(field).toLowerCase().includes(normalizedQuery)
+          )
+      )
+    : vendors;
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -89,9 +93,17 @@ const Vendors = () => {
         eventId: form.eventId || null,
       };
       if (editing) {
-        await vendorService.update(editing.id, payload);
+        const updated = await vendorService.update(editing.id, payload);
+        setVendors((prev) => {
+          const others = prev.filter((x) => x.id !== updated.id);
+          return [updated, ...others];
+        });
       } else {
-        await vendorService.create(payload);
+        const created = await vendorService.create(payload);
+        setVendors((prev) => {
+          const others = prev.filter((x) => x.id !== created.id);
+          return [created, ...others];
+        });
       }
       setShowForm(false);
       setEditing(null);
@@ -108,6 +120,8 @@ const Vendors = () => {
         costEstimate: "",
         eventId: "",
       });
+      // Clear search so the newly created vendor is visible immediately
+      setSearchQuery("");
       await load();
     } catch (e2) {
       alert(
@@ -130,132 +144,187 @@ const Vendors = () => {
   };
 
   if (loading) {
-    return <div style={{ padding: "1rem" }}>Loading vendors...</div>;
+    return <div className="loading-message">Loading vendors...</div>;
   }
   if (error) {
     return (
-      <div style={{ padding: "1rem" }}>
-        {error} <button onClick={load}>Try again</button>
+      <div className="error-message">
+        <div>{error}</div>
+        <button className="retry-btn" onClick={load}>
+          Try again
+        </button>
       </div>
     );
   }
 
   return (
     <>
-      <div style={{ padding: "1rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+      <div className="vendors-root">
+        <div className="vendors-header-row">
           <button
             className="add-task-btn"
             onClick={() => setShowForm((s) => !s)}
           >
             {showForm ? "Close" : "Add Vendor"}
           </button>
-          <input
-            type="text"
-            placeholder="Search vendors..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && load()}
-            style={{ flex: 1, padding: "0.5rem" }}
-          />
-          <button onClick={load}>Search</button>
+          <div className="vendors-search-wrap">
+            <input
+              type="text"
+              className="vendors-search-bar"
+              placeholder="Search vendors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         {showForm && (
-          <form
-            onSubmit={onSubmit}
-            style={{ display: "grid", gap: "0.5rem", marginBottom: "1rem" }}
-          >
-            <input
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              placeholder="Vendor name"
-              required
-            />
-            <select name="category" value={form.category} onChange={onChange}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <input
-              name="contactName"
-              value={form.contactName}
-              onChange={onChange}
-              placeholder="Contact name"
-            />
-            <input
-              name="email"
-              value={form.email}
-              onChange={onChange}
-              placeholder="Email"
-            />
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={onChange}
-              placeholder="Phone"
-            />
-            <input
-              name="website"
-              value={form.website}
-              onChange={onChange}
-              placeholder="Website"
-            />
-            <input
-              name="address"
-              value={form.address}
-              onChange={onChange}
-              placeholder="Address"
-            />
-            <select name="status" value={form.status} onChange={onChange}>
-              <option value="prospect">Prospect</option>
-              <option value="contacted">Contacted</option>
-              <option value="booked">Booked</option>
-              <option value="declined">Declined</option>
-            </select>
-            <input
-              name="costEstimate"
-              value={form.costEstimate}
-              onChange={onChange}
-              placeholder="Cost estimate (e.g. 1500)"
-            />
-            <button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Vendor"}
-            </button>
-          </form>
+          <div className="vendor-form-card">
+            <form onSubmit={onSubmit} className="vendor-form">
+              <div className="form-grid">
+                <input
+                  className="vendor-input"
+                  name="name"
+                  value={form.name}
+                  onChange={onChange}
+                  placeholder="Vendor name"
+                  required
+                />
+                <select
+                  className="vendor-select"
+                  name="category"
+                  value={form.category}
+                  onChange={onChange}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="vendor-input"
+                  name="contactName"
+                  value={form.contactName}
+                  onChange={onChange}
+                  placeholder="Contact name"
+                />
+                <input
+                  className="vendor-input"
+                  name="email"
+                  value={form.email}
+                  onChange={onChange}
+                  placeholder="Email"
+                />
+                <input
+                  className="vendor-input"
+                  name="phone"
+                  value={form.phone}
+                  onChange={onChange}
+                  placeholder="Phone"
+                />
+                <input
+                  className="vendor-input"
+                  name="website"
+                  value={form.website}
+                  onChange={onChange}
+                  placeholder="Website"
+                />
+                <input
+                  className="vendor-input"
+                  name="address"
+                  value={form.address}
+                  onChange={onChange}
+                  placeholder="Address"
+                />
+                <select
+                  className="vendor-select"
+                  name="status"
+                  value={form.status}
+                  onChange={onChange}
+                >
+                  <option value="prospect">Prospect</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="booked">Booked</option>
+                  <option value="declined">Declined</option>
+                </select>
+                <input
+                  className="vendor-input"
+                  name="costEstimate"
+                  value={form.costEstimate}
+                  onChange={onChange}
+                  placeholder="Cost estimate (e.g. 1500)"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                />
+                <textarea
+                  className="vendor-textarea"
+                  name="notes"
+                  value={form.notes}
+                  onChange={onChange}
+                  placeholder="Notes"
+                  rows={3}
+                />
+              </div>
+              <div className="form-actions">
+                <button
+                  className="vendor-save-btn"
+                  type="submit"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving..."
+                    : editing
+                    ? "Update Vendor"
+                    : "Save Vendor"}
+                </button>
+                <button
+                  type="button"
+                  className="vendor-cancel-btn"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditing(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         )}
 
         {filtered.length === 0 ? (
-          <div>No vendors yet.</div>
+          <div className="no-vendors-message">
+            {normalizedQuery
+              ? "No vendors match your search."
+              : "No vendors yet. Click 'Add Vendor' to get started."}
+          </div>
         ) : (
-          <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div className="vendors-card-row">
             {filtered.map((v) => (
-              <div
-                key={v.id}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: 6,
-                  padding: "0.75rem",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
+              <div key={v.id} className="vendor-card">
+                <div className="vendor-card-header">
                   <div>
-                    <div style={{ fontWeight: 600 }}>{v.name}</div>
-                    <div style={{ fontSize: 12, color: "#666" }}>
-                      {v.category} {v.status ? `• ${v.status}` : ""}
+                    <div className="vendor-title">{v.name}</div>
+                    <div className="vendor-badges">
+                      {v.category && (
+                        <span className="vendor-badge vendor-category-badge">
+                          {v.category}
+                        </span>
+                      )}
+                      {v.status && (
+                        <span
+                          className={`vendor-badge vendor-status-badge status-${v.status}`}
+                        >
+                          {v.status}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div className="vendor-actions">
                     <button
+                      className="vendor-edit-btn"
                       onClick={() => {
                         setEditing(v);
                         setForm({
@@ -276,17 +345,15 @@ const Vendors = () => {
                     >
                       Edit
                     </button>
-                    <button onClick={() => onDelete(v.id)}>Delete</button>
+                    <button
+                      className="vendor-delete-btn"
+                      onClick={() => onDelete(v.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <div
-                  style={{
-                    marginTop: "0.5rem",
-                    display: "grid",
-                    gap: "0.25rem",
-                    fontSize: 14,
-                  }}
-                >
+                <div className="vendor-details">
                   {v.contactName && <div>Contact: {v.contactName}</div>}
                   {v.email && <div>Email: {v.email}</div>}
                   {v.phone && <div>Phone: {v.phone}</div>}
