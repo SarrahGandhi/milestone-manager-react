@@ -13,7 +13,9 @@ const DeleteAdminModal = ({ user, onUserDeleted, onCancel }) => {
 
       console.log("Deleting user:", user);
 
-      await userService.deleteUser(user._id);
+      // Handle both _id and id formats
+      const userId = user._id || user.id;
+      await userService.deleteUser(userId);
 
       console.log("User deleted successfully");
 

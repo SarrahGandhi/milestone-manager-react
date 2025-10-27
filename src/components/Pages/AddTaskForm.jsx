@@ -199,7 +199,7 @@ const AddTaskForm = ({ onClose, onTaskAdded, isOpen }) => {
                 <option value="">Select a team member (optional)</option>
                 {Array.isArray(users) &&
                   users.map((user) => (
-                    <option key={user._id} value={user._id}>
+                    <option key={user.id} value={user.id}>
                       {user.firstName} {user.lastName} ({user.username})
                     </option>
                   ))}

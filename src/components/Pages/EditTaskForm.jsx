@@ -54,7 +54,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
         priority: task.priority || "medium",
         estimatedTime: task.estimatedTime ? task.estimatedTime.toString() : "",
         assignedTo: task.assignedTo
-          ? task.assignedTo._id || task.assignedTo
+          ? task.assignedTo.id || task.assignedTo
           : "",
         tags: task.tags ? task.tags.join(", ") : "",
       });
@@ -93,7 +93,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
         }
       });
 
-      const updatedTask = await TaskService.updateTask(task._id, taskData);
+      const updatedTask = await TaskService.updateTask(task.id, taskData);
       onTaskUpdated(updatedTask);
       onClose();
     } catch (err) {
@@ -217,7 +217,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
                 <option value="">Select a team member (optional)</option>
                 {Array.isArray(users) &&
                   users.map((user) => (
-                    <option key={user._id} value={user._id}>
+                    <option key={user.id} value={user.id}>
                       {user.firstName} {user.lastName} ({user.username})
                     </option>
                   ))}

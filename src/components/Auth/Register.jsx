@@ -86,40 +86,38 @@ const Register = ({ onRegister }) => {
             </div>
           )}
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="firstName" className="form-label">
-                First Name
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                className="form-input"
-                placeholder="Enter your first name"
-                disabled={loading}
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="firstName" className="form-label">
+              First Name
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              className="form-input"
+              placeholder="Enter your first name"
+              disabled={loading}
+            />
+          </div>
 
-            <div className="form-group">
-              <label htmlFor="lastName" className="form-label">
-                Last Name
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                className="form-input"
-                placeholder="Enter your last name"
-                disabled={loading}
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="lastName" className="form-label">
+              Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              className="form-input"
+              placeholder="Enter your last name"
+              disabled={loading}
+            />
           </div>
 
           <div className="form-group">

@@ -308,18 +308,17 @@ const updateUserRole = async (req, res) => {
     }
 
     // Prevent admin from changing their own role
-    if (userId === req.user._id.toString()) {
+    // Handle both _id (MongoDB) and id (Supabase)
+    const currentUserId = req.user._id?.toString() || req.user.id?.toString();
+    if (userId === currentUserId) {
       return res.status(400).json({
         success: false,
         message: "Cannot change your own role",
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { role },
-      { new: true, runValidators: true }
-    ).select("-password");
+    // Use Supabase-compatible update method
+    const user = await User.update(userId, { role });
 
     if (!user) {
       return res.status(404).json({
@@ -331,13 +330,14 @@ const updateUserRole = async (req, res) => {
     res.json({
       success: true,
       message: "User role updated successfully",
-      user: user.toJSON(),
+      user,
     });
   } catch (error) {
     console.error("Update user role error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
+      error: error.message,
     });
   }
 };
@@ -350,21 +350,26 @@ const deleteUser = async (req, res) => {
     const userId = req.params.id;
 
     // Prevent admin from deleting themselves
-    if (userId === req.user._id.toString()) {
+    // Handle both _id (MongoDB) and id (Supabase)
+    const currentUserId = req.user._id?.toString() || req.user.id?.toString();
+    if (userId === currentUserId) {
       return res.status(400).json({
         success: false,
         message: "Cannot delete your own account",
       });
     }
 
-    const user = await User.findByIdAndDelete(userId);
-
+    // Check if user exists first
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
+    // Use Supabase-compatible delete method
+    await User.delete(userId);
 
     res.json({
       success: true,
@@ -375,6 +380,7 @@ const deleteUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
+      error: error.message,
     });
   }
 };

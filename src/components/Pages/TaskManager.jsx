@@ -197,7 +197,7 @@ const TaskManager = () => {
 
   const handleDelete = async (id) => {
     try {
-      const taskToDelete = tasks.find((t) => t._id === id);
+      const taskToDelete = tasks.find((t) => t.id === id);
       if (!canModifyTask(taskToDelete)) {
         setError(
           "Access denied. You can only delete tasks assigned to you or created by you."
@@ -206,8 +206,8 @@ const TaskManager = () => {
       }
 
       await TaskService.deleteTask(id);
-      setTasks(tasks.filter((t) => t._id !== id));
-      if (selectedTask && selectedTask._id === id) {
+      setTasks(tasks.filter((t) => t.id !== id));
+      if (selectedTask && selectedTask.id === id) {
         handleClosePanel();
       }
     } catch (error) {
@@ -222,7 +222,7 @@ const TaskManager = () => {
 
   const handleCheck = async (id) => {
     try {
-      const taskToToggle = tasks.find((t) => t._id === id);
+      const taskToToggle = tasks.find((t) => t.id === id);
       if (!canModifyTask(taskToToggle)) {
         setError(
           "Access denied. You can only toggle completion for tasks assigned to you or created by you."
@@ -242,10 +242,10 @@ const TaskManager = () => {
           day: "numeric",
         }),
       };
-      setTasks(tasks.map((t) => (t._id === id ? taskWithMonth : t)));
+      setTasks(tasks.map((t) => (t.id === id ? taskWithMonth : t)));
 
       // Update selected task if it's the one being modified
-      if (selectedTask && selectedTask._id === id) {
+      if (selectedTask && selectedTask.id === id) {
         setSelectedTask(taskWithMonth);
       }
     } catch (error) {
@@ -306,11 +306,11 @@ const TaskManager = () => {
       }),
     };
     setTasks((prev) =>
-      prev.map((t) => (t._id === updatedTask._id ? taskWithMonth : t))
+      prev.map((t) => (t.id === updatedTask.id ? taskWithMonth : t))
     );
 
     // Update selected task if it's the one being edited
-    if (selectedTask && selectedTask._id === updatedTask._id) {
+    if (selectedTask && selectedTask.id === updatedTask.id) {
       setSelectedTask(taskWithMonth);
     }
   };
@@ -551,13 +551,13 @@ const TaskManager = () => {
                         className={`taskmanager-task-card${
                           task.completed ? " completed" : ""
                         }`}
-                        key={task._id}
+                        key={task.id}
                       >
                         <div className="task-checkbox-wrapper">
                           <input
                             type="checkbox"
                             checked={task.completed}
-                            onChange={() => handleCheck(task._id)}
+                            onChange={() => handleCheck(task.id)}
                             className="task-checkbox"
                             disabled={!canModifyTask(task)}
                             title={
@@ -615,7 +615,7 @@ const TaskManager = () => {
                           {canModifyTask(task) && (
                             <button
                               className="task-delete-btn"
-                              onClick={() => handleDelete(task._id)}
+                              onClick={() => handleDelete(task.id)}
                             >
                               <span className="btn-icon">🗑️</span>
                               Delete
@@ -736,7 +736,7 @@ const TaskManager = () => {
                       <button
                         className="toggle-complete-btn"
                         onClick={() => {
-                          handleCheck(selectedTask._id);
+                          handleCheck(selectedTask.id);
                           // Update the selected task state to reflect the change
                           setSelectedTask({
                             ...selectedTask,
@@ -755,7 +755,7 @@ const TaskManager = () => {
                       <button
                         className="delete-task-btn"
                         onClick={() => {
-                          handleDelete(selectedTask._id);
+                          handleDelete(selectedTask.id);
                           handleClosePanel();
                         }}
                       >

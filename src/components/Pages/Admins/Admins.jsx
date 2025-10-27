@@ -21,6 +21,15 @@ const Admins = () => {
     loadUsers();
   }, []);
 
+  // Debug logging
+  useEffect(() => {
+    console.log("Admin Page Debug Info:");
+    console.log("- Current user:", user);
+    console.log("- User ID:", user?._id || user?.id);
+    console.log("- Loading state:", loading);
+    console.log("- Number of users:", users?.length);
+  }, [user, loading, users]);
+
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -41,7 +50,7 @@ const Admins = () => {
       setLoading(true);
       await userService.updateUserRole(userId, newRole);
       setSuccess("User role updated successfully");
-      loadUsers();
+      await loadUsers(); // Add await here
     } catch (error) {
       setError(error.message || "Failed to update user role");
     } finally {
@@ -134,51 +143,58 @@ const Admins = () => {
           </thead>
           <tbody>
             {users &&
-              users.map((userItem) => (
-                <tr key={userItem._id}>
-                  <td>
-                    {userItem.firstName} {userItem.lastName}
-                  </td>
-                  <td>{userItem.username}</td>
-                  <td>{userItem.email}</td>
-                  <td>
-                    <select
-                      value={userItem.role}
-                      onChange={(e) =>
-                        handleRoleChange(userItem._id, e.target.value)
-                      }
-                      disabled={userItem._id === user._id || loading}
-                      className="role-select"
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    {userItem.lastLogin
-                      ? new Date(userItem.lastLogin).toLocaleDateString()
-                      : "Never"}
-                  </td>
-                  <td>
-                    <button
-                      className="delete-user-btn"
-                      onClick={() => {
-                        setUserToDelete(userItem);
-                        setShowDeleteModal(true);
-                      }}
-                      disabled={userItem._id === user._id || loading}
-                      title={
-                        userItem._id === user._id
-                          ? "Cannot delete your own account"
-                          : "Delete user"
-                      }
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              users.map((userItem) => {
+                // Handle both _id and id formats
+                const itemId = userItem._id || userItem.id;
+                const currentUserId = user?._id || user?.id;
+                const isCurrentUser = itemId === currentUserId;
+
+                return (
+                  <tr key={itemId}>
+                    <td>
+                      {userItem.firstName} {userItem.lastName}
+                    </td>
+                    <td>{userItem.username}</td>
+                    <td>{userItem.email}</td>
+                    <td>
+                      <select
+                        value={userItem.role}
+                        onChange={(e) =>
+                          handleRoleChange(itemId, e.target.value)
+                        }
+                        disabled={isCurrentUser || loading}
+                        className="role-select"
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      {userItem.lastLogin
+                        ? new Date(userItem.lastLogin).toLocaleDateString()
+                        : "Never"}
+                    </td>
+                    <td>
+                      <button
+                        className="delete-user-btn"
+                        onClick={() => {
+                          setUserToDelete(userItem);
+                          setShowDeleteModal(true);
+                        }}
+                        disabled={isCurrentUser || loading}
+                        title={
+                          isCurrentUser
+                            ? "Cannot delete your own account"
+                            : "Delete user"
+                        }
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
 
