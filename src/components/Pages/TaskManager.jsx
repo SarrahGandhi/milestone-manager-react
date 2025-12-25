@@ -115,11 +115,7 @@ const monthConfig = {
   },
 };
 
-const priorityConfig = {
-  high: { color: "#ff6b6b", label: "High Priority", icon: "🔴" },
-  medium: { color: "#ffa726", label: "Medium Priority", icon: "🟡" },
-  low: { color: "#66bb6a", label: "Low Priority", icon: "🟢" },
-};
+
 
 const TaskManager = () => {
   const { user, isAdmin } = useAuth();
@@ -498,12 +494,7 @@ const TaskManager = () => {
           </div>
           <div className="stat-label">Completed</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {tasks.filter((t) => t.priority === "high").length}
-          </div>
-          <div className="stat-label">High Priority</div>
-        </div>
+
       </div>
 
       <div className="taskmanager-list-section">
@@ -514,9 +505,8 @@ const TaskManager = () => {
 
           return (
             <div
-              className={`taskmanager-list-group${
-                openGroup === group ? "" : " collapsed"
-              }`}
+              className={`taskmanager-list-group${openGroup === group ? "" : " collapsed"
+                }`}
               key={group}
             >
               <div
@@ -548,9 +538,8 @@ const TaskManager = () => {
                   {groupedTasks[group].length > 0 ? (
                     groupedTasks[group].map((task) => (
                       <div
-                        className={`taskmanager-task-card${
-                          task.completed ? " completed" : ""
-                        }`}
+                        className={`taskmanager-task-card${task.completed ? " completed" : ""
+                          }`}
                         key={task.id}
                       >
                         <div className="task-checkbox-wrapper">
@@ -571,17 +560,10 @@ const TaskManager = () => {
                         <div className="task-content">
                           <div className="task-header">
                             <h3 className="task-title">{task.title}</h3>
-                            <div className="task-priority">
-                              <span className="priority-icon">
-                                {priorityConfig[task.priority].icon}
-                              </span>
-                              <span className="priority-text">
-                                {priorityConfig[task.priority].label}
-                              </span>
-                            </div>
+
                           </div>
 
-                          <p className="task-description">{task.description}</p>
+
 
                           <div className="task-meta">
                             <div className="task-due">
@@ -666,10 +648,7 @@ const TaskManager = () => {
                   <p>{selectedTask.title}</p>
                 </div>
 
-                <div className="detail-section">
-                  <h3>Description</h3>
-                  <p>{selectedTask.description}</p>
-                </div>
+
 
                 <div className="detail-section">
                   <h3>Due Date</h3>
@@ -686,15 +665,7 @@ const TaskManager = () => {
                   </div>
                 </div>
 
-                <div className="detail-section">
-                  <h3>Priority</h3>
-                  <div className="priority-badge">
-                    <span className="priority-icon">
-                      {priorityConfig[selectedTask.priority].icon}
-                    </span>
-                    {priorityConfig[selectedTask.priority].label}
-                  </div>
-                </div>
+
 
                 <div className="detail-section">
                   <h3>Assigned To</h3>
@@ -714,9 +685,8 @@ const TaskManager = () => {
                 <div className="detail-section">
                   <h3>Status</h3>
                   <div
-                    className={`status-badge ${
-                      selectedTask.completed ? "completed" : "pending"
-                    }`}
+                    className={`status-badge ${selectedTask.completed ? "completed" : "pending"
+                      }`}
                   >
                     {selectedTask.completed ? "✅ Completed" : "⏳ Pending"}
                   </div>

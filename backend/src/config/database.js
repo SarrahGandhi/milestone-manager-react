@@ -4,7 +4,16 @@ require("dotenv").config();
 // Supabase configuration
 const supabaseUrl =
   process.env.SUPABASE_URL || "https://uvonrgvmptmkgpvqnooa.supabase.co";
-const supabaseKey = process.env.SUPABASE_ANON_KEY; // You'll need to get this from your Supabase dashboard
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+// Validate required environment variables
+if (!supabaseKey) {
+  console.error("❌ FATAL ERROR: SUPABASE_ANON_KEY is not set in environment variables!");
+  console.error("Please set the following environment variables:");
+  console.error("  - SUPABASE_ANON_KEY: Your Supabase anonymous key");
+  console.error("  - SUPABASE_URL: Your Supabase project URL (optional, has default)");
+  process.exit(1);
+}
 
 // Create Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey);

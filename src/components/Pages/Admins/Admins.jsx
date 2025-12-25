@@ -48,11 +48,29 @@ const Admins = () => {
   const handleRoleChange = async (userId, newRole) => {
     try {
       setLoading(true);
+      setError(""); // Clear previous errors
       await userService.updateUserRole(userId, newRole);
       setSuccess("User role updated successfully");
       await loadUsers(); // Add await here
     } catch (error) {
-      setError(error.message || "Failed to update user role");
+      console.error("Role change error:", error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to update user role";
+      
+      if (error.message.includes("Server error")) {
+        errorMessage = "Server error: Please check if the backend is running and environment variables are set correctly.";
+      } else if (error.message.includes("Failed to fetch") || error.message.includes("Network")) {
+        errorMessage = "Network error: Unable to connect to the server. Please check your internet connection and backend URL.";
+      } else if (error.message.includes("Unauthorized") || error.message.includes("401")) {
+        errorMessage = "Authentication error: Your session may have expired. Please log in again.";
+      } else if (error.message.includes("Forbidden") || error.message.includes("403")) {
+        errorMessage = "Permission denied: You need admin privileges to change user roles.";
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

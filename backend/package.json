@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "check-env": "node check-env.js",
+    "prestart": "node check-env.js",
     "db:setup": "node src/scripts/setupSupabase.js",
     "db:create": "node src/scripts/createTables.js",
     "seed:tasks": "node src/scripts/seedTasks.js",

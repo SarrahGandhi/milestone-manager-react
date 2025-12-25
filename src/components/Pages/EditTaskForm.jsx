@@ -5,11 +5,10 @@ import userService from "../../services/userService";
 const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
+
     dueDate: "",
     category: "Other",
-    priority: "medium",
-    estimatedTime: "",
+
     assignedTo: "",
     tags: "",
   });
@@ -19,7 +18,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
-  const priorities = ["low", "medium", "high"];
+
 
   // Load users when component mounts
   useEffect(() => {
@@ -48,11 +47,10 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
     if (task) {
       setFormData({
         title: task.title || "",
-        description: task.description || "",
+
         dueDate: task.dueDate ? task.dueDate.split("T")[0] : "", // Format date for input
         category: task.category || "Other",
-        priority: task.priority || "medium",
-        estimatedTime: task.estimatedTime ? task.estimatedTime.toString() : "",
+
         assignedTo: task.assignedTo
           ? task.assignedTo.id || task.assignedTo
           : "",
@@ -131,17 +129,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Enter task description"
-                rows="3"
-              />
-            </div>
+
 
             <div className="form-row">
               <div className="form-group">
@@ -173,37 +161,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="priority">Priority</label>
-                <select
-                  id="priority"
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleChange}
-                >
-                  {priorities.map((priority) => (
-                    <option key={priority} value={priority}>
-                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="estimatedTime">Estimated Time (hours)</label>
-                <input
-                  type="number"
-                  id="estimatedTime"
-                  name="estimatedTime"
-                  value={formData.estimatedTime}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.5"
-                  placeholder="0"
-                />
-              </div>
-            </div>
 
             <div className="form-group">
               <label htmlFor="assignedTo">Assigned To</label>
@@ -257,7 +215,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
           right: 0;
           bottom: 0;
           background: rgba(0, 0, 0, 0.5);
-          z-index: 998;
+          z-index: 1010;
           animation: fadeIn 0.3s ease-out;
         }
 
@@ -278,7 +236,7 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
           height: 100vh;
           background: #ffffff;
           box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-          z-index: 999;
+          z-index: 1020;
           transition: right 0.3s ease-out;
           overflow-y: auto;
           display: flex;

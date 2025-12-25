@@ -7,6 +7,7 @@ import "./Header.css"; // We'll add styles here
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // New state for mobile menu
   const dropdownRef = useRef(null);
 
   // Use the auth context instead of local state
@@ -33,10 +34,12 @@ const Header = () => {
 
   const handleLogout = async () => {
     await logout();
+    setIsMobileMenuOpen(false); // Close mobile menu on logout
   };
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
+    setIsMobileMenuOpen(false); // Close mobile menu when opening login
   };
 
   const closeLoginModal = () => {
@@ -48,15 +51,29 @@ const Header = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <header className="header">
         <div className="logo">MILESTONE MANAGER</div>
-        <nav className="nav">
-          <Link to="/">WEDDING WEBSITE</Link>
-          <Link to="/admin">ADMIN</Link>
+
+        {/* Mobile Menu Toggle Button */}
+        <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? "✕" : "☰"}
+        </button>
+
+        <nav className={`nav ${isMobileMenuOpen ? "nav-open" : ""}`}>
+          <Link to="/" onClick={closeMobileMenu}>WEDDING WEBSITE</Link>
+          <Link to="/admin" onClick={closeMobileMenu}>ADMIN</Link>
           {isAuthenticated && isAdmin() && (
-            <Link to="/admins">USER MANAGEMENT</Link>
+            <Link to="/admins" onClick={closeMobileMenu}>USER MANAGEMENT</Link>
           )}
           {isAuthenticated && (
             <div className="dropdown" ref={dropdownRef}>
@@ -66,12 +83,12 @@ const Header = () => {
               <div
                 className={`dropdown-content ${isDropdownOpen ? "show" : ""}`}
               >
-                <Link to="/events">Event Manager</Link>
-                <Link to="/rsvp-manager">RSVP Manager</Link>
-                <Link to="/budget">Budget</Link>
-                <Link to="/daily-menu">Daily Menu</Link>
-                <Link to="/taskmanager">Task Manager</Link>
-                <Link to="/vendors">Vendor Manager</Link>
+                <Link to="/events" onClick={closeMobileMenu}>Event Manager</Link>
+                <Link to="/rsvp-manager" onClick={closeMobileMenu}>RSVP Manager</Link>
+                <Link to="/budget" onClick={closeMobileMenu}>Budget</Link>
+                <Link to="/daily-menu" onClick={closeMobileMenu}>Daily Menu</Link>
+                <Link to="/taskmanager" onClick={closeMobileMenu}>Task Manager</Link>
+                <Link to="/vendors" onClick={closeMobileMenu}>Vendor Manager</Link>
               </div>
             </div>
           )}

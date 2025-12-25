@@ -296,11 +296,17 @@ const getAllUsers = async (req, res) => {
 // @access Private/Admin
 const updateUserRole = async (req, res) => {
   try {
+    console.log("=== Update User Role Request ===");
+    console.log("User ID to update:", req.params.id);
+    console.log("New role:", req.body.role);
+    console.log("Requesting user:", req.user?.id, req.user?.role);
+
     const { role } = req.body;
     const userId = req.params.id;
 
     // Validate role
     if (!["user", "admin"].includes(role)) {
+      console.error("Invalid role provided:", role);
       return res.status(400).json({
         success: false,
         message: 'Invalid role. Must be "user" or "admin"',
@@ -311,6 +317,7 @@ const updateUserRole = async (req, res) => {
     // Handle both _id (MongoDB) and id (Supabase)
     const currentUserId = req.user._id?.toString() || req.user.id?.toString();
     if (userId === currentUserId) {
+      console.error("Admin attempted to change own role");
       return res.status(400).json({
         success: false,
         message: "Cannot change your own role",
@@ -318,15 +325,18 @@ const updateUserRole = async (req, res) => {
     }
 
     // Use Supabase-compatible update method
+    console.log("Attempting to update user in database...");
     const user = await User.update(userId, { role });
 
     if (!user) {
+      console.error("User not found:", userId);
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
+    console.log("User role updated successfully:", user.id, user.role);
     res.json({
       success: true,
       message: "User role updated successfully",
@@ -334,10 +344,12 @@ const updateUserRole = async (req, res) => {
     });
   } catch (error) {
     console.error("Update user role error:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Server error while updating user role",
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };

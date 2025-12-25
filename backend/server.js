@@ -5,10 +5,15 @@ require("dotenv").config();
 
 const app = express();
 
-// Set JWT_SECRET if not provided in environment
-process.env.JWT_SECRET =
-  process.env.JWT_SECRET ||
-  "milestone_manager_super_secret_key_2024_wedding_planning_app";
+// Validate and set JWT_SECRET
+if (!process.env.JWT_SECRET) {
+  console.warn("⚠️  WARNING: JWT_SECRET not set in environment variables!");
+  console.warn("Using default secret (NOT RECOMMENDED FOR PRODUCTION)");
+  process.env.JWT_SECRET =
+    "milestone_manager_super_secret_key_2024_wedding_planning_app";
+} else {
+  console.log("✅ JWT_SECRET loaded from environment");
+}
 
 // Improved CORS configuration
 app.use(
@@ -21,6 +26,7 @@ app.use(
       "http://localhost:4175",
       "http://localhost:3000",
       "https://milestone-manager-react.vercel.app",
+      "http://wedding.sarrahgandhi.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
