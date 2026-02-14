@@ -274,9 +274,9 @@ const Guests = () => {
         selectedEvent !== "all"
           ? guestEvent?.attendeeCount || 0
           : guest.guestEvents?.reduce(
-              (sum, ge) => sum + (ge.attendeeCount || 0),
-              0
-            ) || 0;
+            (sum, ge) => sum + (ge.attendeeCount || 0),
+            0
+          ) || 0;
 
       const selectedEvents =
         guest.selectedEvents
@@ -487,9 +487,8 @@ const Guests = () => {
                       </td>
                       <td>
                         <select
-                          className={`status-badge invitation-${
-                            guestEvent?.invitationStatus || "not_sent"
-                          }`}
+                          className={`status-badge invitation-${guestEvent?.invitationStatus || "not_sent"
+                            }`}
                           value={guestEvent?.invitationStatus || "not_sent"}
                           onChange={(e) =>
                             handleStatusUpdate(
@@ -509,9 +508,8 @@ const Guests = () => {
                       </td>
                       <td>
                         <select
-                          className={`status-badge rsvp-${
-                            guestEvent?.rsvpStatus || "pending"
-                          }`}
+                          className={`status-badge rsvp-${guestEvent?.rsvpStatus || "pending"
+                            }`}
                           value={guestEvent?.rsvpStatus || "pending"}
                           onChange={(e) =>
                             handleStatusUpdate(
@@ -533,9 +531,9 @@ const Guests = () => {
                         {selectedEvent !== "all"
                           ? guestEvent?.attendeeCount || 0
                           : guest.guestEvents?.reduce(
-                              (sum, ge) => sum + (ge.attendeeCount || 0),
-                              0
-                            ) || 0}
+                            (sum, ge) => sum + (ge.attendeeCount || 0),
+                            0
+                          ) || 0}
                       </td>
                       <td className="notes-cell">
                         {guest.notes ? (

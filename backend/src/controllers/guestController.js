@@ -164,6 +164,44 @@ const updateGuest = async (req, res) => {
       return res.status(404).json({ message: "Guest not found" });
     }
 
+    // Process selected events updates
+    if (Array.isArray(newSelectedEvents)) {
+      // Get current selected events
+      const currentGuest = await Guest.findById(guest.id);
+      const currentSelectedEvents = currentGuest.selectedEvents || [];
+
+      // Determine events to add and remove
+      const eventsToAdd = newSelectedEvents.filter(
+        (eventId) => !currentSelectedEvents.includes(eventId)
+      );
+      const eventsToRemove = currentSelectedEvents.filter(
+        (eventId) => !newSelectedEvents.includes(eventId)
+      );
+
+      // Add new selected events
+      for (const eventId of eventsToAdd) {
+        await Guest.addSelectedEvent(guest.id, eventId);
+      }
+
+      // Remove unselected events
+      for (const eventId of eventsToRemove) {
+        await Guest.removeSelectedEvent(guest.id, eventId);
+      }
+    }
+
+    // Process attendee counts updates
+    if (newEventAttendees) {
+      for (const eventId of newSelectedEvents || []) {
+        if (newEventAttendees[eventId]) {
+          await Guest.updateEventAttendees(
+            guest.id,
+            eventId,
+            newEventAttendees[eventId]
+          );
+        }
+      }
+    }
+
     // Get existing GuestEvent records for this guest
     const existingGuestEvents = await GuestEvent.findByGuest(guest.id);
     const existingEventIds = existingGuestEvents
@@ -175,8 +213,8 @@ const updateGuest = async (req, res) => {
       for (const eventId of newSelectedEvents) {
         const attendeeCount = newEventAttendees?.[eventId]
           ? (newEventAttendees[eventId].men || 0) +
-            (newEventAttendees[eventId].women || 0) +
-            (newEventAttendees[eventId].kids || 0)
+          (newEventAttendees[eventId].women || 0) +
+          (newEventAttendees[eventId].kids || 0)
           : 1;
 
         const eventStatus = (newEventStatuses && newEventStatuses[eventId]) || {
@@ -214,8 +252,8 @@ const updateGuest = async (req, res) => {
     // Remove GuestEvent records for unselected events
     const eventsToRemove = Array.isArray(newSelectedEvents)
       ? existingEventIds.filter(
-          (eventId) => !newSelectedEvents.includes(eventId)
-        )
+        (eventId) => !newSelectedEvents.includes(eventId)
+      )
       : [];
     if (eventsToRemove.length > 0) {
       for (const eventIdToRemove of eventsToRemove) {
@@ -488,12 +526,12 @@ const lookupGuest = async (req, res) => {
               const event = await Event.findById(eventId);
               return event
                 ? {
-                    guestId: guest.id,
-                    eventId: event,
-                    invitationStatus: "sent",
-                    rsvpStatus: "pending",
-                    attendeeCount: 1,
-                  }
+                  guestId: guest.id,
+                  eventId: event,
+                  invitationStatus: "sent",
+                  rsvpStatus: "pending",
+                  attendeeCount: 1,
+                }
                 : null;
             })
           );

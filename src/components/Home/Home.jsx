@@ -107,7 +107,12 @@ const Home = () => {
   return (
     <>
       <div className="home-root">
-        <div className="home-hero">
+        <div class="home-hero">
+          <img src="/WhatsApp Image 2025-12-14 at 21.11.34.jpg" alt="" />
+        </div>
+
+      </div>
+      {/* <div className="home-hero">
           <h1>PLAN EVERY WEDDING</h1>
           <h1>MOMENT - TOGETHER</h1>
           <p className="home-sub">
@@ -117,8 +122,8 @@ const Home = () => {
             <button className="home-btn primary">Get Started</button>
             <button className="home-btn secondary">Explore Demo</button>
           </div>
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
       <div className="home-features">
         {features.map((f) =>
           f.label === "Event Manager" ? (

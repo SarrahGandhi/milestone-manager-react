@@ -137,12 +137,15 @@ class Guest {
     try {
       const { data, error } = await supabase
         .from("guest_selected_events")
-        .insert([
-          {
-            guest_id: guestId,
-            event_id: eventId,
-          },
-        ])
+        .upsert(
+          [
+            {
+              guest_id: guestId,
+              event_id: eventId,
+            },
+          ],
+          { onConflict: "guest_id, event_id", ignoreDuplicates: true }
+        )
         .select()
         .single();
 
@@ -174,15 +177,18 @@ class Guest {
     try {
       const { data, error } = await supabase
         .from("guest_event_attendees")
-        .upsert([
-          {
-            guest_id: guestId,
-            event_id: eventId,
-            men: attendeeData.men || 0,
-            women: attendeeData.women || 0,
-            kids: attendeeData.kids || 0,
-          },
-        ])
+        .upsert(
+          [
+            {
+              guest_id: guestId,
+              event_id: eventId,
+              men: attendeeData.men || 0,
+              women: attendeeData.women || 0,
+              kids: attendeeData.kids || 0,
+            },
+          ],
+          { onConflict: "guest_id, event_id" }
+        )
         .select()
         .single();
 
