@@ -424,9 +424,16 @@ class Task {
 
     if (
       taskData.category &&
-      !["Budget", "Venue", "Vendors", "Planning", "Other"].includes(
-        taskData.category
-      )
+      ![
+        "Budget",
+        "Venue",
+        "Vendors",
+        "Planning",
+        "Shopping",
+        "Clothes",
+        "Gifts",
+        "Other",
+      ].includes(taskData.category)
     ) {
       errors.push("Invalid category");
     }

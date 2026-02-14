@@ -21,7 +21,16 @@ const months = [
   "November",
   "December",
 ];
-const categories = ["Budget", "Venue", "Vendors", "Planning", "Shopping", "Other"];
+const categories = [
+  "Budget",
+  "Venue",
+  "Vendors",
+  "Planning",
+  "Shopping",
+  "Clothes",
+  "Gifts",
+  "Other",
+];
 
 // Enhanced color scheme with better gradients and category icons
 const categoryConfig = {
@@ -49,6 +58,21 @@ const categoryConfig = {
     gradient: "linear-gradient(135deg, #eb9895 0%, #f3b6b3 100%)",
     icon: "📌",
     color: "#eb9895",
+  },
+  Shopping: {
+    gradient: "linear-gradient(135deg, #b5c7f8 0%, #aebaf8 100%)",
+    icon: "🛍️",
+    color: "#b5c7f8",
+  },
+  Clothes: {
+    gradient: "linear-gradient(135deg, #e6e6fa 0%, #d8bfd8 100%)",
+    icon: "👗",
+    color: "#e6e6fa",
+  },
+  Gifts: {
+    gradient: "linear-gradient(135deg, #ace0f9 0%, #fff1eb 100%)",
+    icon: "🎁",
+    color: "#ace0f9",
   },
 };
 

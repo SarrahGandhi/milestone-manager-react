@@ -17,7 +17,16 @@ const EditTaskForm = ({ onClose, onTaskUpdated, isOpen, task }) => {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
+  const categories = [
+    "Budget",
+    "Venue",
+    "Vendors",
+    "Planning",
+    "Shopping",
+    "Clothes",
+    "Gifts",
+    "Other",
+  ];
 
 
   // Load users when component mounts

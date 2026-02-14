@@ -15,6 +15,7 @@ class Guest {
             city: guestData.city,
             country: guestData.country || "US",
             category: guestData.category,
+            side: guestData.side,
             notes: guestData.notes,
             user_id: guestData.userId,
           },
@@ -324,6 +325,11 @@ class Guest {
       });
     }
 
+    // Convert snake_case back to camelCase for frontend
+    if (formatted.side) {
+      formatted.side = formatted.side;
+    }
+
     return formatted;
   }
 
@@ -335,11 +341,12 @@ class Guest {
       errors.push("Name is required");
     }
 
-    if (
-      !guestData.category ||
-      !["bride", "groom"].includes(guestData.category)
-    ) {
-      errors.push('Category must be either "bride" or "groom"');
+    if (!guestData.side || !["bride", "groom"].includes(guestData.side)) {
+      errors.push('Side must be either "bride" or "groom"');
+    }
+
+    if (!guestData.category) {
+      errors.push("Category is required");
     }
 
     if (guestData.email && !this.validateEmail(guestData.email)) {
