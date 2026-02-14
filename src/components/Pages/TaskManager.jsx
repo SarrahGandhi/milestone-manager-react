@@ -21,7 +21,7 @@ const months = [
   "November",
   "December",
 ];
-const categories = ["Budget", "Venue", "Vendors", "Planning", "Other"];
+const categories = ["Budget", "Venue", "Vendors", "Planning", "Shopping", "Other"];
 
 // Enhanced color scheme with better gradients and category icons
 const categoryConfig = {
