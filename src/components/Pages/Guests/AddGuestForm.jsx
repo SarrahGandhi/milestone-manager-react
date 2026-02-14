@@ -14,7 +14,8 @@ const AddGuestForm = ({ onClose, events }) => {
     city: "",
     country: "",
     notes: "",
-    category: "bride", // Default to bride's side
+    category: "Family",
+    side: "bride",
     selectedEvents: [], // Array of event IDs
     eventAttendees: {}, // Object to store attendee counts per event
     eventStatuses: {}, // Object to store invitation and RSVP status per event
@@ -120,6 +121,7 @@ const AddGuestForm = ({ onClose, events }) => {
         country: formData.country.trim(),
         notes: formData.notes.trim(),
         category: formData.category,
+        side: formData.side,
         selectedEvents: formData.selectedEvents,
         eventAttendees: formData.eventAttendees,
         eventStatuses: formData.eventStatuses,
@@ -203,6 +205,21 @@ const AddGuestForm = ({ onClose, events }) => {
 
             <div className="form-row">
               <div className="form-group">
+                <label htmlFor="side">Side *</label>
+                <select
+                  id="side"
+                  name="side"
+                  value={formData.side}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                >
+                  <option value="bride">Bride's Side</option>
+                  <option value="groom">Groom's Side</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="category">Category *</label>
                 <select
                   id="category"
@@ -212,8 +229,10 @@ const AddGuestForm = ({ onClose, events }) => {
                   required
                   disabled={loading}
                 >
-                  <option value="bride">Bride's Side</option>
-                  <option value="groom">Groom's Side</option>
+                  <option value="Family">Family</option>
+                  <option value="Friend">Friend</option>
+                  <option value="Colleague">Colleague</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>

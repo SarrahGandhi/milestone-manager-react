@@ -65,6 +65,12 @@ const createGuest = async (req, res) => {
       eventStatuses,
     });
 
+    // Validate guest data
+    const errors = Guest.validateGuestData(guestData);
+    if (errors.length > 0) {
+      return res.status(400).json({ message: errors.join(", ") });
+    }
+
     // Create the guest using Supabase model
     const guest = await Guest.create({ ...guestData, userId: req.user?.id });
     console.log("✅ Guest created:", guest);
