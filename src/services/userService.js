@@ -1,4 +1,5 @@
 import { getApiUrl } from "../config";
+import supabase from "../utils/supabase";
 
 // Get authorization header
 const getAuthHeaders = () => {
@@ -55,16 +56,20 @@ const userService = {
 
   // Update user role
   updateUserRole: async (userId, role) => {
-    const response = await fetch(getApiUrl(`/auth/users/${userId}/role`), {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ role }),
-    });
+    const { data, error } = await supabase
+      .from("user_roles")
+      .upsert(
+        {
+          user_id: userId,
+          role,
+        },
+        { onConflict: "user_id" }
+      )
+      .select("user_id, role")
+      .single();
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update user role");
+    if (error) {
+      throw new Error(error.message || "Failed to update user role");
     }
 
     return data;

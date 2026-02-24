@@ -1,3 +1,4 @@
+// TODO: Can this file be deleted?
 import React, { useState, useEffect } from "react";
 import AddEventForm from "./AddEventForm";
 import EventsList from "./EventsList";

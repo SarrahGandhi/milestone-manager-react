@@ -71,12 +71,12 @@ const AddEventForm = () => {
       // Prepare event data to match backend model
       const eventData = {
         title: formData.eventName,
-        eventDate: formData.date,
-        startTime: formData.time,
+        event_date: formData.date,
+        start_time: formData.time,
         location: formData.location,
-        dressCode: formData.dressCode,
+        dress_code: formData.dressCode,
         menu: menuOptions.filter((option) => option.trim() !== ""),
-        additionalDetails: formData.additionalDetails,
+        additional_details: formData.additionalDetails,
         description: formData.additionalDetails || "Event created via form",
         side: formData.side,
         organizer: formData.organizer,

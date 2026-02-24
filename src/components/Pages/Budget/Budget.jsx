@@ -10,8 +10,7 @@ import {
   faChartPie,
 } from "@fortawesome/free-solid-svg-icons";
 import BudgetService from "../../../services/budgetService";
-import { getApiUrl } from "../../../config";
-import AuthService from "../../../services/authService";
+import supabase from "../../../utils/supabase";
 import AddBudgetForm from "./AddBudgetForm";
 import EditBudgetForm from "./EditBudgetForm";
 import DeleteBudgetModal from "./DeleteBudgetModal";
@@ -49,15 +48,17 @@ const Budget = () => {
   // Fetch events from the database
   const fetchEvents = async () => {
     try {
-      const response = await fetch(getApiUrl("/events"), {
-        headers: AuthService.getAuthHeaders(),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data);
-      } else {
-        console.error("Failed to fetch events");
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, title")
+        .order("event_date", { ascending: true });
+
+      if (error) {
+        console.error("Failed to fetch events:", error.message);
+        return;
       }
+
+      setEvents(data || []);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -233,7 +234,7 @@ const Budget = () => {
             >
               <option value="all">All Events</option>
               {events.map((event) => (
-                <option key={event._id} value={event._id}>
+                <option key={event.id} value={event.id}>
                   {event.title}
                 </option>
               ))}
@@ -308,7 +309,7 @@ const Budget = () => {
                     eventTitle = item.eventId.title;
                   } else {
                     // eventId is just the ID, find the event in the events array
-                    const event = events.find((e) => e._id === item.eventId);
+                    const event = events.find((e) => e.id === item.eventId);
                     eventTitle = event ? event.title : "-";
                   }
                 }

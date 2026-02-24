@@ -116,8 +116,8 @@ const Events = () => {
     (event) =>
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (event.dressCode &&
-        event.dressCode.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (event.dress_code &&
+        event.dress_code.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (event.category &&
         event.category.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -182,20 +182,20 @@ const Events = () => {
                 <h2 className="event-title">{event.title}</h2>
                 <div className="event-info">
                   <FontAwesomeIcon icon={faCalendarAlt} />
-                  {formatDate(event.eventDate)}
+                  {formatDate(event.event_date)}
                 </div>
                 <div className="event-info">
                   <FontAwesomeIcon icon={faClock} />
-                  {formatTime(event.startTime)}
+                  {formatTime(event.start_time)}
                 </div>
                 <div className="event-info">
                   <FontAwesomeIcon icon={faMapMarkerAlt} />
                   {event.location}
                 </div>
-                {event.dressCode && (
+                {event.dress_code && (
                   <div className="event-info">
                     <FontAwesomeIcon icon={faPalette} />
-                    {event.dressCode}
+                    {event.dress_code}
                   </div>
                 )}
                 <div className="event-btn-row">

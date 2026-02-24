@@ -7,6 +7,7 @@ import DeleteGuestModal from "./DeleteGuestModal";
 import AuthService from "../../../services/authService";
 import { getApiUrl } from "../../../config";
 import { useAuth } from "../../../context/AuthContext";
+import supabase from "../../../utils/supabase";
 import "./Guests.css";
 import { on } from "../../../utils/eventBus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -78,14 +79,17 @@ const Guests = () => {
   // Fetch events from the database
   const fetchEvents = async () => {
     try {
-      const response = await fetch(getApiUrl("/events"));
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, title")
+        .order("event_date", { ascending: true });
 
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data);
-      } else {
-        console.error("Failed to fetch events");
+      if (error) {
+        console.error("Failed to fetch events:", error.message);
+        return;
       }
+
+      setEvents(data || []);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -318,7 +322,7 @@ const Guests = () => {
     const currentDate = new Date().toISOString().split("T")[0];
     const eventName =
       selectedEvent !== "all"
-        ? events.find((e) => e._id === selectedEvent)?.title || "Selected"
+        ? events.find((e) => e.id === selectedEvent)?.title || "Selected"
         : "All";
     const filename = `guests_${eventName.replace(
       /\s+/g,

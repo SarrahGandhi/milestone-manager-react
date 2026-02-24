@@ -1,3 +1,4 @@
+// TODO: Can this file be deleted?
 import React, { useState } from "react";
 import "./EventsList.css";
 import { getApiUrl } from "../../config";

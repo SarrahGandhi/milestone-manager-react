@@ -9,6 +9,7 @@ import { faDownload, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import * as XLSX from "xlsx";
 import { useAuth } from "../../context/AuthContext";
 import { on } from "../../utils/eventBus";
+import supabase from "../../utils/supabase";
 
 // Use the centralized API configuration
 import { getApiUrl } from "../../config";
@@ -74,18 +75,16 @@ const RSVPManager = () => {
       const guestsData = await guestsResponse.json();
       setGuests(guestsData);
 
-      // Fetch events
-      const eventsResponse = await fetch(getApiUrl("/events"), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Fetch events directly from Supabase table (snake_case source)
+      const { data: eventsData, error: eventsError } = await supabase
+        .from("events")
+        .select("id, title")
+        .order("event_date", { ascending: true });
 
-      if (!eventsResponse.ok) {
-        throw new Error("Failed to fetch events data");
+      if (eventsError) {
+        throw new Error(eventsError.message || "Failed to fetch events data");
       }
 
-      const eventsData = await eventsResponse.json();
       setEvents(eventsData);
     } catch (error) {
       console.error("Error fetching RSVP data:", error);

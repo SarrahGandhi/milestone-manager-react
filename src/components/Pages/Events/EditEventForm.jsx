@@ -30,17 +30,17 @@ const EditEventForm = () => {
 
           // Format date for input (YYYY-MM-DD format)
           // Keep the date string as-is if it's already in YYYY-MM-DD format
-          const formattedDate = eventData.eventDate || "";
+          const formattedDate = eventData.event_date || "";
 
           // Format time for input (HH:MM format)
           let formattedTime = "";
-          if (eventData.startTime) {
+          if (eventData.start_time) {
             // If time includes AM/PM, convert to 24-hour format
             if (
-              eventData.startTime.includes("AM") ||
-              eventData.startTime.includes("PM")
+              eventData.start_time.includes("AM") ||
+              eventData.start_time.includes("PM")
             ) {
-              const [time, period] = eventData.startTime.split(" ");
+              const [time, period] = eventData.start_time.split(" ");
               const [hours, minutes] = time.split(":");
               let hour24 = parseInt(hours);
 
@@ -54,7 +54,7 @@ const EditEventForm = () => {
                 .toString()
                 .padStart(2, "0")}:${minutes}`;
             } else {
-              formattedTime = eventData.startTime;
+              formattedTime = eventData.start_time;
             }
           }
 
@@ -63,9 +63,9 @@ const EditEventForm = () => {
             date: formattedDate,
             time: formattedTime,
             location: eventData.location || "",
-            dressCode: eventData.dressCode || "",
+            dressCode: eventData.dress_code || "",
             additionalDetails:
-              eventData.additionalDetails || eventData.description || "",
+              eventData.additional_details || eventData.description || "",
             organizer: eventData.organizer || "",
           });
 
@@ -120,12 +120,12 @@ const EditEventForm = () => {
       // Prepare event data to match backend model
       const eventData = {
         title: formData.eventName,
-        eventDate: formData.date,
-        startTime: formData.time,
+        event_date: formData.date,
+        start_time: formData.time,
         location: formData.location,
-        dressCode: formData.dressCode,
+        dress_code: formData.dressCode,
         menu: menuOptions.filter((option) => option.trim() !== ""),
-        additionalDetails: formData.additionalDetails,
+        additional_details: formData.additionalDetails,
         description: formData.additionalDetails || "Event updated via form",
         organizer: formData.organizer,
       };

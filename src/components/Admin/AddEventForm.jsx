@@ -1,3 +1,4 @@
+// TODO: Can this file be deleted?
 import React, { useState } from "react";
 import { getApiUrl } from "../../config";
 import "./AddEventForm.css";
@@ -59,7 +60,7 @@ const AddEventForm = ({ onEventAdded }) => {
       const eventData = {
         ...formData,
         attendees: attendees.filter(
-          (attendee) => attendee.name || attendee.email
+          (attendee) => attendee.name || attendee.email,
         ),
         tags: formData.tags
           ? formData.tags.split(",").map((tag) => tag.trim())

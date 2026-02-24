@@ -10,6 +10,30 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const fetchUserRole = async (userId) => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.role ?? "user";
+    };
+
+    const buildUserFromSession = async (sessionUser) => {
+      const role = await fetchUserRole(sessionUser.id);
+      return {
+        id: sessionUser.id,
+        email: sessionUser.email,
+        ...sessionUser.user_metadata,
+        role,
+      };
+    };
+
     // Initial session check
     const initializeAuth = async () => {
       try {
@@ -17,11 +41,7 @@ export const AuthProvider = ({ children }) => {
         if (error) throw error;
         
         if (session) {
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            ...session.user.user_metadata
-          };
+          const userData = await buildUserFromSession(session.user);
           setUser(userData);
           setIsAuthenticated(true);
         } else {
@@ -41,20 +61,27 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            ...session.user.user_metadata
-          };
-          setUser(userData);
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-        setIsLoading(false);
+      (_event, session) => {
+        const syncAuthState = async () => {
+          try {
+            if (session) {
+              const userData = await buildUserFromSession(session.user);
+              setUser(userData);
+              setIsAuthenticated(true);
+            } else {
+              setUser(null);
+              setIsAuthenticated(false);
+            }
+          } catch (error) {
+            console.error("Auth state sync failed:", error);
+            setUser(null);
+            setIsAuthenticated(false);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        syncAuthState();
       }
     );
 

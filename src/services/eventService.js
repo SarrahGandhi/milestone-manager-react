@@ -10,59 +10,23 @@ function normalizeError(error, fallbackMessage) {
   return new Error(message);
 }
 
-function mapDbEventToUi(event = {}) {
-  return {
-    ...event,
-    endTime: event.endTime ?? event.end_time ?? null,
-    dressCode: event.dressCode ?? event.dress_code ?? "",
-    additionalDetails:
-      event.additionalDetails ?? event.additional_details ?? "",
-    maxAttendees: event.maxAttendees ?? event.max_attendees ?? null,
-    eventDate: event.eventDate ?? event.event_date ?? "",
-    startTime: event.startTime ?? event.start_time ?? "",
-    registrationRequired:
-      event.registrationRequired ?? event.registration_required ?? false,
-    createdAt: event.createdAt ?? event.created_at,
-    updatedAt: event.updatedAt ?? event.updated_at,
-    menu: Array.isArray(event.menu) ? event.menu : [],
-    tags: Array.isArray(event.tags) ? event.tags : [],
-    attendees: Array.isArray(event.attendees) ? event.attendees : [],
-    reminders: Array.isArray(event.reminders) ? event.reminders : [],
-  };
-}
-
-function mapUiEventToDb(payload = {}) {
-  const mapped = {
-    title: payload.title,
-    description: payload.description,
-    end_time: payload.endTime,
-    location: payload.location,
-    dress_code: payload.dressCode,
-    menu: payload.menu,
-    additional_details: payload.additionalDetails,
-    category: payload.category,
-    priority: payload.priority,
-    organizer: payload.organizer,
-    status: payload.status,
-    max_attendees: payload.maxAttendees,
-    tags: payload.tags,
-    notes: payload.notes,
-    side: payload.side,
-    event_date: payload.eventDate,
-    start_time: payload.startTime,
-    registration_required: payload.registrationRequired,
-    attendees: payload.attendees,
-    reminders: payload.reminders,
+function sanitizeEventPayload(payload = {}) {
+  const cleaned = {
+    ...payload,
+    menu: Array.isArray(payload.menu) ? payload.menu : undefined,
+    tags: Array.isArray(payload.tags) ? payload.tags : undefined,
+    attendees: Array.isArray(payload.attendees) ? payload.attendees : undefined,
+    reminders: Array.isArray(payload.reminders) ? payload.reminders : undefined,
   };
 
   return Object.fromEntries(
-    Object.entries(mapped).filter(([, value]) => value !== undefined)
+    Object.entries(cleaned).filter(([, value]) => value !== undefined)
   );
 }
 
-async function fetchEventFromView(eventId) {
+async function fetchEventById(eventId) {
   const { data, error } = await supabase
-    .from("events_api")
+    .from("events")
     .select("*")
     .eq("id", eventId)
     .maybeSingle();
@@ -75,20 +39,20 @@ async function fetchEventFromView(eventId) {
     return null;
   }
 
-  return mapDbEventToUi(data);
+  return data;
 }
 
 export async function listEvents() {
   const { data, error } = await supabase
-    .from("events_api")
+    .from("events")
     .select("*")
-    .order("eventDate", { ascending: true });
+    .order("event_date", { ascending: true });
 
   if (error) {
     throw normalizeError(error, "Failed to fetch events");
   }
 
-  return (data || []).map(mapDbEventToUi);
+  return data || [];
 }
 
 export async function getEvents() {
@@ -96,7 +60,7 @@ export async function getEvents() {
 }
 
 export async function getEventById(eventId) {
-  const event = await fetchEventFromView(eventId);
+  const event = await fetchEventById(eventId);
   if (!event) {
     throw new Error("Event not found");
   }
@@ -104,7 +68,7 @@ export async function getEventById(eventId) {
 }
 
 export async function createEvent(payload) {
-  const insertPayload = mapUiEventToDb(payload);
+  const insertPayload = sanitizeEventPayload(payload);
   const { data, error } = await supabase
     .from("events")
     .insert(insertPayload)
@@ -115,11 +79,11 @@ export async function createEvent(payload) {
     throw normalizeError(error, "Failed to create event");
   }
 
-  return fetchEventFromView(data.id);
+  return fetchEventById(data.id);
 }
 
 export async function updateEvent(eventId, payload) {
-  const updatePayload = mapUiEventToDb(payload);
+  const updatePayload = sanitizeEventPayload(payload);
   const { error } = await supabase
     .from("events")
     .update(updatePayload)
@@ -129,7 +93,7 @@ export async function updateEvent(eventId, payload) {
     throw normalizeError(error, "Failed to update event");
   }
 
-  const event = await fetchEventFromView(eventId);
+  const event = await fetchEventById(eventId);
   if (!event) {
     throw new Error("Event not found");
   }

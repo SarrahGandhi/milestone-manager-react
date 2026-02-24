@@ -196,10 +196,10 @@ const EventDetails = () => {
         <div className="event-details-container">
           <div className="event-details-title">
             <h1>{event.title}</h1>
-            {event.dressCode && (
+            {event.dress_code && (
               <div className="event-theme-badge">
                 <FontAwesomeIcon icon={faPalette} />
-                {event.dressCode}
+                {event.dress_code}
               </div>
             )}
           </div>
@@ -212,17 +212,17 @@ const EventDetails = () => {
               </div>
               <div className="detail-content">
                 <p>
-                  <strong>Date:</strong> {formatDate(event.eventDate)}
+                  <strong>Date:</strong> {formatDate(event.event_date)}
                 </p>
                 <p>
-                  <strong>Day:</strong> {getDayOfWeek(event.eventDate)}
+                  <strong>Day:</strong> {getDayOfWeek(event.event_date)}
                 </p>
                 <p>
-                  <strong>Time:</strong> {formatTime(event.startTime)}
+                  <strong>Time:</strong> {formatTime(event.start_time)}
                 </p>
-                {event.endTime && (
+                {event.end_time && (
                   <p>
-                    <strong>End Time:</strong> {formatTime(event.endTime)}
+                    <strong>End Time:</strong> {formatTime(event.end_time)}
                   </p>
                 )}
               </div>
@@ -238,7 +238,7 @@ const EventDetails = () => {
               </div>
             </div>
 
-            {event.maxAttendees && (
+            {event.max_attendees && (
               <div className="event-detail-card">
                 <div className="detail-header">
                   <FontAwesomeIcon icon={faUsers} />
@@ -246,20 +246,20 @@ const EventDetails = () => {
                 </div>
                 <div className="detail-content">
                   <p>
-                    <strong>{event.maxAttendees}</strong> maximum guests
+                    <strong>{event.max_attendees}</strong> maximum guests
                   </p>
                 </div>
               </div>
             )}
 
-            {event.dressCode && (
+            {event.dress_code && (
               <div className="event-detail-card">
                 <div className="detail-header">
                   <FontAwesomeIcon icon={faTshirt} />
                   <h3>Dress Code</h3>
                 </div>
                 <div className="detail-content">
-                  <p>{event.dressCode}</p>
+                  <p>{event.dress_code}</p>
                 </div>
               </div>
             )}
@@ -304,14 +304,14 @@ const EventDetails = () => {
               </div>
             )}
 
-            {(event.additionalDetails || event.description) && (
+            {(event.additional_details || event.description) && (
               <div className="event-detail-card notes-card">
                 <div className="detail-header">
                   <FontAwesomeIcon icon={faStickyNote} />
                   <h3>Additional Details</h3>
                 </div>
                 <div className="detail-content">
-                  <p>{event.additionalDetails || event.description}</p>
+                  <p>{event.additional_details || event.description}</p>
                 </div>
               </div>
             )}
