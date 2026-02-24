@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../../Footer/Footer";
 import DeleteEventModal from "./DeleteEventModal";
-import AuthService from "../../../services/authService";
-import { getApiUrl } from "../../../config";
+import { listEvents, deleteEvent } from "../../../services/eventService";
 import { useAuth } from "../../../context/AuthContext";
 import "./Events.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,7 +14,6 @@ import {
   faPalette,
   faEdit,
   faTrash,
-  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Events = () => {
@@ -36,21 +34,12 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl("/events"), {
-        headers: AuthService.getAuthHeaders(),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data);
-        setError("");
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to fetch events");
-      }
+      const data = await listEvents();
+      setEvents(data);
+      setError("");
     } catch (error) {
       console.error("Error fetching events:", error);
-      setError("Error connecting to server");
+      setError(error.message || "Error connecting to server");
     } finally {
       setLoading(false);
     }
@@ -104,25 +93,13 @@ const Events = () => {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(
-        getApiUrl(`/events/${deleteModal.eventId}`),
-        {
-          method: "DELETE",
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
-
-      if (response.ok) {
-        // Refresh the events list after successful deletion
-        fetchEvents();
-        setDeleteModal({ isOpen: false, eventId: null, eventName: "" });
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to delete event");
-      }
+      await deleteEvent(deleteModal.eventId);
+      // Refresh the events list after successful deletion
+      fetchEvents();
+      setDeleteModal({ isOpen: false, eventId: null, eventName: "" });
     } catch (error) {
       console.error("Error deleting event:", error);
-      alert("Error deleting event");
+      alert(error.message || "Error deleting event");
     } finally {
       setIsDeleting(false);
     }

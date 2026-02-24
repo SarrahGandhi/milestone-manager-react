@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AuthService from "../../../services/authService";
-import { getApiUrl } from "../../../config";
+import { getEventById, updateEvent } from "../../../services/eventService";
 import "./AddEventForm.css";
 
 const EditEventForm = () => {
@@ -27,12 +26,7 @@ const EditEventForm = () => {
     const fetchEvent = async () => {
       try {
         setFetchLoading(true);
-        const response = await fetch(getApiUrl(`/events/${eventId}`), {
-          headers: AuthService.getAuthHeaders(),
-        });
-
-        if (response.ok) {
-          const eventData = await response.json();
+        const eventData = await getEventById(eventId);
 
           // Format date for input (YYYY-MM-DD format)
           // Keep the date string as-is if it's already in YYYY-MM-DD format
@@ -80,12 +74,9 @@ const EditEventForm = () => {
           setMenuOptions(
             menuItems.length >= 2 ? menuItems : [...menuItems, ""]
           );
-        } else {
-          setMessage("Failed to fetch event data");
-        }
       } catch (error) {
         console.error("Error fetching event:", error);
-        setMessage("Error loading event data");
+        setMessage(error.message || "Error loading event data");
       } finally {
         setFetchLoading(false);
       }
@@ -139,27 +130,14 @@ const EditEventForm = () => {
         organizer: formData.organizer,
       };
 
-      const response = await fetch(getApiUrl(`/events/${eventId}`), {
-        method: "PUT",
-        headers: AuthService.getAuthHeaders(),
-        body: JSON.stringify(eventData),
-      });
-
-      if (response.ok) {
-        setMessage("Event updated successfully!");
-        setTimeout(() => {
-          navigate("/events");
-        }, 2000);
-      } else {
-        const errorData = await response.json();
-        const details = Array.isArray(errorData.errors)
-          ? `: ${errorData.errors.join(", ")}`
-          : "";
-        setMessage(`Error: ${errorData.message}${details}`);
-      }
+      await updateEvent(eventId, eventData);
+      setMessage("Event updated successfully!");
+      setTimeout(() => {
+        navigate("/events");
+      }, 2000);
     } catch (error) {
-      setMessage("Error updating event. Please try again.");
       console.error("Error:", error);
+      setMessage(`Error: ${error.message || "Error updating event. Please try again."}`);
     } finally {
       setLoading(false);
     }

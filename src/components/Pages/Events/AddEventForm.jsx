@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../../Footer/Footer";
 import AuthService from "../../../services/authService";
-import { getApiUrl } from "../../../config";
+import { createEvent } from "../../../services/eventService";
 import "./AddEventForm.css";
 
 const AddEventForm = () => {
@@ -82,33 +82,20 @@ const AddEventForm = () => {
         organizer: formData.organizer,
       };
 
-      const response = await fetch(getApiUrl("/events"), {
-        method: "POST",
-        headers: AuthService.getAuthHeaders(),
-        body: JSON.stringify(eventData),
-      });
-
-      if (response.ok) {
-        setMessage("Event created successfully!");
-        setTimeout(() => {
-          navigate("/events");
-        }, 2000);
-      } else {
-        const errorData = await response.json();
-        if (response.status === 401) {
-          setMessage("Your session has expired. Please log in again.");
-          AuthService.removeToken();
-          navigate("/");
-        } else {
-          const details = Array.isArray(errorData.errors)
-            ? `: ${errorData.errors.join(", ")}`
-            : "";
-          setMessage(`Error: ${errorData.message}${details}`);
-        }
-      }
+      await createEvent(eventData);
+      setMessage("Event created successfully!");
+      setTimeout(() => {
+        navigate("/events");
+      }, 2000);
     } catch (error) {
-      setMessage("Error creating event. Please try again.");
       console.error("Error:", error);
+      if (/jwt|auth|token|session/i.test(error.message || "")) {
+        setMessage("Your session has expired. Please log in again.");
+        AuthService.removeToken();
+        navigate("/");
+      } else {
+        setMessage(`Error: ${error.message || "Error creating event. Please try again."}`);
+      }
     } finally {
       setLoading(false);
     }

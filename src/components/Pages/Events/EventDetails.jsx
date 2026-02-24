@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Footer from "../../Footer/Footer";
 import DeleteEventModal from "./DeleteEventModal";
-import AuthService from "../../../services/authService";
 import "./EventDetails.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCalendarAlt,
-  faClock,
   faMapMarkerAlt,
   faPalette,
   faUsers,
@@ -18,7 +16,7 @@ import {
   faEdit,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import { getApiUrl } from "../../../config";
+import { getEventById, deleteEvent } from "../../../services/eventService";
 import { getDailyMenusByEvent } from "../../../services/dailyMenuService";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -41,23 +39,16 @@ const EventDetails = () => {
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl(`/events/${eventId}`), {
-        headers: AuthService.getAuthHeaders(),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEvent(data);
-        setError("");
-      } else if (response.status === 404) {
+      const data = await getEventById(eventId);
+      setEvent(data);
+      setError("");
+    } catch (error) {
+      if (error.message === "Event not found") {
         setError("Event not found");
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to fetch event details");
+        console.error("Error fetching event:", error);
+        setError(error.message || "Error connecting to server");
       }
-    } catch (error) {
-      console.error("Error fetching event:", error);
-      setError("Error connecting to server");
     } finally {
       setLoading(false);
     }
@@ -75,7 +66,7 @@ const EventDetails = () => {
         if (!eventId) return;
         const menus = await getDailyMenusByEvent(eventId);
         setDailyMenus(menus || []);
-      } catch (e) {
+      } catch {
         // ignore menu errors silently
       }
     })();
@@ -132,25 +123,12 @@ const EventDetails = () => {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(
-        getApiUrl(`/events/${deleteModal.eventId}`),
-        {
-          method: "DELETE",
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
-
-      if (response.ok) {
-        // Navigate back to events list after successful deletion
-        navigate("/events");
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to delete event");
-        setIsDeleting(false);
-      }
+      await deleteEvent(deleteModal.eventId);
+      // Navigate back to events list after successful deletion
+      navigate("/events");
     } catch (error) {
       console.error("Error deleting event:", error);
-      alert("Error deleting event");
+      alert(error.message || "Error deleting event");
       setIsDeleting(false);
     }
   };
