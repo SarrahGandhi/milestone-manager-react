@@ -1,9 +1,27 @@
 // Use centralized API configuration
 import { getApiUrl } from "../config";
+import supabase from "../utils/supabase";
 
 // Token management
 const TOKEN_KEY = "milestone_manager_token";
 const USER_KEY = "milestone_manager_user";
+
+// Keep access token synchronized in localStorage for synchronous `getAuthHeaders`
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    localStorage.setItem(TOKEN_KEY, session.access_token);
+    // Construct user object similar to before
+    const user = {
+      id: session.user.id,
+      email: session.user.email,
+      ...session.user.user_metadata
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
+});
 
 class AuthService {
   // Safely parse JSON (handles empty or non-JSON bodies)
@@ -96,19 +114,22 @@ class AuthService {
   // Register new user
   static async register(userData) {
     try {
-      const data = await this.request("/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
+      const { email, password, ...userMetadata } = userData;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userMetadata
+        }
       });
 
-      // Store token and user data
-      this.setToken(data.token);
-      this.setUser(data.user);
+      if (error) {
+        throw error;
+      }
 
-      return data;
+      // The onAuthStateChange will handle storing token/user if auto-login is enabled on signup.
+      // Otherwise, you may need to wait for email confirmation or just return what we have.
+      return { token: data.session?.access_token, user: data.user };
     } catch (error) {
       console.error("Registration error:", error);
       throw error;
@@ -118,19 +139,17 @@ class AuthService {
   // Login user
   static async login(credentials) {
     try {
-      const data = await this.request("/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password
       });
 
-      // Store token and user data
-      this.setToken(data.token);
-      this.setUser(data.user);
+      if (error) {
+        throw error;
+      }
 
-      return data;
+      // The onAuthStateChange listener will handle updating localStorage.
+      return { token: data.session.access_token, user: data.user };
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -140,18 +159,12 @@ class AuthService {
   // Logout user
   static async logout() {
     try {
-      const token = this.getToken();
-      if (token) {
-        // Optional: Call backend logout endpoint
-        await this.request("/auth/logout", {
-          method: "POST",
-          headers: this.getAuthHeaders(),
-        });
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Always remove local data
+      // Always remove local data (handled by onAuthStateChange, but safe to keep here too)
       this.removeToken();
     }
   }
@@ -159,16 +172,20 @@ class AuthService {
   // Get current user info
   static async getCurrentUser() {
     try {
-      if (!this.isAuthenticated()) {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
         throw new Error("Not authenticated");
       }
 
-      const data = await this.request("/auth/me", {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      });
-      this.setUser(data.user);
-      return data.user;
+      const user = {
+        id: session.user.id,
+        email: session.user.email,
+        ...session.user.user_metadata
+      };
+      
+      this.setUser(user);
+      return user;
     } catch (error) {
       console.error("Get current user error:", error);
       throw error;
@@ -178,14 +195,21 @@ class AuthService {
   // Update user profile
   static async updateProfile(profileData) {
     try {
-      const data = await this.request("/auth/profile", {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(profileData),
+      // Assuming we are storing everything in user_metadata for now
+      const { data, error } = await supabase.auth.updateUser({
+        data: profileData
       });
 
-      this.setUser(data.user);
-      return data;
+      if (error) throw error;
+
+      const user = {
+        id: data.user.id,
+        email: data.user.email,
+        ...data.user.user_metadata
+      };
+
+      this.setUser(user);
+      return { user };
     } catch (error) {
       console.error("Update profile error:", error);
       throw error;
@@ -195,13 +219,12 @@ class AuthService {
   // Change password
   static async changePassword(passwordData) {
     try {
-      const data = await this.request("/auth/change-password", {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(passwordData),
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
       });
 
-      return data;
+      if (error) throw error;
+      return { message: "Password updated successfully" };
     } catch (error) {
       console.error("Change password error:", error);
       throw error;
@@ -211,6 +234,10 @@ class AuthService {
   // Refresh user data
   static async refreshUser() {
     try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      if (!session) throw new Error("No session");
+      
       return await this.getCurrentUser();
     } catch (error) {
       console.error("Refresh user error:", error);
@@ -223,28 +250,24 @@ class AuthService {
   // Check token validity and refresh if needed
   static async validateToken() {
     try {
-      if (!this.getToken()) {
-        return false;
-      }
-
-      // First, do a basic token structure check
-      const token = this.getToken();
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        // Check if token is expired locally first
-        if (payload.exp * 1000 <= Date.now()) {
-          console.log("Token expired locally, removing...");
-          this.removeToken();
-          return false;
-        }
-      } catch (error) {
-        console.log("Invalid token structure, removing...");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
         this.removeToken();
         return false;
       }
 
-      // Then validate with the server
-      await this.getCurrentUser();
+      // Check if token is expired locally first
+      const payload = JSON.parse(atob(session.access_token.split(".")[1]));
+      if (payload.exp * 1000 <= Date.now()) {
+        console.log("Token expired locally, refreshing...");
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+           this.removeToken();
+           return false;
+        }
+      }
+
       return true;
     } catch (error) {
       console.log("Token validation failed, clearing token:", error.message);

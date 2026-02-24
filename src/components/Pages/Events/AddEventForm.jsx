@@ -26,7 +26,7 @@ const AddEventForm = () => {
   React.useEffect(() => {
     if (!AuthService.isAuthenticated()) {
       setMessage("Please log in to create events.");
-      navigate("/login");
+      navigate("/");
     }
     // Prefill organizer from logged-in user if available
     const user = AuthService.getUser();
@@ -98,7 +98,7 @@ const AddEventForm = () => {
         if (response.status === 401) {
           setMessage("Your session has expired. Please log in again.");
           AuthService.removeToken();
-          navigate("/login");
+          navigate("/");
         } else {
           const details = Array.isArray(errorData.errors)
             ? `: ${errorData.errors.join(", ")}`
