@@ -242,7 +242,7 @@
   color: #2d3748;
 }
 
-.category-badge {
+.side-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -251,14 +251,23 @@
   text-transform: uppercase;
 }
 
-.category-badge.bride {
+.side-badge.bride {
   background: #fed7d7;
   color: #c53030;
 }
 
-.category-badge.groom {
+.side-badge.groom {
   background: #bee3f8;
   color: #2b6cb0;
+}
+
+.category-text {
+  font-weight: 500;
+  color: #4a5568;
+  background: #edf2f7;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 .total-count {
@@ -364,6 +373,7 @@
 }
 
 @media (max-width: 768px) {
+
   .guests-header,
   .guests-table-container {
     padding: 1rem;

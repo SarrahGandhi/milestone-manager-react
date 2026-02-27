@@ -48,9 +48,7 @@
   font-size: 1rem;
   width: 350px;
   outline: none;
-  background: #fff
-    url('data:image/svg+xml;utf8,<svg fill="%23adb5bd" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>')
-    no-repeat 16px center;
+  background: #fff url('data:image/svg+xml;utf8,<svg fill="%23adb5bd" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat 16px center;
   transition: all 0.3s ease;
 }
 
@@ -240,11 +238,50 @@
   transform: translateY(-2px);
 }
 
+
+/* Event Filter Toggle */
+.events-filter-toggle {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-btn {
+  padding: 10px 24px;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.toggle-btn.active {
+  background: #eb9895;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(235, 152, 149, 0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: #f8f9fa;
+  color: #495057;
+}
+
 @media (max-width: 768px) {
   .events-header-row {
     flex-direction: column;
     gap: 20px;
     align-items: stretch;
+  }
+
+  .events-filter-toggle {
+    width: 100%;
   }
 
   .events-search-bar {

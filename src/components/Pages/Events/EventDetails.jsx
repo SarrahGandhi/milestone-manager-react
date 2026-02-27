@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Footer from "../../Footer/Footer";
-import DeleteEventModal from "./DeleteEventModal";
-import AuthService from "../../../services/authService";
 import "./EventDetails.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -15,12 +12,76 @@ import {
   faTshirt,
   faStickyNote,
   faArrowLeft,
-  faEdit,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import { getApiUrl } from "../../../config";
-import { getDailyMenusByEvent } from "../../../services/dailyMenuService";
-import { useAuth } from "../../../context/AuthContext";
+
+// Hardcoded events data (matching Events.jsx)
+const EVENTS_DATA = [
+  {
+    id: 1,
+    title: "Engagement Party",
+    eventDate: "2025-06-15",
+    startTime: "18:00",
+    location: "Grand Ballroom, City Center",
+    dressCode: "Cocktail Attire",
+    category: "Pre-Wedding",
+    side: "Both",
+    description: "Join us as we celebrate our engagement with an evening of drinks, dancing, and delight.",
+    maxAttendees: 150,
+    menu: ["Signature Cocktails", "Hors d'oeuvres", "Gourmet Buffet", "Dessert Bar"],
+  },
+  {
+    id: 2,
+    title: "Sangeet Night",
+    eventDate: "2025-12-18",
+    startTime: "19:00",
+    location: "Royal Gardens",
+    dressCode: "Traditional / Indo-Western",
+    category: "Pre-Wedding",
+    side: "Both",
+    description: "A night of music and dance to kick off the wedding festivities.",
+    maxAttendees: 200,
+    menu: ["Chaat Counter", "Indian Buffet", "Live Jalebi Station"],
+  },
+  {
+    id: 3,
+    title: "Haldi Ceremony",
+    eventDate: "2025-12-19",
+    startTime: "10:00",
+    location: "Bride's Residence",
+    dressCode: "Yellow Traditional",
+    category: "Pre-Wedding",
+    side: "Bride",
+    description: "Traditional Haldi ceremony with close family and friends.",
+    maxAttendees: 50,
+    menu: ["Traditional Lunch", "Thandai"],
+  },
+  {
+    id: 4,
+    title: "Wedding Ceremony",
+    eventDate: "2025-12-20",
+    startTime: "11:00",
+    location: "Sunset Beach Resort",
+    dressCode: "Formal",
+    category: "Wedding",
+    side: "Both",
+    description: "The big moment! We tie the knot by the sea.",
+    maxAttendees: 250,
+    menu: ["Welcome Drinks", "Seated Lunch", "Wedding Cake"],
+  },
+  {
+    id: 5,
+    title: "Reception",
+    eventDate: "2025-12-20",
+    startTime: "20:00",
+    location: "Crystal Banquet Hall",
+    dressCode: "Black Tie",
+    category: "Wedding",
+    side: "Both",
+    description: "Celebrate our marriage with a formal reception.",
+    maxAttendees: 300,
+    menu: ["International Buffet", "Carving Station", "Dessert Table"],
+  },
+];
 
 const EventDetails = () => {
   const { eventId } = useParams();
@@ -28,64 +89,26 @@ const EventDetails = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    eventId: null,
-    eventName: "",
-  });
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [dailyMenus, setDailyMenus] = useState([]);
-  const { canEdit, canDelete } = useAuth();
-
-  // Fetch event details from the database
-  const fetchEvent = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(getApiUrl(`/events/${eventId}`), {
-        headers: AuthService.getAuthHeaders(),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEvent(data);
-        setError("");
-      } else if (response.status === 404) {
-        setError("Event not found");
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to fetch event details");
-      }
-    } catch (error) {
-      console.error("Error fetching event:", error);
-      setError("Error connecting to server");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    if (eventId) {
-      fetchEvent();
-    }
-  }, [eventId]);
+    // Simulate fetching data
+    setLoading(true);
+    const foundEvent = EVENTS_DATA.find((e) => e.id === parseInt(eventId));
 
-  useEffect(() => {
-    (async () => {
-      try {
-        if (!eventId) return;
-        const menus = await getDailyMenusByEvent(eventId);
-        setDailyMenus(menus || []);
-      } catch (e) {
-        // ignore menu errors silently
-      }
-    })();
+    if (foundEvent) {
+      setEvent(foundEvent);
+      setError("");
+    } else {
+      setError("Event not found");
+    }
+    setLoading(false);
   }, [eventId]);
 
   // Helper function to format date
   const formatDate = (dateString) => {
-    // Parse date string without timezone conversion
+    if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
-    const date = new Date(year, month - 1, day); // month is 0-indexed
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
@@ -95,22 +118,18 @@ const EventDetails = () => {
 
   // Helper function to get day of week
   const getDayOfWeek = (dateString) => {
-    // Parse date string without timezone conversion
+    if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
-    const date = new Date(year, month - 1, day); // month is 0-indexed
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString("en-US", { weekday: "long" });
   };
 
   // Helper function to format time
   const formatTime = (timeString) => {
     if (!timeString) return "";
-
-    // If it's already in 12-hour format, return as is
     if (timeString.includes("AM") || timeString.includes("PM")) {
       return timeString;
     }
-
-    // Convert 24-hour format to 12-hour format
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? "PM" : "AM";
@@ -118,281 +137,151 @@ const EventDetails = () => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  // Delete event function
-  const handleDeleteEvent = () => {
-    setDeleteModal({
-      isOpen: true,
-      eventId: event.id,
-      eventName: event.title,
-    });
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteModal.eventId) return;
-
-    try {
-      setIsDeleting(true);
-      const response = await fetch(
-        getApiUrl(`/events/${deleteModal.eventId}`),
-        {
-          method: "DELETE",
-          headers: AuthService.getAuthHeaders(),
-        }
-      );
-
-      if (response.ok) {
-        // Navigate back to events list after successful deletion
-        navigate("/events");
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to delete event");
-        setIsDeleting(false);
-      }
-    } catch (error) {
-      console.error("Error deleting event:", error);
-      alert("Error deleting event");
-      setIsDeleting(false);
-    }
-  };
-
-  const closeDeleteModal = () => {
-    if (!isDeleting) {
-      setDeleteModal({ isOpen: false, eventId: null, eventName: "" });
-    }
-  };
-
   if (loading) {
     return (
-      <>
-        <div className="event-details-root">
-          <div className="loading-message">Loading event details...</div>
-        </div>
-      </>
+      <div className="event-details-root">
+        <div className="loading-message">Loading event details...</div>
+      </div>
     );
   }
 
   if (error || !event) {
     return (
-      <>
-        <div className="event-details-root">
-          <div className="event-not-found">
-            <h2>{error || "Event Not Found"}</h2>
-            <button onClick={() => navigate("/events")} className="back-btn">
-              <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
-            </button>
-          </div>
+      <div className="event-details-root">
+        <div className="event-not-found">
+          <h2>{error || "Event Not Found"}</h2>
+          <button onClick={() => navigate("/events")} className="back-btn">
+            <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
+          </button>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="event-details-root">
-        <div className="event-details-header">
-          <button onClick={() => navigate("/events")} className="back-btn">
-            <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
-          </button>
-          {(canEdit() || canDelete()) && (
-            <div className="event-details-actions">
-              {canEdit() && (
-                <button
-                  className="edit-event-btn"
-                  onClick={() => navigate(`/events/edit/${event.id}`)}
-                >
-                  <FontAwesomeIcon icon={faEdit} /> Edit Event
-                </button>
-              )}
-              {canDelete() && (
-                <button
-                  className="delete-event-btn"
-                  onClick={handleDeleteEvent}
-                >
-                  <FontAwesomeIcon icon={faTrash} /> Delete Event
-                </button>
-              )}
+    <div className="event-details-root">
+      <div className="event-details-header">
+        <button onClick={() => navigate("/events")} className="back-btn">
+          <FontAwesomeIcon icon={faArrowLeft} /> Back to Events
+        </button>
+      </div>
+
+      <div className="event-details-container">
+        <div className="event-details-title">
+          <h1>{event.title}</h1>
+          {event.dressCode && (
+            <div className="event-theme-badge">
+              <FontAwesomeIcon icon={faPalette} />
+              {event.dressCode}
             </div>
           )}
         </div>
 
-        <div className="event-details-container">
-          <div className="event-details-title">
-            <h1>{event.title}</h1>
-            {event.dressCode && (
-              <div className="event-theme-badge">
+        <div className="event-details-grid">
+          <div className="event-detail-card">
+            <div className="detail-header">
+              <FontAwesomeIcon icon={faCalendarAlt} />
+              <h3>Date & Time</h3>
+            </div>
+            <div className="detail-content">
+              <p>
+                <strong>Date:</strong> {formatDate(event.eventDate)}
+              </p>
+              <p>
+                <strong>Day:</strong> {getDayOfWeek(event.eventDate)}
+              </p>
+              <p>
+                <strong>Time:</strong> {formatTime(event.startTime)}
+              </p>
+              {event.endTime && (
+                <p>
+                  <strong>End Time:</strong> {formatTime(event.endTime)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="event-detail-card">
+            <div className="detail-header">
+              <FontAwesomeIcon icon={faMapMarkerAlt} />
+              <h3>Location</h3>
+            </div>
+            <div className="detail-content">
+              <p>{event.location}</p>
+            </div>
+          </div>
+
+          {event.maxAttendees && (
+            <div className="event-detail-card">
+              <div className="detail-header">
+                <FontAwesomeIcon icon={faUsers} />
+                <h3>Guest Capacity</h3>
+              </div>
+              <div className="detail-content">
+                <p>
+                  <strong>{event.maxAttendees}</strong> maximum guests
+                </p>
+              </div>
+            </div>
+          )}
+
+          {event.dressCode && (
+            <div className="event-detail-card">
+              <div className="detail-header">
+                <FontAwesomeIcon icon={faTshirt} />
+                <h3>Dress Code</h3>
+              </div>
+              <div className="detail-content">
+                <p>{event.dressCode}</p>
+              </div>
+            </div>
+          )}
+
+          {event.menu && event.menu.length > 0 && (
+            <div className="event-detail-card menu-card">
+              <div className="detail-header">
+                <FontAwesomeIcon icon={faUtensils} />
+                <h3>Menu</h3>
+              </div>
+              <div className="detail-content">
+                <ul className="menu-list">
+                  {event.menu.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {(event.additionalDetails || event.description) && (
+            <div className="event-detail-card notes-card">
+              <div className="detail-header">
+                <FontAwesomeIcon icon={faStickyNote} />
+                <h3>Additional Details</h3>
+              </div>
+              <div className="detail-content">
+                <p>{event.additionalDetails || event.description}</p>
+              </div>
+            </div>
+          )}
+
+          {event.category && (
+            <div className="event-detail-card">
+              <div className="detail-header">
                 <FontAwesomeIcon icon={faPalette} />
-                {event.dressCode}
-              </div>
-            )}
-          </div>
-
-          <div className="event-details-grid">
-            <div className="event-detail-card">
-              <div className="detail-header">
-                <FontAwesomeIcon icon={faCalendarAlt} />
-                <h3>Date & Time</h3>
+                <h3>Category</h3>
               </div>
               <div className="detail-content">
-                <p>
-                  <strong>Date:</strong> {formatDate(event.eventDate)}
+                <p style={{ textTransform: "capitalize" }}>
+                  {event.category}
                 </p>
-                <p>
-                  <strong>Day:</strong> {getDayOfWeek(event.eventDate)}
-                </p>
-                <p>
-                  <strong>Time:</strong> {formatTime(event.startTime)}
-                </p>
-                {event.endTime && (
-                  <p>
-                    <strong>End Time:</strong> {formatTime(event.endTime)}
-                  </p>
-                )}
               </div>
             </div>
-
-            <div className="event-detail-card">
-              <div className="detail-header">
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                <h3>Location</h3>
-              </div>
-              <div className="detail-content">
-                <p>{event.location}</p>
-              </div>
-            </div>
-
-            {event.maxAttendees && (
-              <div className="event-detail-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faUsers} />
-                  <h3>Guest Capacity</h3>
-                </div>
-                <div className="detail-content">
-                  <p>
-                    <strong>{event.maxAttendees}</strong> maximum guests
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {event.dressCode && (
-              <div className="event-detail-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faTshirt} />
-                  <h3>Dress Code</h3>
-                </div>
-                <div className="detail-content">
-                  <p>{event.dressCode}</p>
-                </div>
-              </div>
-            )}
-
-            {event.menu && event.menu.length > 0 && (
-              <div className="event-detail-card menu-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faUtensils} />
-                  <h3>Menu</h3>
-                </div>
-                <div className="detail-content">
-                  <ul className="menu-list">
-                    {event.menu.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {dailyMenus && dailyMenus.length > 0 && (
-              <div className="event-detail-card menu-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faUtensils} />
-                  <h3>Daily Menus</h3>
-                </div>
-                <div className="detail-content">
-                  <ul className="menu-list">
-                    {dailyMenus.map((m) => (
-                      <li key={m.id} style={{ marginBottom: 8 }}>
-                        <div style={{ fontWeight: 600 }}>{m.menuDate}</div>
-                        <div style={{ display: "grid", gap: 6, marginTop: 4 }}>
-                          {renderMeal("Breakfast", m.breakfast)}
-                          {renderMeal("Lunch", m.lunch)}
-                          {renderMeal("Snack", m.snack)}
-                          {renderMeal("Dinner", m.dinner)}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {(event.additionalDetails || event.description) && (
-              <div className="event-detail-card notes-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faStickyNote} />
-                  <h3>Additional Details</h3>
-                </div>
-                <div className="detail-content">
-                  <p>{event.additionalDetails || event.description}</p>
-                </div>
-              </div>
-            )}
-
-            {event.category && (
-              <div className="event-detail-card">
-                <div className="detail-header">
-                  <FontAwesomeIcon icon={faPalette} />
-                  <h3>Category</h3>
-                </div>
-                <div className="detail-content">
-                  <p style={{ textTransform: "capitalize" }}>
-                    {event.category}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
-
-      <DeleteEventModal
-        isOpen={deleteModal.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={confirmDelete}
-        eventName={deleteModal.eventName}
-        isDeleting={isDeleting}
-      />
-    </>
+    </div>
   );
 };
 
 export default EventDetails;
-
-function renderMeal(title, mealVal) {
-  if (!mealVal) return null;
-  if (typeof mealVal === "string") {
-    return (
-      <div>
-        <b>{title}:</b> {mealVal}
-      </div>
-    );
-  }
-  const items = Array.isArray(mealVal.items)
-    ? mealVal.items.filter((s) => s && s.trim() !== "")
-    : [];
-  const full = (mealVal.full || "").trim();
-  if (items.length === 0 && !full) return null;
-  return (
-    <div>
-      <b>{title}:</b>
-      {items.length > 0 && (
-        <ul style={{ margin: "6px 0 0 18px" }}>
-          {items.map((it, idx) => (
-            <li key={idx}>{it}</li>
-          ))}
-        </ul>
-      )}
-      {full && <div style={{ marginTop: items.length ? 6 : 0 }}>{full}</div>}
-    </div>
-  );
-}
