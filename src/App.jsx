@@ -25,6 +25,7 @@ import Vendors from "./components/Pages/Vendors/Vendors";
 
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import OurStory from "./components/Pages/WeddingWebsite/OurStory";
+import GuestLookupPlayground from "./components/Pages/WeddingWebsite/GuestLookupPlayground";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import AdminRoute from "./components/Auth/AdminRoute";
 
@@ -122,6 +123,7 @@ function App() {
               </>
             }
           />
+          <Route path="/guest-lookup-playground" element={<GuestLookupPlayground />} />
           <Route
             path="/admin"
             element={
