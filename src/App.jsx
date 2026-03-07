@@ -16,8 +16,6 @@ import EventDetails from "./components/Pages/Events/EventDetails";
 import TaskManager from "./components/Pages/TaskManager";
 import Guests from "./components/Pages/Guests";
 import RSVPManager from "./components/Pages/RSVPManager";
-import AddEventForm from "./components/Pages/Events/AddEventForm";
-import EditEventForm from "./components/Pages/Events/EditEventForm";
 import Budget from "./components/Pages/Budget/Budget";
 import Admins from "./components/Pages/Admins/Admins";
 import DailyMenu from "./components/Pages/DailyMenu/DailyMenu";
@@ -26,6 +24,7 @@ import DailyMenuDetails from "./components/Pages/DailyMenu/DailyMenuDetails";
 import Vendors from "./components/Pages/Vendors/Vendors";
 
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
+import OurStory from "./components/Pages/WeddingWebsite/OurStory";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import AdminRoute from "./components/Auth/AdminRoute";
 
@@ -91,8 +90,8 @@ const ProtectedRoute = ({ children }) => {
 const ConditionalHeader = () => {
   const location = useLocation();
 
-  // Hide header on wedding website page
-  if (location.pathname === "/") {
+  // Hide header on wedding website page and our story page
+  if (location.pathname === "/" || location.pathname === "/our-story") {
     return null;
   }
 
@@ -110,7 +109,16 @@ function App() {
             element={
               <>
                 <WeddingWebsite />
-                <Footer />
+
+              </>
+            }
+          />
+          <Route
+            path="/our-story"
+            element={
+              <>
+                <OurStory />
+
               </>
             }
           />
@@ -141,22 +149,6 @@ function App() {
                 <Events />
                 <Footer />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/events/add"
-            element={
-              <AdminRoute>
-                <AddEventForm />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/events/edit/:eventId"
-            element={
-              <AdminRoute>
-                <EditEventForm />
-              </AdminRoute>
             }
           />
           <Route

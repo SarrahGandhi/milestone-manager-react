@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import GuestLookup from "./GuestLookup";
 import EventRSVP from "./EventRSVP";
 import "./WeddingWebsite.css";
@@ -10,6 +11,52 @@ const WeddingWebsite = () => {
   const [guest, setGuest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("event", handleScroll); // Mistake: event instead of scroll
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("event", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state && location.state.scrollTo) {
+      const sectionId = location.state.scrollTo;
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // small delay to ensure rendering
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+      // Clear state so it doesn't scroll again on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setIsMenuOpen(false);
+    }
+  };
 
   const handleGuestFound = (foundGuest) => {
     console.log("Found guest:", foundGuest);
@@ -97,61 +144,151 @@ const WeddingWebsite = () => {
 
   return (
     <div className="wedding-website">
-      <div className="hero-section">
+      {/* Navigation Bar */}
+      <nav className={`wedding-navbar ${scrolled ? "scrolled" : ""}`}>
+        <div className="nav-logo" onClick={() => scrollToSection("home")}>
+          S&M
+        </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <i className={`fas ${isMenuOpen ? "fa-times" : "fa-bars"}`}></i>
+        </button>
+        <ul className={`nav-links ${isMenuOpen ? "open" : ""}`}>
+          <li>
+            <a className="nav-link" onClick={() => scrollToSection("home")}>
+              Home
+            </a>
+          </li>
+          <li>
+            <Link to="/our-story" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+              Our Story
+            </Link>
+          </li>
+          <li>
+            <a
+              className="nav-link"
+              onClick={() => scrollToSection("rsvp")}
+              style={{ color: "#9c8164", fontWeight: "bold" }}
+            >
+              Find Your Invitation
+            </a>
+          </li>
+          <li>
+            <a className="nav-link" onClick={() => scrollToSection("timeline")}>
+              Event Timeline
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div id="home" className="hero-section">
         <h1>Sarrah & Murtaza</h1>
         <p className="date">October 9, 2026</p>
         <p className="tagline">Join us for our special day</p>
       </div>
 
-      {!guest ? (
-        <GuestLookup onGuestFound={handleGuestFound} />
-      ) : (
-        <div className="rsvp-section">
-          <h2>Welcome, {guest.name}!</h2>
-          <p className="rsvp-instruction">
-            Please RSVP for each event you've been invited to:
-          </p>
 
-          <div className="events-list">
-            {guest.guestEvents && guest.guestEvents.length > 0 ? (
-              guest.guestEvents.map((guestEvent) => {
-                if (!guestEvent.eventId) return null;
 
-                return (
-                  <EventRSVP
-                    key={guestEvent.eventId._id}
-                    event={guestEvent.eventId}
-                    guestEvent={guestEvent}
-                    guestEmail={guest.email}
-                    onRSVPSubmit={handleRSVPSubmit}
-                    onRSVPDelete={handleRSVPDelete}
-                  />
-                );
-              })
-            ) : (
-              <p className="no-events">
-                No active invitations found for this guest. Please contact the
-                hosts if you believe this is an error.
-              </p>
-            )}
+      <div id="rsvp">
+        {!guest ? (
+          <GuestLookup onGuestFound={handleGuestFound} />
+        ) : (
+          <div className="rsvp-section">
+            <h2>Welcome, {guest.name}!</h2>
+            <p className="rsvp-instruction">
+              Please RSVP for each event you've been invited to:
+            </p>
+
+            <div className="events-list">
+              {guest.guestEvents && guest.guestEvents.length > 0 ? (
+                guest.guestEvents.map((guestEvent) => {
+                  if (!guestEvent.eventId) return null;
+
+                  return (
+                    <EventRSVP
+                      key={guestEvent.eventId._id}
+                      event={guestEvent.eventId}
+                      guestEvent={guestEvent}
+                      guestEmail={guest.email}
+                      onRSVPSubmit={handleRSVPSubmit}
+                      onRSVPDelete={handleRSVPDelete}
+                    />
+                  );
+                })
+              ) : (
+                <p className="no-events">
+                  No active invitations found for this guest. Please contact the
+                  hosts if you believe this is an error.
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={() => setGuest(null)}
+              className="logout-btn"
+              style={{
+                marginTop: "20px",
+                padding: "10px 20px",
+                backgroundColor: "#f0f0f0",
+                border: "1px solid #ccc",
+                cursor: "pointer",
+                borderRadius: "4px",
+              }}
+            >
+              Logout
+            </button>
           </div>
+        )}
+      </div>
 
-          <button
-            onClick={() => setGuest(null)}
-            className="logout-btn"
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#f0f0f0",
-              border: "1px solid #ccc",
-              cursor: "pointer",
-              borderRadius: "4px",
-            }}
-          >
-            Logout
-          </button>
+      {/* Event Timeline Section */}
+      <div id="timeline" className="timeline-section">
+        <h2 className="section-title">Event Timeline</h2>
+        <div className="timeline-container">
+          <div className="timeline-event">
+            <div className="timeline-dot"></div>
+            <div className="timeline-content">
+              <div className="timeline-time">2:00 PM</div>
+              <h3 className="timeline-title">Ceremony</h3>
+              <p className="timeline-desc">
+                Join us as we exchange vows and say "I do" in a beautiful ceremony.
+              </p>
+            </div>
+          </div>
+          <div className="timeline-event">
+            <div className="timeline-dot"></div>
+            <div className="timeline-content">
+              <div className="timeline-time">4:00 PM</div>
+              <h3 className="timeline-title">Cocktail Hour</h3>
+              <p className="timeline-desc">
+                Enjoy drinks and hors d'oeuvres while mingling with guests.
+              </p>
+            </div>
+          </div>
+          <div className="timeline-event">
+            <div className="timeline-dot"></div>
+            <div className="timeline-content">
+              <div className="timeline-time">6:00 PM</div>
+              <h3 className="timeline-title">Reception Dinner</h3>
+              <p className="timeline-desc">
+                Dinner, speeches, and calm celebration with friends and family.
+              </p>
+            </div>
+          </div>
+          <div className="timeline-event">
+            <div className="timeline-dot"></div>
+            <div className="timeline-content">
+              <div className="timeline-time">8:00 PM</div>
+              <h3 className="timeline-title">Dancing & Cake</h3>
+              <p className="timeline-desc">
+                Put on your dancing shoes and get ready to party till midnight!
+              </p>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

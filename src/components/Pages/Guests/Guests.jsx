@@ -35,6 +35,7 @@ const Guests = () => {
     guestName: "",
   });
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sideFilter, setSideFilter] = useState("all");
   const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
   const { canEdit, canDelete } = useAuth();
@@ -165,7 +166,10 @@ const Guests = () => {
     const matchesCategory =
       categoryFilter === "all" || guest.category === categoryFilter;
 
-    return matchesSearch && matchesCategory;
+    const matchesSide =
+      sideFilter === "all" || guest.side === sideFilter;
+
+    return matchesSearch && matchesCategory && matchesSide;
   });
 
   // Calculate totals for the selected event
@@ -389,7 +393,20 @@ const Guests = () => {
 
           {/* Filter Controls */}
           <div className="filter-controls">
-            <div className="category-filter">
+            <div className="filter-group">
+              <label>Side:</label>
+              <select
+                value={sideFilter}
+                onChange={(e) => setSideFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Sides</option>
+                <option value="bride">Bride's Side</option>
+                <option value="groom">Groom's Side</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
               <label>Category:</label>
               <select
                 value={categoryFilter}
@@ -397,8 +414,10 @@ const Guests = () => {
                 className="filter-select"
               >
                 <option value="all">All Categories</option>
-                <option value="bride">Bride's Side</option>
-                <option value="groom">Groom's Side</option>
+                <option value="Family">Family</option>
+                <option value="Friend">Friend</option>
+                <option value="Colleague">Colleague</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
@@ -454,6 +473,7 @@ const Guests = () => {
                   <th>Name</th>
                   <th>Phone</th>
                   <th>Location</th>
+                  <th>Side</th>
                   <th>Category</th>
                   <th>Invitation Status</th>
                   <th>RSVP Status</th>
@@ -479,10 +499,13 @@ const Guests = () => {
                           .join(", ") || "-"}
                       </td>
                       <td>
-                        <span className={`category-badge ${guest.category}`}>
-                          {guest.category === "bride"
-                            ? "Bride's Side"
-                            : "Groom's Side"}
+                        <span className={`side-badge ${guest.side}`}>
+                          {guest.side === "bride" ? "Bride" : "Groom"}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="category-text">
+                          {guest.category}
                         </span>
                       </td>
                       <td>
