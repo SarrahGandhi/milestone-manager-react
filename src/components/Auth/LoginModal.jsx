@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AuthService from "../../services/authService";
 import "./LoginModal.css";
 
 const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [formData, setFormData] = useState({
-    identifier: "",
+    email: "", // Changed from identifier to email
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -50,34 +50,20 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       console.error("Login error:", error);
 
       // More specific error handling
-      if (error.message.includes("Invalid email/username or password")) {
+      if (
+        error.message.includes("Invalid login credentials") ||
+        error.message.includes("Invalid email/username or password")
+      ) {
         setError(
-          "The email/username or password you entered is incorrect. Please check your credentials and try again."
-        );
-      } else if (error.message.includes("User not found")) {
-        setError(
-          "No account found with this email/username. Please check your email/username or sign up for a new account."
-        );
-      } else if (error.message.includes("Invalid password")) {
-        setError("The password you entered is incorrect. Please try again.");
-      } else if (error.message.includes("Account not verified")) {
-        setError(
-          "Please verify your account before logging in. Check your email for verification instructions."
-        );
-      } else if (error.message.includes("Account suspended")) {
-        setError(
-          "Your account has been suspended. Please contact support for assistance."
+          "The email or password you entered is incorrect. Please check your credentials and try again.",
         );
       } else if (
         error.message.includes("Network") ||
-        error.message.includes("fetch")
+        error.message.includes("fetch") ||
+        error.message.includes("Failed to fetch")
       ) {
         setError(
-          "Connection error. Please check your internet connection and try again."
-        );
-      } else if (error.message.includes("Server error")) {
-        setError(
-          "Server temporarily unavailable. Please try again in a few minutes."
+          "Connection error. Please check your internet connection and try again.",
         );
       } else {
         setError(error.message || "Login failed. Please try again.");
@@ -107,41 +93,40 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
     try {
       const { confirmPassword, ...registrationData } = registerData;
       const response = await AuthService.register(registrationData);
-      onLogin(response.user);
-      onClose();
-      resetForm();
+
+      // If auto-login worked
+      if (response.user) {
+        onLogin(response.user);
+        onClose();
+        resetForm();
+      } else {
+        // If email confirmation is required
+        setError("Please check your email to confirm your account.");
+      }
     } catch (error) {
       console.error("Registration error:", error);
 
-      // More specific error handling for registration
       if (
-        error.message.includes(
-          "User with this email or username already exists"
-        )
+        error.message.includes("User already registered") ||
+        error.message.includes("exists")
       ) {
         setError(
-          "An account with this email or username already exists. Please try logging in or use a different email/username."
-        );
-      } else if (error.message.includes("Username is already taken")) {
-        setError(
-          "This username is already taken. Please choose a different username."
-        );
-      } else if (error.message.includes("Invalid email")) {
-        setError("Please enter a valid email address.");
-      } else if (error.message.includes("Password")) {
-        setError(
-          "Password must be at least 6 characters long and contain both letters and numbers."
+          "An account with this email already exists. Please try logging in or use a different email.",
         );
       } else if (
+        error.message.includes("Invalid email") ||
+        error.message.includes("valid email")
+      ) {
+        setError("Please enter a valid email address.");
+      } else if (error.message.includes("Password")) {
+        setError("Password must be at least 6 characters long.");
+      } else if (
         error.message.includes("Network") ||
-        error.message.includes("fetch")
+        error.message.includes("fetch") ||
+        error.message.includes("Failed to fetch")
       ) {
         setError(
-          "Connection error. Please check your internet connection and try again."
-        );
-      } else if (error.message.includes("Server error")) {
-        setError(
-          "Server temporarily unavailable. Please try again in a few minutes."
+          "Connection error. Please check your internet connection and try again.",
         );
       } else {
         setError(error.message || "Registration failed. Please try again.");
@@ -152,7 +137,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   };
 
   const resetForm = () => {
-    setFormData({ identifier: "", password: "" });
+    setFormData({ email: "", password: "" }); // Reset email instead of identifier
     setRegisterData({
       firstName: "",
       lastName: "",
@@ -197,10 +182,10 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             <form onSubmit={handleLogin} className="auth-form">
               <div className="form-group">
                 <input
-                  type="text"
-                  name="identifier"
+                  type="email"
+                  name="email"
                   placeholder="Email address"
-                  value={formData.identifier}
+                  value={formData.email}
                   onChange={handleChange}
                   required
                   disabled={loading}

@@ -35,7 +35,9 @@
   width: 100% !important;
   max-width: 400px !important;
   max-height: 90vh !important;
-  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
   animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   border: 1px solid #d4c4a8 !important;
@@ -68,6 +70,7 @@ div.login-modal .modal-header.auth-modal-header,
   position: relative !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
+  flex-shrink: 0 !important;
 }
 
 .modal-header {
@@ -148,7 +151,8 @@ div.login-modal .close-button.auth-close-button,
   padding: 30px 30px 40px 30px;
   background: #ffffff;
   max-width: 100%;
-
+  overflow-y: auto;
+  flex: 1;
   z-index: 2;
 }
 
@@ -469,7 +473,12 @@ div.auth-modal-container.login-modal {
   background: #ffffff !important;
   border-radius: 12px !important;
   border: 1px solid #d4c4a8 !important;
+  width: 100% !important;
   max-width: 400px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   margin: auto !important;
 }
 
@@ -481,6 +490,7 @@ div.auth-modal-container.login-modal .auth-modal-header.modal-header {
   padding: 30px 30px 0 30px !important;
   border-radius: 12px 12px 0 0 !important;
   position: relative !important;
+  flex-shrink: 0 !important;
 }
 
 /* Header Title */
@@ -517,11 +527,14 @@ div.auth-modal-container.login-modal .auth-close-button.close-button {
 /* Modal Content */
 div.auth-modal-container.login-modal .modal-content {
   padding: 30px 30px 40px 30px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
 }
 
 /* Form Inputs */
 div.auth-modal-container.login-modal .form-group input,
-div.auth-modal-container.login-modal .form-row input {
+div.auth-modal-container.login-modal .form-row input,
+div.auth-modal-container.login-modal .form-group select {
   padding: 16px 18px !important;
   border: 2px solid #d4c4a8 !important;
   border-radius: 8px !important;
@@ -529,6 +542,8 @@ div.auth-modal-container.login-modal .form-row input {
   background: #ffffff !important;
   color: #6b5b47 !important;
   font-family: "Poppins", sans-serif !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Submit Button */

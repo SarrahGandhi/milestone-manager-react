@@ -14,7 +14,7 @@ class TaskService {
       if (response.status === 401) {
         // Unauthorized - redirect to login
         AuthService.removeToken();
-        window.location.href = "/login";
+        window.location.href = "/";
         return;
       }
 
