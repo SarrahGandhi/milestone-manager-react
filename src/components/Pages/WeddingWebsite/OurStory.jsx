@@ -1,110 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "./WeddingWebsite.css"; // Reuse existing styles
-
+import react from "react";
+import { NavLink } from "react-router-dom";
+import "./WeddingWebsite.css";
 const OurStory = () => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 50) {
-                setScrolled(true);
-            } else {
-                setScrolled(false);
-            }
-        };
-
-        window.addEventListener("scroll", handleScroll);
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, []);
-
-    const handleNavigation = (sectionId) => {
-        // If navigating to a section on the home page
-        if (sectionId === "home") {
-            navigate("/");
-        } else if (sectionId === "timeline" || sectionId === "rsvp") {
-            // Navigate to home and then scroll
-            navigate("/", { state: { scrollTo: sectionId } });
-            // Note: We'll need to handle the state in WeddingWebsite.jsx
-        } else {
-            setIsMenuOpen(false);
-        }
-    };
-
     return (
         <div className="wedding-website">
-            {/* Navigation Bar */}
-            <nav className={`wedding-navbar ${scrolled ? "scrolled" : ""}`}>
-                <div className="nav-logo" onClick={() => handleNavigation("home")}>
-                    S&M
+
+            <nav className="wedding-navbar">
+
+                <div className="nav-logo">
+                    <img src="smlogo.png" alt="S&M" />
+
                 </div>
-                <button
-                    className="mobile-menu-btn"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                    <i className={`fas ${isMenuOpen ? "fa-times" : "fa-bars"}`}></i>
-                </button>
-                <ul className={`nav-links ${isMenuOpen ? "open" : ""}`}>
-                    <li>
-                        <Link to="/" className="nav-link">
-                            Home
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/our-story" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                            Our Story
-                        </Link>
-                    </li>
-                    <li>
-                        <a className="nav-link" onClick={() => handleNavigation("timeline")}>
-                            Event Timeline
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            className="nav-link"
-                            onClick={() => handleNavigation("rsvp")}
-                            style={{ color: "#9c8164", fontWeight: "bold" }}
-                        >
-                            Find Your Invitation
-                        </a>
-                    </li>
+                <ul className="nav-links">
+                    <li><NavLink to="/">Home</NavLink></li>
+                    <li><NavLink to="/our-story">Our Story</NavLink></li>
+                    <li><NavLink to="/invite">Find Your Invitation</NavLink></li>
                 </ul>
             </nav>
+            <div className="our-story">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-            {/* Hero-like header for Our Story */}
-            <div className="hero-section" style={{ height: "50vh", minHeight: "400px" }}>
-                <h1>Our Journey</h1>
-                <p className="tagline">From the beginning to forever</p>
-            </div>
-
-            {/* Our Story Content */}
-            <div className="our-story-section">
-                <div className="story-content">
-                    <p className="story-text">
-                        Every love story is beautiful, but ours is our favorite. It all began
-                        with a chance meeting that turned into a lifetime of memories. From
-                        shared laughter to supporting each other's dreams, our journey has been
-                        filled with love, growth, and endless adventures.
-                    </p>
-                    <p className="story-text">
-                        We are so excited to start this next chapter of our lives together
-                        and can't wait to celebrate our special day with all of our favorite
-                        people!
-                    </p>
-                    <img
-                        src="https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                        alt="Couple"
-                        className="story-image"
-                    />
-                </div>
+                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
             </div>
         </div>
-    );
-};
-
+    )
+}
 export default OurStory;

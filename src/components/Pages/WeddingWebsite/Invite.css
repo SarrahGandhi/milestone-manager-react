@@ -1,0 +1,267 @@
+.invite {
+    max-width: 100vw;
+    color: black;
+
+}
+
+.wedding-navbar {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-logo {
+    width: 100vw;
+    background: #B0C5D1;
+    justify-content: center;
+    display: flex;
+}
+
+.nav-logo img {
+    max-height: 40px;
+    margin: 15px;
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 50px;
+    padding: 30px 0 20px 0;
+
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    font-weight: bold;
+}
+
+.invite-page {
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(70deg, #F1E9E0 0%, #FFF 114.98%);
+    min-height: 100vh;
+    align-items: center;
+
+}
+
+.invite-content {
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border-radius: 36px;
+    background: #F6EDE1;
+    box-shadow: 0 0 0 3px #DCCCBA;
+    margin: auto;
+    padding: 20px 80px;
+
+}
+
+.invite-content h2 {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.invite-content p {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.invite-content input {
+    border: 1px solid #000;
+    background: #FFF;
+    padding: 10px;
+}
+
+.invite-content button {
+    border-radius: 28px;
+    background: #6F9EAF;
+    border: none;
+    color: #FFF;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    padding: 10px;
+}
+
+.invite-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.wedding-footer img {
+    max-width: 60px;
+    margin-bottom: 20px
+}
+
+.guest-lookup-container {
+    display: flex;
+    flex-direction: column;
+    border-radius: 36px;
+    border: 0.5px solid #D2C7B9;
+    background: #F6EDE1;
+    box-shadow: 0 0 0 4px #DCCCBA;
+    padding: 20px 80px;
+    margin: auto;
+}
+
+.guest-lookup-container h2 {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.guest-lookup-container p {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    padding: 20px;
+}
+
+.guest-lookup-container button {
+    border-radius: 7px;
+    background: #DCCCBA;
+}
+
+.guest-lookup-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+
+
+}
+
+.guest-lookup-container button {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    font-family: Montserrat;
+    border-radius: 7px;
+    background: #DCCCBA;
+    border: none;
+
+}
+
+.guest-lookup-container h3 {
+    font-size: 16px;
+}
+
+.guest-lookup-container p {
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.new-search {
+    display: flex;
+    justify-content: center;
+}
+
+.new-search button {
+    border-radius: 28px;
+    background: #6F9EAF;
+    color: white;
+    font-weight: 700;
+    padding: 10px 20px;
+    font-size: 12px;
+
+}
+
+footer {
+    margin-top: 40px;
+}
+
+.event-rsvp-details {
+    display: flex;
+    flex-direction: column;
+    border-radius: 7px;
+    background: #DCCCBA;
+    min-width: 80%;
+    padding: 20px;
+    gap: 2px;
+    align-items: flex-start;
+
+}
+
+.guest-rsvp {
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    gap: 30px;
+}
+
+.guest-rsvp-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.guest-rsvp-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.event-rsvp-details button {
+    border-radius: 28px;
+    border: 2px solid #6F9EAF;
+    background: #FFF;
+    padding: 5px 20px;
+    font-size: 12px;
+
+
+
+}
+
+.event-rsvp-details button:active {
+    border-radius: 28px;
+    background: #6F9EAF;
+}
+
+
+
+.event-rsvp-details button.accepted {
+    background: #6F9EAF;
+    color: white;
+}
+
+.event-rsvp-details button.declined {
+    background: #6F9EAF;
+    /* Or another shade of red you prefer! */
+    color: white;
+
+}
