@@ -8,9 +8,9 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
+import Invite from "./components/Pages/WeddingWebsite/Invite";
 import Home from "./components/Home/Home";
 import Footer from "./components/Footer/Footer";
-import Walkthrough from "./components/Walkthrough/Walkthrough";
 import Events from "./components/Pages/Events/Events";
 import EventDetails from "./components/Pages/Events/EventDetails";
 import TaskManager from "./components/Pages/TaskManager";
@@ -18,11 +18,9 @@ import Guests from "./components/Pages/Guests";
 import RSVPManager from "./components/Pages/RSVPManager";
 import Budget from "./components/Pages/Budget/Budget";
 import Admins from "./components/Pages/Admins/Admins";
-import DailyMenu from "./components/Pages/DailyMenu/DailyMenu";
 import DailyMenuDates from "./components/Pages/DailyMenu/DailyMenuDates";
 import DailyMenuDetails from "./components/Pages/DailyMenu/DailyMenuDetails";
 import Vendors from "./components/Pages/Vendors/Vendors";
-
 import WeddingWebsite from "./components/Pages/WeddingWebsite/WeddingWebsite";
 import OurStory from "./components/Pages/WeddingWebsite/OurStory";
 import GuestLookupPlayground from "./components/Pages/WeddingWebsite/GuestLookupPlayground";
@@ -92,7 +90,7 @@ const ConditionalHeader = () => {
   const location = useLocation();
 
   // Hide header on wedding website page and our story page
-  if (location.pathname === "/" || location.pathname === "/our-story") {
+  if (location.pathname === "/" || location.pathname === "/our-story" || location.pathname === "/invite") {
     return null;
   }
 
@@ -120,6 +118,15 @@ function App() {
               <>
                 <OurStory />
 
+
+              </>
+            }
+          />
+          <Route
+            path="/invite"
+            element={
+              <>
+                <Invite />
               </>
             }
           />
@@ -193,7 +200,7 @@ function App() {
             path="/daily-menu/dates"
             element={
               <ProtectedRoute>
-                <DailyMenuDates />
+                {/* <DailyMenuDates /> */}
                 <Footer />
               </ProtectedRoute>
             }
@@ -228,7 +235,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
+    </AuthProvider >
   );
 }
 
