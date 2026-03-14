@@ -2,7 +2,7 @@
 // React lets us build UI components
 // useState lets us store data that can change (like input values, loading state, etc)
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 // Import CSS file for styling
 import "./Invite.css";
 
@@ -304,13 +304,18 @@ const GuestLookupPage = () => {
 
     // React state variables
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentView = searchParams.get('view') || 'search';
+    const currentEventIndex = parseInt(searchParams.get('event') || '0', 10);
+
     const [name, setName] = useState(""); // user input
     const [error, setError] = useState(""); // error message
     const [loading, setLoading] = useState(false); // loading spinner state
     const [searchResults, setSearchResults] = useState([]); // families found
-    const [showResults, setShowResults] = useState(false); // show result selection
     const [guestContext, setGuestContext] = useState(null); // final selected guest data
 
+    const [wantsEmail, setWantsEmail] = useState(false);
+    const [emailInput, setEmailInput] = useState("");
 
 
     // Function to update RSVP status in the database and UI
@@ -360,7 +365,7 @@ const GuestLookupPage = () => {
         setError("");
         setLoading(true);
         setSearchResults([]);
-        setShowResults(false);
+        setSearchParams({}); // Ensure clean URL parameters
 
         try {
 
@@ -407,6 +412,7 @@ const GuestLookupPage = () => {
             if (guests.length === 1) {
                 const context = await fetchFamilyContext(guests[0]);
                 setGuestContext(context);
+                setSearchParams({ view: 'events', event: 0 });
                 return;
             }
 
@@ -419,12 +425,13 @@ const GuestLookupPage = () => {
                     familyResults[0].representativeGuest
                 );
                 setGuestContext(context);
+                setSearchParams({ view: 'events', event: 0 });
                 return;
             }
 
             // Show family selection
             setSearchResults(familyResults);
-            setShowResults(true);
+            setSearchParams({ view: 'results' });
 
         } catch (err) {
 
@@ -455,8 +462,8 @@ const GuestLookupPage = () => {
 
             setGuestContext(context);
 
-            setSearchResults([]);
-            setShowResults(false);
+            // Use URL state to move to events view
+            setSearchParams({ view: 'events', event: 0 });
 
         } catch (err) {
 
@@ -480,25 +487,60 @@ const GuestLookupPage = () => {
         setError("");
         setName("");
         setSearchResults([]);
-        setShowResults(false);
+        setSearchParams({});
     };
 
     // Start new search
     const handleNewSearch = () => {
         setError("");
         setSearchResults([]);
-        setShowResults(false);
+        setSearchParams({});
     };
 
     // Clear selected guest and return to search
     const handleClearSelection = () => {
         setGuestContext(null);
         setSearchResults([]);
-        setShowResults(false);
         setError("");
+        setSearchParams({});
     };
 
 
+
+    const handleFinalizeRsvp = async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            if (wantsEmail && emailInput) {
+                // Update email in the database if user wants an email confirmation and belongs to a family
+                if (guestContext.family_id) {
+                    const { error: updateError } = await supabase
+                        .from('guest_families')
+                        .update({ email: [emailInput] })
+                        .eq('id', guestContext.family_id);
+
+                    if (updateError) {
+                        console.error("Error updating email:", updateError);
+                    }
+                }
+
+                // TODO: Trigger email service here
+            }
+
+            setSearchParams({ view: 'success' });
+        } catch (err) {
+            console.error("Error finalizing RSVP:", err);
+            setError("Something went wrong finalizing your RSVP.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const isShowingEvents = currentView === 'events' && guestContext && guestContext.events.length > currentEventIndex;
+    const isShowingResults = currentView === 'results' && searchResults.length > 0;
+    const isShowingEmailConfirmation = currentView === 'emailConfirmation';
+    const isShowingSuccess = currentView === 'success';
 
     return (
         <div className="invite-page">
@@ -514,7 +556,7 @@ const GuestLookupPage = () => {
             </nav>
 
             {/* If a guest is selected, show invitation data */}
-            {guestContext ? (
+            {isShowingEvents ? (
                 <div className="guest-lookup-container">
                     {/* <button onClick={handleClearSelection}>
                         Clear Selection
@@ -533,16 +575,14 @@ const GuestLookupPage = () => {
                         </div>
                     ))} */}
 
-                    <h2>Events</h2>
-
-                    {guestContext.events.map((event) => (
-                        <div className="event-rsvp-details" key={event.id}>
-                            <h3>{event.name}</h3>
-                            <p>{event.date}</p>
-                            <p>{event.time}</p>
-                            <p>{event.location}</p>
+                    {guestContext.events.length > 0 && (
+                        <div className="event-rsvp-details" key={guestContext.events[currentEventIndex].id}>
+                            <h3>{guestContext.events[currentEventIndex].name}</h3>
+                            <p>{new Date(guestContext.events[currentEventIndex].date).toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+                            <p>{guestContext.events[currentEventIndex].time}</p>
+                            <p>{guestContext.events[currentEventIndex].location}</p>
                             <div className="guest-rsvp">
-                                {event.invitedGuests.map((guest) => (
+                                {guestContext.events[currentEventIndex].invitedGuests.map((guest) => (
                                     <div className="guest-rsvp-row" key={guest.rsvp_row_id}>
                                         <span>{guest.guest_name}</span>
                                         <div className="guest-rsvp-buttons">
@@ -564,13 +604,81 @@ const GuestLookupPage = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            <div className="event-navigation-buttons" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', width: '100%' }}>
+
+
+
+                            </div>
+                            <button className="continue-button"
+                                onClick={() => {
+                                    if (currentEventIndex === guestContext.events.length - 1) {
+                                        setSearchParams({ view: 'emailConfirmation' });
+                                        if (guestContext.email) {
+                                            setEmailInput(guestContext.email);
+                                        }
+                                    } else {
+                                        setSearchParams({ view: 'events', event: currentEventIndex + 1 });
+                                    }
+                                }}
+                            >
+                                {currentEventIndex === guestContext.events.length - 1 ? "Finish RSVP" : "Continue"}
+                            </button>
                         </div>
-                    ))}
+                    )}
 
 
 
                 </div>
-            ) : showResults && searchResults.length > 0 ? (
+            ) : isShowingEmailConfirmation ? (
+                <div className="guest-lookup-container email-confirmation-container">
+                    <h2>Confirmation</h2>
+                    <p>Thank you for submitting your RSVP!</p>
+
+                    <div className="email-confirmation-section" style={{ marginTop: '20px', marginBottom: '20px', textAlign: 'left' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={wantsEmail}
+                                onChange={(e) => setWantsEmail(e.target.checked)}
+                            />
+                            I would like to receive an email confirmation
+                        </label>
+
+                        {wantsEmail && (
+                            <div style={{ marginTop: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px' }}>Email Address:</label>
+                                <input
+                                    type="email"
+                                    value={emailInput}
+                                    onChange={(e) => setEmailInput(e.target.value)}
+                                    placeholder="Enter your email"
+                                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                                    required={wantsEmail}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <button
+                        className="continue-button"
+                        onClick={handleFinalizeRsvp}
+                        disabled={loading || (wantsEmail && !emailInput)}
+                    >
+                        {loading ? "Completing..." : "Complete RSVP"}
+                    </button>
+                    {error && <p className="error-message" style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+                </div>
+            ) : isShowingSuccess ? (
+                <div className="guest-lookup-container">
+                    <h2>You're All Set!</h2>
+                    <p>We've received your RSVP. We can't wait to see you!</p>
+                    {wantsEmail && emailInput && <p>A confirmation email will be sent to {emailInput}.</p>}
+                    <button className="continue-button" onClick={handleNewSearch} style={{ marginTop: '20px' }}>
+                        Find Another Family
+                    </button>
+                </div>
+            ) : isShowingResults ? (
                 /* If multiple families matched */
                 <div className="guest-lookup-container">
                     <h2>Multipe Families Found</h2>
@@ -592,6 +700,7 @@ const GuestLookupPage = () => {
                     ))}
                     <div className="new-search">
                         <button onClick={handleNewSearch}>Search Again</button></div>
+
                 </div>
             ) : (
                 /* Default search UI */

@@ -58,8 +58,7 @@
     align-items: center;
     gap: 20px;
     border-radius: 36px;
-    background: #F6EDE1;
-    box-shadow: 0 0 0 3px #DCCCBA;
+
     margin: auto;
     padding: 20px 80px;
 
@@ -92,7 +91,6 @@
 }
 
 .invite-content button {
-    border-radius: 28px;
     background: #6F9EAF;
     border: none;
     color: #FFF;
@@ -120,12 +118,9 @@
 .guest-lookup-container {
     display: flex;
     flex-direction: column;
-    border-radius: 36px;
-    border: 0.5px solid #D2C7B9;
-    background: #F6EDE1;
-    box-shadow: 0 0 0 4px #DCCCBA;
-    padding: 20px 80px;
+    padding: 20px 60px;
     margin: auto;
+    width: 60%;
 }
 
 .guest-lookup-container h2 {
@@ -158,7 +153,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-
+    padding: 10px 20px;
 
 
 }
@@ -167,12 +162,15 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 20px;
     font-family: Montserrat;
-    border-radius: 7px;
+    padding: 20px 5px;
     background: #DCCCBA;
     border: none;
 
+}
+
+.guest-lookup-container button:hover {
+    background: rgb(170, 146, 121);
 }
 
 .guest-lookup-container h3 {
@@ -192,12 +190,12 @@
 }
 
 .new-search button {
-    border-radius: 28px;
     background: #6F9EAF;
     color: white;
     font-weight: 700;
     padding: 10px 20px;
-    font-size: 12px;
+    font-size: 16px;
+    flex: 1;
 
 }
 
@@ -209,49 +207,83 @@ footer {
     display: flex;
     flex-direction: column;
     border-radius: 7px;
-    background: #DCCCBA;
-    min-width: 80%;
+
     padding: 20px;
-    gap: 2px;
-    align-items: flex-start;
+    gap: 8px;
+    align-items: center;
 
 }
+
+.event-rsvp-details h3 {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.event-rsvp-details p {
+    color: #000;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+
 
 .guest-rsvp {
     display: flex;
     flex-direction: column;
     padding-top: 20px;
     gap: 30px;
+
+
+    border-radius: 7px;
+    /* background: #DCCCBA; */
+
 }
 
 .guest-rsvp-row {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 100px;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .guest-rsvp-buttons {
     display: flex;
     flex-direction: row;
     gap: 10px;
+
+
 }
 
 .event-rsvp-details button {
-    border-radius: 28px;
+
     border: 2px solid #6F9EAF;
     background: #FFF;
-    padding: 5px 20px;
-    font-size: 12px;
+    font-size: 16px;
+    padding: 10px 70px;
+    border-radius: 2px;
+    margin: 10px;
 
 
 
 }
 
 .event-rsvp-details button:active {
-    border-radius: 28px;
     background: #6F9EAF;
 }
 
+.event-rsvp-details button:hover {
+    background: #6F9EAF;
+}
 
 
 .event-rsvp-details button.accepted {
@@ -263,5 +295,14 @@ footer {
     background: #6F9EAF;
     /* Or another shade of red you prefer! */
     color: white;
+
+}
+
+.continue-button {
+    border-radius: 28px;
+    background: #6F9EAF;
+    font-weight: 700;
+    width: 100%;
+    padding: 100px;
 
 }
