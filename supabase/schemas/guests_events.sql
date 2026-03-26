@@ -50,6 +50,13 @@ create policy "Anon can view guest families"
     to anon
     using (true);
 
+create policy "Anon can update guest family email"
+    on "guest_families"
+    for update
+    to anon
+    using (true)
+    with check (true);
+
 create policy "Anon can view guests"
     on "guests"
     for select
@@ -180,7 +187,7 @@ create policy "Authenticated can delete event guest RSVP"
     using (true);
 
 -- Table privileges:
--- anon can read all tables and only update event_guests_rsvp.rsvp_status
+-- anon can read all tables and only update guest_families.email and event_guests_rsvp.rsvp_status
 -- authenticated can perform full CRUD on all tables
 revoke insert, update, delete on table "guest_families" from anon;
 revoke insert, update, delete on table "guests" from anon;
@@ -188,6 +195,7 @@ revoke insert, update, delete on table "events" from anon;
 revoke insert, update, delete on table "event_guests_rsvp" from anon;
 
 grant select on table "guest_families" to anon;
+grant update (email) on table "guest_families" to anon;
 grant select on table "guests" to anon;
 grant select on table "events" to anon;
 grant select on table "event_guests_rsvp" to anon;
@@ -197,3 +205,22 @@ grant select, insert, update, delete on table "guest_families" to authenticated;
 grant select, insert, update, delete on table "guests" to authenticated;
 grant select, insert, update, delete on table "events" to authenticated;
 grant select, insert, update, delete on table "event_guests_rsvp" to authenticated;
+
+-- Appends an email to a family's email list (skips duplicates).
+-- Uses security definer so anon does not need direct UPDATE on the table
+-- beyond the column-level grant already in place.
+create or replace function public.append_family_email(family_row_id int, new_email text)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update public.guest_families
+  set email = array_append(email, new_email)
+  where id = family_row_id
+    and not (email @> array[new_email]);
+end;
+$$;
+
+grant execute on function public.append_family_email(int, text) to anon;
+grant execute on function public.append_family_email(int, text) to authenticated;
