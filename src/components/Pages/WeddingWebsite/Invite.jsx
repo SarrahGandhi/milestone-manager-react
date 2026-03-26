@@ -73,8 +73,6 @@ const buildFamilySearchResults = async (matchedGuests) => {
         family_id,
         guest_families (
           id,
-          email,
-          phone,
           side
         )
       `,
@@ -220,7 +218,6 @@ const buildFamilyContext = (selectedGuest, familyGuests) => {
     name: selectedGuest.name,
     category: selectedGuest.category,
     family_id: selectedGuest.family_id,
-    email: family?.email?.[0] || "",
 
     selectedGuest: {
       id: selectedGuest.id,
@@ -244,8 +241,6 @@ const fetchFamilyContext = async (selectedGuest) => {
     family_id,
     guest_families (
       id,
-      email,
-      phone,
       side
     ),
     event_guests_rsvp (
@@ -364,8 +359,6 @@ const GuestLookupPage = () => {
           family_id,
           guest_families (
             id,
-            email,
-            phone,
             side
           )
         `,
@@ -629,9 +622,6 @@ const GuestLookupPage = () => {
                 onClick={() => {
                   if (currentEventIndex === guestContext.events.length - 1) {
                     setSearchParams({ view: "emailConfirmation" });
-                    if (guestContext.email) {
-                      setEmailInput(guestContext.email);
-                    }
                   } else {
                     setSearchParams({
                       view: "events",

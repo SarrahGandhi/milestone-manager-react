@@ -1,5 +1,5 @@
 # 2026-03-26
-Updated database so that a person can update their email in the families table
+Updated database so that a person can update their email in the families table. Update db to restrict getting the email and phone number so that we dont expose other peoples emails to the public
 - Run
 ```
 npx supabase start
@@ -18,3 +18,4 @@ npx supabase functions serve --env-file supabase/.env.local
 ```
 `supabase.functions.invoke("send-email",...` in src/components/Pages/WeddingWebsite/Invite.jsx
 ```
+
